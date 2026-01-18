@@ -207,10 +207,10 @@
     </footer>
 
     <script type="module">
-        // Importamos getApp para verificar se nossa instância nomeada já existe
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; 
+        // ADICIONEI "?v=final" PARA OBRIGAR O NAVEGADOR A LIMPAR O CACHE
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js?v=final";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js?v=final";
+        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js?v=final"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
@@ -221,19 +221,18 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // --- SOLUÇÃO DO NOME EXCLUSIVO (A "BALA DE PRATA") ---
-        // Ao dar um nome ("ProSollarApp"), evitamos o conflito com o [DEFAULT] travado
-        const appName = "ProSollarApp";
+        // --- LÓGICA SIMPLIFICADA E SEGURA ---
         let app;
-
-        try {
-            // Tenta pegar o NOSSO app específico
-            app = getApp(appName);
-            console.log("✅ App 'ProSollarApp' recuperado.");
-        } catch (e) {
-            // Se não existir, cria ele com o nome específico
-            app = initializeApp(firebaseConfig, appName);
-            console.log("🔥 App 'ProSollarApp' criado.");
+        
+        // 1. Pergunta: Existe QUALQUER app rodando?
+        if (getApps().length > 0) {
+            // Se sim, pega o primeiro que encontrar (o [DEFAULT] que está dando erro)
+            app = getApps()[0]; 
+            console.log("♻️ Usando Firebase existente (Cache recuperado).");
+        } else {
+            // Se não, cria um novo
+            app = initializeApp(firebaseConfig);
+            console.log("🔥 Novo Firebase iniciado.");
         }
 
         const db = getFirestore(app);
@@ -243,7 +242,6 @@
         const btn = document.getElementById('btnGerar');
         
         if(btn) {
-            // Removemos listeners antigos
             const novoBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(novoBtn, btn);
 
@@ -251,7 +249,7 @@
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
                 
-                // Tratamento de Inputs com segurança
+                // Tratamento de segurança para os inputs
                 const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
                 
                 const email = getVal('email');
@@ -262,7 +260,6 @@
                 const lng = getVal('lng');
                 const idLead = whatsappInput.replace(/\D/g, "");
 
-                // Validações
                 if(!email || !whatsappInput || !endereco || !consumo) {
                     alert("Por favor, preencha todos os campos.");
                     return;
@@ -285,7 +282,6 @@
                         handleCodeInApp: true
                     };
 
-                    // Salva no Firestore
                     await setDoc(docRef, {
                         email, whatsapp: idLead, whatsapp_formatted: whatsappInput,
                         endereco, consumo: parseFloat(consumo),
@@ -295,9 +291,6 @@
                         origem: "landing_page"
                     }, { merge: true });
 
-                    console.log("Salvo. Enviando e-mail...");
-
-                    // Envia Link Mágico
                     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
                     
                     window.localStorage.setItem('emailForSignIn', email);
@@ -309,16 +302,12 @@
                     btnAtual.disabled = false;
                     
                     if (error.code === 'auth/unauthorized-domain') {
-                        alert("ERRO DE DOMÍNIO: Adicione seu domínio (localhost ou vercel) no Firebase Console > Authentication > Settings.");
-                    } else if (error.code === 'auth/quota-exceeded') {
-                         alert("Cota de e-mails excedida. Tente mais tarde.");
+                        alert("ERRO DE DOMÍNIO: Adicione este site no Firebase Console > Authentication > Settings.");
                     } else {
                         alert("Erro: " + error.message);
                     }
                 }
             });
-        } else {
-            console.error("ERRO CRÍTICO: Botão não encontrado.");
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
