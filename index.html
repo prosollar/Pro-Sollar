@@ -22,7 +22,6 @@
             color: white;
             min-height: 100vh;
             background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
-            overflow-x: hidden;
         }
 
         .glass-card {
@@ -56,10 +55,11 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center p-6">
+<body class="flex items-center justify-center p-6 md:p-12">
 
     <div class="max-w-xl w-full">
-        <header class="text-center mb-10">
+        
+        <header class="text-center mb-12">
             <div class="inline-flex items-center space-x-3 mb-6">
                 <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-2xl">
                     <i class="fas fa-solar-panel text-white text-2xl"></i>
@@ -69,36 +69,39 @@
                     <p class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-1">Engenharia de Performance</p>
                 </div>
             </div>
-            <h2 class="text-4xl font-black tracking-tight italic">Simule sua <br><span class="text-blue-500">Liberdade Energética.</span></h2>
+            <h2 class="text-4xl md:text-5xl font-black tracking-tight italic">Simule sua <br><span class="text-blue-500">Liberdade Energética.</span></h2>
         </header>
 
-        <div class="glass-card p-8 md:p-10">
-            <div class="space-y-6">
+        <div class="glass-card p-8 md:p-12 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[80px]"></div>
+            
+            <div class="space-y-6 relative z-10">
                 <div>
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-2 block">Endereço da Instalação</label>
-                    <input type="text" id="input-endereco" placeholder="Ex: Rua Camamu, 372" class="input-dark w-full p-5 rounded-2xl text-xs font-bold">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-3 block">Endereço da Instalação</label>
+                    <input type="text" id="input-endereco" placeholder="Rua Camamu, 372" class="input-dark w-full p-5 rounded-2xl text-xs font-bold tracking-wide">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-2 block">WhatsApp</label>
-                        <input type="text" id="input-whatsapp" placeholder="(11) 99999-9999" class="input-dark w-full p-5 rounded-2xl text-xs font-bold">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-3 block">WhatsApp</label>
+                        <input type="text" id="input-whatsapp" placeholder="(11) 99999-9999" class="input-dark w-full p-5 rounded-2xl text-xs font-bold tracking-wide">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-2 block">Gasto Mensal (R$)</label>
-                        <input type="number" id="input-consumo" placeholder="450" class="input-dark w-full p-5 rounded-2xl text-xs font-bold">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-3 block">Consumo Médio (R$)</label>
+                        <input type="number" id="input-consumo" placeholder="450" class="input-dark w-full p-5 rounded-2xl text-xs font-bold tracking-wide">
                     </div>
                 </div>
 
-                <button id="btn-gerar" onclick="gerarProposta()" class="btn-primary w-full py-6 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4">
-                    Gerar Proposta Inteligente <i class="fas fa-arrow-right text-xs"></i>
+                <button onclick="gerarProposta()" id="btn-main" class="btn-primary w-full py-6 rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 mt-4">
+                    Gerar Proposta <i class="fas fa-chevron-right text-[10px]"></i>
                 </button>
             </div>
         </div>
 
-        <footer class="text-center mt-10 opacity-30">
-            <p class="text-[9px] font-black uppercase tracking-[0.8em]">Pro-Sollar Engineering • 2026</p>
+        <footer class="mt-12 text-center opacity-20">
+            <p class="text-[9px] font-black uppercase tracking-[1em]">Pro-Sollar High Performance • 2026</p>
         </footer>
+
     </div>
 
     <script type="module">
@@ -121,17 +124,16 @@
             const consumo = document.getElementById('input-consumo').value;
 
             if (!endereco || !whatsapp) {
-                alert("Por favor, preencha o endereço e o WhatsApp.");
+                alert("Preencha os campos obrigatórios.");
                 return;
             }
 
-            const btn = document.getElementById('btn-gerar');
+            const btn = document.getElementById('btn-main');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> Processando Satélite...';
+            btn.innerHTML = '<i class="fas fa-sync animate-spin"></i> Processando...';
             btn.disabled = true;
 
             try {
-                // GRAVAÇÃO ASSÍNCRONA: Espera o Firebase confirmar antes de mudar de página
                 await setDoc(doc(db, "leads", whatsapp), {
                     endereco: endereco,
                     whatsapp: whatsapp,
@@ -141,12 +143,10 @@
                     data_criacao: new Date()
                 });
 
-                // REDIRECIONAMENTO COM ID NA URL PARA O PORTAL RECONHECER O CLIENTE
                 window.location.href = `panel.html?id=${whatsapp}`;
-
-            } catch (error) {
-                console.error("Erro ao salvar lead:", error);
-                alert("Ocorreu um erro técnico. Tente novamente.");
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao conectar.");
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
