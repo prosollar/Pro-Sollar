@@ -227,24 +227,31 @@
         <p class="text-[10px] font-bold tracking-[0.4em] uppercase">© 2026 Pro-Sollar • Powered by Google Solar API</p>
     </footer>
 
+    </footer>
+
     <script>
         window.initAutocomplete = function() {
             const input = document.getElementById('endereco');
             if (!input) return;
+            
             const autocomplete = new google.maps.places.Autocomplete(input, {
                 componentRestrictions: { country: "br" },
                 fields: ["geometry", "formatted_address"],
                 types: ["address"]
             });
+
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
                 if (place.geometry) {
                     document.getElementById('lat').value = place.geometry.location.lat();
                     document.getElementById('lng').value = place.geometry.location.lng();
+                    // Feedback visual de que o endereço foi "travado"
+                    input.style.borderColor = "#22c55e"; 
                 }
             });
         };
 
+        // Efeito de Reveal no Scroll
         const handleReveal = () => {
             document.querySelectorAll('.reveal').forEach(el => {
                 if(el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
@@ -256,7 +263,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
@@ -271,55 +278,73 @@
         const db = getFirestore(app);
 
         document.getElementById('simuladorForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = e.target.querySelector('button');
-    const originalHTML = btn.innerHTML;
-    
-    const whatsapp = document.getElementById('whatsapp').value;
-    const endereco = document.getElementById('endereco').value;
-    const consumo = document.getElementById('consumo').value;
-    const idLead = whatsapp.replace(/\D/g, ""); // Remove parênteses e traços
-
-    if(!whatsapp || !endereco) return alert("Preencha os campos obrigatórios.");
-
-    btn.innerHTML = '<i class="fas fa-sync animate-spin mr-2"></i> Processando...';
-
-    try {
-        const { getDoc, doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-        
-        // 1. Tenta buscar se o cliente já existe
-        const docRef = doc(db, "leads", idLead);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            // CLIENTE JÁ EXISTE: Reconhece e manda para o login do portal
-            console.log("Cliente reconhecido. Redirecionando para acesso.");
-            window.location.href = `/login?id=${idLead}&status=returning`;
-        } else {
-            // CLIENTE NOVO: Cria o registro e manda para o fluxo de checkout/proposta
-            await setDoc(docRef, {
-                whatsapp,
-                endereco,
-                consumo,
-                lat: document.getElementById('lat').value,
-                lng: document.getElementById('lng').value,
-                status: "novo_lead",
-                criado_em: serverTimestamp(),
-                valor_selecionado: 17575 // Valor padrão que você mencionou
-            });
+            e.preventDefault();
             
-            console.log("Novo lead criado.");
-            window.location.href = `/login?id=${idLead}&status=new`;
-        }
-    } catch (error) {
-        console.error("Erro no Firebase:", error);
-        btn.innerHTML = originalHTML;
-        alert("Erro ao conectar com a inteligência Pro-Sollar.");
-    }
-});
+            const btn = e.target.querySelector('button');
+            const originalHTML = btn.innerHTML;
+            
+            // Tratamento dos dados
+            const whatsappInput = document.getElementById('whatsapp').value;
+            const endereco = document.getElementById('endereco').value;
+            const consumo = document.getElementById('consumo').value;
+            const lat = document.getElementById('lat').value;
+            const lng = document.getElementById('lng').value;
+            
+            // Sanitização do ID (apenas números)
+            const idLead = whatsappInput.replace(/\D/g, "");
 
+            // Validações
+            if(!whatsappInput || !endereco || !consumo) {
+                alert("Por favor, preencha todos os campos.");
+                return;
+            }
+
+            if(!lat || !lng) {
+                alert("Por favor, selecione uma opção sugerida pelo Google Maps no campo de endereço.");
+                return;
+            }
+
+            // Loading state
+            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin mr-2"></i> Conectando Satélite...';
+            btn.disabled = true;
+
+            try {
+                const docRef = doc(db, "leads", idLead);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    // CLIENTE RETORNANDO -> Vai para Login
+                    console.log("Lead existente.");
+                    window.location.href = `login.html?id=${idLead}&status=returning`;
+                } else {
+                    // NOVO CLIENTE -> Salva e vai para Login (ou Checkout/Panel direto)
+                    await setDoc(docRef, {
+                        whatsapp: idLead, // Salvar limpo
+                        whatsapp_formatted: whatsappInput, // Salvar formatado visualmente
+                        endereco: endereco,
+                        consumo: parseFloat(consumo),
+                        lat: parseFloat(lat),
+                        lng: parseFloat(lng),
+                        status: "novo_lead",
+                        criado_em: serverTimestamp(),
+                        origem: "landing_page"
+                    });
+                    
+                    console.log("Novo lead criado.");
+                    // Redireciona para o login para ele confirmar dados ou ver proposta
+                    window.location.href = `login.html?id=${idLead}&status=new`;
+                }
+            } catch (error) {
+                console.error("Erro:", error);
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                alert("Erro de conexão. Tente novamente.");
+            }
+        });
     </script>
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
+</body>
+</html>
 </body>
 </html>
