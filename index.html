@@ -165,6 +165,38 @@
 
                     <button type="submit" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.3em] text-[11px] font-black flex items-center justify-center mt-2">
                         Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
+                        <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
+        authDomain: "pro-sollar-performance.firebaseapp.com",
+        projectId: "pro-sollar-performance",
+        appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.gerarProposta = async function() {
+        const endereco = document.getElementById('input-endereco').value;
+        const whatsapp = document.getElementById('input-whatsapp').value.replace(/\D/g, '');
+
+        if (!endereco || !whatsapp) return;
+
+        try {
+            await setDoc(doc(db, "leads", whatsapp), {
+                endereco: endereco,
+                whatsapp: whatsapp,
+                data_criacao: new Date()
+            });
+            // O segredo da fluidez: passa o ID para a próxima página reconhecer
+            window.location.href = `panel.html?id=${whatsapp}`;
+        } catch (e) { console.error(e); }
+    };
+</script>
+
                     </button>
                 </form>
             </div>
