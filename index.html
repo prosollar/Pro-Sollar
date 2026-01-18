@@ -235,7 +235,8 @@
     </script>
 
     <script type="module">
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // Importa as funções necessárias
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; 
 
@@ -248,31 +249,28 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // --- SOLUÇÃO DE FORÇA BRUTA PARA O ERRO DUPLICATE-APP ---
+        // --- LÓGICA BLINDADA ---
         let app;
-        try {
-            // Tenta inicializar
+        
+        // 1. Pergunta para o Firebase: "Quantos apps você tem rodando?"
+        if (getApps().length > 0) {
+            // 2. Se já tiver algum, PEGA ele. Não cria outro.
+            console.log("♻️ Usando instância existente do Firebase.");
+            app = getApp();
+        } else {
+            // 3. Se for zero, aí sim cria um novo.
+            console.log("🔥 Criando nova instância do Firebase.");
             app = initializeApp(firebaseConfig);
-            console.log("🔥 Firebase inicializado (Novo).");
-        } catch (error) {
-            // Se der erro de duplicidade, pega a instância que já existe
-            if (error.code === 'app/duplicate-app') {
-                app = getApp(); 
-                console.log("♻️ Firebase recuperado da memória (Existente).");
-            } else {
-                // Se for outro erro, mostra no console
-                console.error("Erro fatal:", error);
-                throw error;
-            }
         }
 
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // --- LÓGICA DO BOTÃO ---
+        // --- EVENTO DO BOTÃO ---
         const btn = document.getElementById('btnGerar');
+        
         if(btn) {
-            // Clone para limpar listeners antigos
+            // Clona o botão para remover qualquer evento antigo (clean slate)
             const novoBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(novoBtn, btn);
 
@@ -280,29 +278,40 @@
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
                 
-                // Inputs
-                const email = document.getElementById('email') ? document.getElementById('email').value : "";
-                const whatsappInput = document.getElementById('whatsapp').value;
-                const endereco = document.getElementById('endereco').value;
-                const consumo = document.getElementById('consumo').value;
-                const lat = document.getElementById('lat').value;
-                const lng = document.getElementById('lng').value;
+                // Pega os valores
+                const emailEl = document.getElementById('email');
+                const email = emailEl ? emailEl.value : "";
                 
-                // Limpeza do ID
+                const whatsappEl = document.getElementById('whatsapp');
+                const whatsappInput = whatsappEl ? whatsappEl.value : "";
+                
+                const enderecoEl = document.getElementById('endereco');
+                const endereco = enderecoEl ? enderecoEl.value : "";
+                
+                const consumoEl = document.getElementById('consumo');
+                const consumo = consumoEl ? consumoEl.value : "";
+                
+                const latEl = document.getElementById('lat');
+                const lat = latEl ? latEl.value : "";
+                
+                const lngEl = document.getElementById('lng');
+                const lng = lngEl ? lngEl.value : "";
+                
                 const idLead = whatsappInput.replace(/\D/g, "");
 
-                // Validações
+                // Debug rápido no console para ver se pegou os dados
+                console.log("Tentando enviar:", { email, idLead, endereco });
+
                 if(!email || !whatsappInput || !endereco || !consumo) {
                     alert("Por favor, preencha todos os campos.");
                     return;
                 }
                 
                 if(!lat || !lng) {
-                    alert("Por favor, selecione o endereço na lista que aparece ao digitar.");
+                    alert("Selecione um endereço válido da lista.");
                     return;
                 }
 
-                // Feedback Visual
                 btnAtual.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Enviando...';
                 btnAtual.disabled = true;
 
@@ -315,7 +324,6 @@
                         handleCodeInApp: true
                     };
 
-                    // Salva no Firestore
                     await setDoc(docRef, {
                         email: email,
                         whatsapp: idLead,
@@ -329,30 +337,22 @@
                         origem: "landing_page"
                     }, { merge: true });
 
-                    console.log("Dados salvos. Enviando e-mail...");
+                    console.log("Sucesso no Banco. Enviando Email...");
 
-                    // Envia Link Mágico
                     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
                     
                     window.localStorage.setItem('emailForSignIn', email);
-                    
-                    // Redireciona
                     window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
 
                 } catch (error) {
                     console.error("Erro no processo:", error);
                     btnAtual.innerHTML = originalHTML;
                     btnAtual.disabled = false;
-                    
-                    if (error.code === 'auth/unauthorized-domain') {
-                        alert("ERRO: Domínio não autorizado no Firebase. Adicione este site lá.");
-                    } else {
-                        alert("Ocorreu um erro: " + error.message);
-                    }
+                    alert("Erro: " + error.message);
                 }
             });
         } else {
-            console.error("ERRO: O botão 'btnGerar' não foi encontrado no HTML.");
+            console.error("ERRO: Botão não encontrado. Verifique se o ID do botão é 'btnGerar'");
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
