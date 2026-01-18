@@ -296,7 +296,9 @@
                     valor_selecionado: 18500
                 }, { merge: true });
 
-                window.location.href = `login.html?id=${idLead}`;
+                // O redirecionamento agora vai para a tela de login que criamos
+window.location.href = `/login?id=${idLead}`; 
+
             } catch (error) {
                 console.error(error);
                 btn.innerHTML = originalHTML;
