@@ -142,4 +142,174 @@
                     <div class="space-y-2">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Gasto Mensal Médio</label>
                         <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-yellow-500/70 group-focus-within:text
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-yellow-500/70 group-focus-within:text-yellow-400 transition-colors">
+                                <i class="fas fa-coins text-sm"></i>
+                            </div>
+                            <input type="number" id="consumo" placeholder="Ex: 450.00" 
+                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Seu E-mail</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-purple-500/70 group-focus-within:text-purple-400 transition-colors">
+                                <i class="fas fa-envelope text-lg"></i>
+                            </div>
+                            <input type="email" id="email" placeholder="nome@email.com" 
+                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Seu WhatsApp</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-green-500/70 group-focus-within:text-green-400 transition-colors">
+                                <i class="fab fa-whatsapp text-lg"></i>
+                            </div>
+                            <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" 
+                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="lat"> <input type="hidden" id="lng">
+
+                    <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.3em] text-[11px] font-black flex items-center justify-center mt-2">
+                        Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <section class="container mx-auto px-6 py-20 reveal">
+        <div class="grid md:grid-cols-3 gap-8 text-center">
+            <div class="glass-card p-10 border-blue-500/10">
+                <i class="fas fa-satellite text-3xl text-blue-500 mb-6"></i>
+                <h3 class="text-lg font-bold mb-3">Análise Geoespacial</h3>
+                <p class="text-slate-400 text-sm">Mapeamento milimétrico via satélite para maior eficiência.</p>
+            </div>
+            <div class="glass-card p-10 border-yellow-500/10">
+                <i class="fas fa-sun text-3xl text-yellow-500 mb-6"></i>
+                <h3 class="text-lg font-bold mb-3">Energia Limpa</h3>
+                <p class="text-slate-400 text-sm">Aproveitamento total da incidência solar da sua região.</p>
+            </div>
+            <div class="glass-card p-10 border-green-500/10">
+                <i class="fas fa-wallet text-3xl text-green-500 mb-6"></i>
+                <h3 class="text-lg font-bold mb-3">Economia Imediata</h3>
+                <p class="text-slate-400 text-sm">Redução de até 95% no custo da sua energia elétrica.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="container mx-auto px-6 py-12 text-center text-slate-600 border-t border-white/5">
+        <p class="text-[10px] font-bold tracking-[0.4em] uppercase">© 2026 Pro-Sollar • Powered by Google Solar API</p>
+    </footer>
+
+    <script>
+        window.initAutocomplete = function() {
+            const input = document.getElementById('endereco');
+            if (!input) return;
+            const autocomplete = new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country: "br" },
+                fields: ["geometry", "formatted_address"],
+                types: ["address"]
+            });
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (place.geometry) {
+                    document.getElementById('lat').value = place.geometry.location.lat();
+                    document.getElementById('lng').value = place.geometry.location.lng();
+                    input.style.borderColor = "#22c55e"; 
+                }
+            });
+        };
+
+        const handleReveal = () => {
+            document.querySelectorAll('.reveal').forEach(el => {
+                if(el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
+            });
+        };
+        window.addEventListener('scroll', handleReveal);
+        window.addEventListener('load', handleReveal);
+    </script>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; 
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
+            authDomain: "pro-sollar-performance.firebaseapp.com",
+            projectId: "pro-sollar-performance",
+            storageBucket: "pro-sollar-performance.firebasestorage.app",
+            messagingSenderId: "484051034820",
+            appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
+        };
+
+        // Prevenção de duplicidade
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        console.log("🔥 Firebase Ativo");
+
+        const btn = document.getElementById('btnGerar');
+        if(btn) {
+            // Removemos clones antigos
+            const novoBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(novoBtn, btn);
+
+            novoBtn.addEventListener('click', async function(e) {
+                const btnAtual = e.target.closest('button');
+                const originalHTML = btnAtual.innerHTML;
+                
+                const email = document.getElementById('email').value;
+                const whatsappInput = document.getElementById('whatsapp').value;
+                const endereco = document.getElementById('endereco').value;
+                const consumo = document.getElementById('consumo').value;
+                const lat = document.getElementById('lat').value;
+                const lng = document.getElementById('lng').value;
+                const idLead = whatsappInput.replace(/\D/g, "");
+
+                if(!email || !whatsappInput || !endereco || !consumo) return alert("Preencha todos os campos.");
+                if(!lat || !lng) return alert("Selecione o endereço na lista.");
+
+                btnAtual.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Enviando...';
+                btnAtual.disabled = true;
+
+                try {
+                    const docRef = doc(db, "leads", idLead);
+                    const docSnap = await getDoc(docRef);
+
+                    const actionCodeSettings = {
+                        url: window.location.origin + `/login.html?id=${idLead}&verifying=true`,
+                        handleCodeInApp: true
+                    };
+
+                    await setDoc(docRef, {
+                        email, whatsapp: idLead, whatsapp_formatted: whatsappInput,
+                        endereco, consumo: parseFloat(consumo),
+                        lat: parseFloat(lat), lng: parseFloat(lng),
+                        status: docSnap.exists() ? "retorno" : "novo_lead",
+                        atualizado_em: serverTimestamp(), origem: "landing_page"
+                    }, { merge: true });
+
+                    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+                    window.localStorage.setItem('emailForSignIn', email);
+                    window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
+
+                } catch (error) {
+                    console.error(error);
+                    btnAtual.innerHTML = originalHTML;
+                    btnAtual.disabled = false;
+                    alert("Erro: " + error.message);
+                }
+            });
+        }
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
+</body>
+</html>
