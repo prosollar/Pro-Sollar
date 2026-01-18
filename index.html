@@ -235,7 +235,7 @@
     </script>
 
     <script type="module">
-        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; 
 
@@ -248,16 +248,31 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // Prevenção de duplicidade
-        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        // --- SOLUÇÃO DE FORÇA BRUTA PARA O ERRO DUPLICATE-APP ---
+        let app;
+        try {
+            // Tenta inicializar
+            app = initializeApp(firebaseConfig);
+            console.log("🔥 Firebase inicializado (Novo).");
+        } catch (error) {
+            // Se der erro de duplicidade, pega a instância que já existe
+            if (error.code === 'app/duplicate-app') {
+                app = getApp(); 
+                console.log("♻️ Firebase recuperado da memória (Existente).");
+            } else {
+                // Se for outro erro, mostra no console
+                console.error("Erro fatal:", error);
+                throw error;
+            }
+        }
+
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        console.log("🔥 Firebase Ativo");
-
+        // --- LÓGICA DO BOTÃO ---
         const btn = document.getElementById('btnGerar');
         if(btn) {
-            // Removemos clones antigos
+            // Clone para limpar listeners antigos
             const novoBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(novoBtn, btn);
 
@@ -265,17 +280,29 @@
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
                 
-                const email = document.getElementById('email').value;
+                // Inputs
+                const email = document.getElementById('email') ? document.getElementById('email').value : "";
                 const whatsappInput = document.getElementById('whatsapp').value;
                 const endereco = document.getElementById('endereco').value;
                 const consumo = document.getElementById('consumo').value;
                 const lat = document.getElementById('lat').value;
                 const lng = document.getElementById('lng').value;
+                
+                // Limpeza do ID
                 const idLead = whatsappInput.replace(/\D/g, "");
 
-                if(!email || !whatsappInput || !endereco || !consumo) return alert("Preencha todos os campos.");
-                if(!lat || !lng) return alert("Selecione o endereço na lista.");
+                // Validações
+                if(!email || !whatsappInput || !endereco || !consumo) {
+                    alert("Por favor, preencha todos os campos.");
+                    return;
+                }
+                
+                if(!lat || !lng) {
+                    alert("Por favor, selecione o endereço na lista que aparece ao digitar.");
+                    return;
+                }
 
+                // Feedback Visual
                 btnAtual.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Enviando...';
                 btnAtual.disabled = true;
 
@@ -288,28 +315,46 @@
                         handleCodeInApp: true
                     };
 
+                    // Salva no Firestore
                     await setDoc(docRef, {
-                        email, whatsapp: idLead, whatsapp_formatted: whatsappInput,
-                        endereco, consumo: parseFloat(consumo),
-                        lat: parseFloat(lat), lng: parseFloat(lng),
+                        email: email,
+                        whatsapp: idLead,
+                        whatsapp_formatted: whatsappInput,
+                        endereco: endereco,
+                        consumo: parseFloat(consumo),
+                        lat: parseFloat(lat),
+                        lng: parseFloat(lng),
                         status: docSnap.exists() ? "retorno" : "novo_lead",
-                        atualizado_em: serverTimestamp(), origem: "landing_page"
+                        atualizado_em: serverTimestamp(),
+                        origem: "landing_page"
                     }, { merge: true });
 
+                    console.log("Dados salvos. Enviando e-mail...");
+
+                    // Envia Link Mágico
                     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+                    
                     window.localStorage.setItem('emailForSignIn', email);
+                    
+                    // Redireciona
                     window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
 
                 } catch (error) {
-                    console.error(error);
+                    console.error("Erro no processo:", error);
                     btnAtual.innerHTML = originalHTML;
                     btnAtual.disabled = false;
-                    alert("Erro: " + error.message);
+                    
+                    if (error.code === 'auth/unauthorized-domain') {
+                        alert("ERRO: Domínio não autorizado no Firebase. Adicione este site lá.");
+                    } else {
+                        alert("Ocorreu um erro: " + error.message);
+                    }
                 }
             });
+        } else {
+            console.error("ERRO: O botão 'btnGerar' não foi encontrado no HTML.");
         }
     </script>
-
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 </body>
 </html>
