@@ -237,7 +237,7 @@
                 eficiencia_global: 0.75, 
                 modulo: { modelo: "N-Type 600W", potencia_w: 600, area_m2: 2.69 },
                 financeiro: {
-                    preco_venda_kwp: 3800.00,
+                    // Preço de venda agora é calculado dinamicamente
                     inflacao_energetica_aa: 0.10, // 10% a.a.
                     inflacao_servicos_aa: 0.045,  // 4.5% a.a.
                     degradacao_mensal: 0.0007,    // 0.07% a.m
@@ -248,7 +248,7 @@
                 }
             };
 
-            // DIMENSIONAMENTO TÉCNICO
+            // 1. DIMENSIONAMENTO TÉCNICO
             const consumoKwh = consumoReais / INPUTS.tarifa_atual;
             let kwpNecessario = consumoKwh / (INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global);
             
@@ -259,10 +259,26 @@
             const areaTelhado = qtdModulos * INPUTS.modulo.area_m2;
             const geracaoMediaMensal = potenciaInstaladaKwp * INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global;
 
-            // FLUXO DE CAIXA (25 ANOS)
-            const investimentoInicial = potenciaInstaladaKwp * INPUTS.financeiro.preco_venda_kwp;
-            const investimentoComDesconto = investimentoInicial * 0.95;
+            // 2. CÁLCULO DO PREÇO (NOVA LÓGICA: 30x ECONOMIA DO ANO 1)
+            let somaEconomiaAno1 = 0;
+
+            // Simula apenas o primeiro ano para pegar a média exata da economia
+            for (let m = 1; m <= 12; m++) {
+                const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
+                const geracaoMes = geracaoMediaMensal * fatorDegradacao;
+                const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
+                const tarifaMes = INPUTS.tarifa_atual * fatorInflacaoEnergia;
+                
+                somaEconomiaAno1 += (geracaoMes * tarifaMes);
+            }
+
+            const mediaEconomiaMensalAno1 = somaEconomiaAno1 / 12;
             
+            // PREÇO = 30 VEZES A ECONOMIA MENSAL MÉDIA DO ANO 1
+            const investimentoInicial = mediaEconomiaMensalAno1 * 30;
+            const investimentoComDesconto = investimentoInicial * 0.95; // 5% de desconto à vista
+
+            // 3. FLUXO DE CAIXA COMPLETO (25 ANOS)
             let fluxoCaixa = [];
             let saldoAcumulado = -investimentoComDesconto;
             let paybackMes = 0;
