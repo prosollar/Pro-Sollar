@@ -8,63 +8,86 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
-        :root { --bg-deep: #0a1120; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-deep);
+            background-color: #0a1120;
             color: white;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            display: flex; align-items: center; justify-content: center;
+            background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 2rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 400px; width: 90%;
+            padding: 2.5rem;
         }
-        .loader {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-left-color: #3b82f6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
+        .input-dark {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 1rem;
+            width: 100%; padding: 1rem;
+            transition: all 0.3s;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .input-dark:focus { border-color: #3b82f6; outline: none; }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            width: 100%; padding: 1rem; border-radius: 1rem;
+            font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+            font-size: 0.8rem; margin-top: 1rem;
+            transition: transform 0.2s;
+        }
+        .btn-primary:hover { transform: scale(1.02); }
     </style>
 </head>
 <body>
 
-    <div class="container max-w-md px-6">
-        <div class="glass-card p-8 text-center space-y-6 relative overflow-hidden">
-            
-            <div id="iconContainer" class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-500">
-                <i id="statusIcon" class="fas fa-circle-notch animate-spin text-blue-400 text-3xl"></i>
-            </div>
-
-            <h1 id="titulo" class="text-2xl font-bold">Processando...</h1>
-            <p id="mensagem" class="text-slate-400 text-sm leading-relaxed">
-                Aguarde enquanto conectamos com o servidor.
-            </p>
-
-            <div id="actionArea" class="hidden pt-4 border-t border-white/5">
-                <p class="text-xs text-slate-500 mb-3">Não recebeu o e-mail?</p>
-                <button onclick="window.location.href='index.html'" class="text-xs text-blue-400 font-bold hover:text-blue-300 uppercase tracking-widest">
-                    Tentar Novamente
-                </button>
-            </div>
-            
+    <div class="glass-card text-center relative overflow-hidden">
+        
+        <div id="state-verifying" class="hidden">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-4"></i>
+            <h2 class="text-xl font-bold mb-2">Validando Acesso...</h2>
+            <p class="text-slate-400 text-xs">Estamos verificando sua chave de segurança.</p>
         </div>
+
+        <div id="state-check-email" class="hidden">
+            <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-paper-plane text-2xl text-green-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Link Enviado!</h2>
+            <p class="text-slate-400 text-sm mb-6">Enviamos um link mágico de acesso para <br><strong id="sent-email-display" class="text-white">...</strong></p>
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest bg-slate-800/50 p-3 rounded-lg">
+                ⚠️ Cheque também sua caixa de Spam ou Promoções.
+            </p>
+            <button onclick="window.location.href='index.html'" class="mt-6 text-xs text-blue-400 hover:text-blue-300">Voltar ao início</button>
+        </div>
+
+        <div id="state-login-form" class="hidden">
+            <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <i class="fas fa-bolt text-white text-xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold mb-2">Acesso Cliente</h1>
+            <p class="text-slate-400 text-xs mb-8">Digite seu e-mail para acessar sua proposta.</p>
+
+            <form id="loginForm">
+                <div class="text-left space-y-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail Cadastrado</label>
+                    <input type="email" id="email" placeholder="nome@email.com" class="input-dark" required>
+                </div>
+                <button type="submit" id="btn-login" class="btn-primary">Enviar Link de Acesso</button>
+            </form>
+            <div id="login-msg" class="mt-4 text-xs text-center hidden"></div>
+        </div>
+
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -74,92 +97,106 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-        // UI Elements
-        const titulo = document.getElementById('titulo');
-        const msg = document.getElementById('mensagem');
-        const iconContainer = document.getElementById('iconContainer');
-        const icon = document.getElementById('statusIcon');
-        const actionArea = document.getElementById('actionArea');
+        // LÓGICA DE ROTEAMENTO DA TELA
+        document.addEventListener("DOMContentLoaded", async () => {
+            const params = new URLSearchParams(window.location.search);
+            const status = params.get('status');
+            const urlEmail = params.get('email');
 
-        async function gerenciarLogin() {
-            // Verifica se é o usuário CLICANDO NO LINK DO E-MAIL
-            if (isSignInWithEmailLink(auth, window.location.href)) {
+            // CENÁRIO A: Veio do formulário da Home ("Vá checar seu e-mail")
+            if (status === 'check_email') {
+                document.getElementById('state-check-email').classList.remove('hidden');
+                if(urlEmail) document.getElementById('sent-email-display').innerText = urlEmail;
+                return;
+            }
+
+            // CENÁRIO B: Clicou no link do E-mail (Verificação)
+            if (auth.isSignInWithEmailLink(window.location.href)) {
+                document.getElementById('state-verifying').classList.remove('hidden');
                 
-                titulo.innerText = "Validando Token";
-                msg.innerText = "Autenticando acesso seguro...";
-                
-                // Recupera o email que salvamos no index.html
+                // Tenta pegar o e-mail salvo no navegador
                 let email = window.localStorage.getItem('emailForSignIn');
                 
-                // Se o usuário trocou de dispositivo (ex: pediu no PC, abriu email no celular), pedimos o email
+                // Se o usuário abriu em outro navegador, pede o e-mail de novo
                 if (!email) {
-                    email = window.prompt('Por favor, confirme seu e-mail para validação:');
+                    email = window.prompt('Por favor, confirme seu e-mail para finalizar o acesso:');
                 }
 
-                try {
-                    // Tenta fazer o login
-                    const result = await signInWithEmailLink(auth, email, window.location.href);
-                    
-                    // Sucesso!
-                    window.localStorage.removeItem('emailForSignIn'); // Limpa cache
-                    
-                    // Pega o ID da URL (que enviamos no link mágico)
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const idLead = urlParams.get('id');
-
-                    titulo.innerText = "Acesso Permitido";
-                    msg.innerText = "Redirecionando para o painel...";
-                    icon.classList.remove('fa-circle-notch', 'animate-spin');
-                    icon.classList.add('fa-check');
-                    iconContainer.classList.remove('bg-blue-500/10');
-                    iconContainer.classList.add('bg-green-500/10');
-                    icon.classList.replace('text-blue-400', 'text-green-500');
-
-                    setTimeout(() => {
-                        // Manda para o Painel
-                        window.location.href = `panel.html?id=${idLead}`;
-                    }, 1500);
-
-                } catch (error) {
-                    console.error(error);
-                    titulo.innerText = "Link Expirado ou Inválido";
-                    msg.innerText = "Este link de acesso já foi usado ou expirou.";
-                    msg.classList.add("text-red-400");
-                    icon.classList.remove('fa-circle-notch', 'animate-spin');
-                    icon.classList.add('fa-times');
-                    icon.classList.replace('text-blue-400', 'text-red-500');
-                    actionArea.classList.remove('hidden');
+                if (email) {
+                    try {
+                        const result = await auth.signInWithEmailLink(email, window.location.href);
+                        
+                        // Limpa o storage
+                        window.localStorage.removeItem('emailForSignIn');
+                        
+                        // SUCESSO! Redireciona para o Painel
+                        // Se tiver ID na URL (passado pelo link), mantém. Se não, tenta descobrir.
+                        // O ideal aqui é redirecionar para uma rota que busca o lead do usuário.
+                        // Por enquanto, vamos tentar pegar o ID da URL se ele existir no link mágico
+                        const idLead = params.get('id'); 
+                        
+                        if(idLead) {
+                            window.location.href = `panel.html?id=${idLead}`;
+                        } else {
+                            // Se não tiver ID, manda pro painel e deixa o painel se virar (ou buscar o último lead)
+                            // Nota: No código do panel.html atual, ele precisa do ID na URL.
+                            // Futuramente podemos fazer o panel buscar o ID pelo e-mail logado.
+                            alert("Login realizado! Mas precisamos do ID do projeto.");
+                            // Como fallback, se não tiver ID, o usuário terá que clicar no link original de novo ou entrar em contato
+                        }
+                        
+                    } catch (error) {
+                        console.error(error);
+                        alert("Link inválido ou expirado. Tente gerar uma nova proposta.");
+                        window.location.href = 'index.html';
+                    }
                 }
-
-            } 
-            // Verifica se é o usuário ACABANDO DE ENVIAR O FORMULÁRIO (Check Email)
-            else {
-                const urlParams = new URLSearchParams(window.location.search);
-                const status = urlParams.get('status');
-                const userEmail = urlParams.get('email');
-
-                if (status === 'check_email') {
-                    titulo.innerText = "Verifique seu E-mail";
-                    msg.innerHTML = `Enviamos um link mágico de acesso para:<br><b class="text-white">${userEmail || 'sua caixa de entrada'}</b>.<br><br>Clique no link recebido para entrar.`;
-                    
-                    icon.classList.remove('fa-circle-notch', 'animate-spin');
-                    icon.classList.add('fa-envelope-open-text');
-                    icon.classList.replace('text-blue-400', 'text-yellow-400');
-                    iconContainer.classList.replace('bg-blue-500/10', 'bg-yellow-500/10');
-                    
-                    // Mostra botão de voltar caso tenha errado o email
-                    actionArea.classList.remove('hidden');
-                } else {
-                    // Acesso direto sem parâmetros (não permitido)
-                    window.location.href = 'index.html';
-                }
+                return;
             }
-        }
 
-        gerenciarLogin();
+            // CENÁRIO C: Acesso direto (Login Manual)
+            document.getElementById('state-login-form').classList.remove('hidden');
+        });
+
+        // LÓGICA DO LOGIN MANUAL (Para quem já é cliente e volta depois)
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const btn = document.getElementById('btn-login');
+            const msg = document.getElementById('login-msg');
+
+            btn.disabled = true;
+            btn.innerText = "Enviando...";
+
+            const actionCodeSettings = {
+                // Aqui mandamos o usuário de volta para login.html para ser verificado
+                // Nota: O ID do lead não vai estar aqui no login manual, 
+                // então o Panel.html vai ter que ser esperto para buscar pelo e-mail depois.
+                url: window.location.origin + `/login.html?verifying=true`,
+                handleCodeInApp: true
+            };
+
+            try {
+                await auth.sendSignInLinkToEmail(email, actionCodeSettings);
+                window.localStorage.setItem('emailForSignIn', email);
+                
+                // Muda a tela para "Cheque seu e-mail"
+                document.getElementById('state-login-form').classList.add('hidden');
+                document.getElementById('state-check-email').classList.remove('hidden');
+                document.getElementById('sent-email-display').innerText = email;
+
+            } catch (error) {
+                console.error(error);
+                btn.disabled = false;
+                btn.innerText = "TENTAR NOVAMENTE";
+                msg.classList.remove('hidden');
+                msg.innerText = "Erro: " + error.message;
+                msg.classList.add('text-red-400');
+            }
+        });
     </script>
 </body>
 </html>
