@@ -207,10 +207,10 @@
     </footer>
 
     <script type="module">
-        // ADICIONEI "?v=final" PARA OBRIGAR O NAVEGADOR A LIMPAR O CACHE
-        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js?v=final";
-        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js?v=final";
-        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js?v=final"; 
+        // 1. Mudamos para a versão 10.9.0 para limpar qualquer cache antigo
+        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
@@ -221,23 +221,24 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // --- LÓGICA SIMPLIFICADA E SEGURA ---
+        // 2. ISOLAMENTO TOTAL: Usamos um nome específico para o seu app
+        // Isso impede que extensões do Chrome interfiram no seu site
+        const myAppName = "ProSollarSystem";
         let app;
-        
-        // 1. Pergunta: Existe QUALQUER app rodando?
-        if (getApps().length > 0) {
-            // Se sim, pega o primeiro que encontrar (o [DEFAULT] que está dando erro)
-            app = getApps()[0]; 
-            console.log("♻️ Usando Firebase existente (Cache recuperado).");
-        } else {
-            // Se não, cria um novo
-            app = initializeApp(firebaseConfig);
-            console.log("🔥 Novo Firebase iniciado.");
+
+        try {
+            // Tenta pegar o nosso app específico se ele já existir
+            app = getApp(myAppName);
+        } catch (e) {
+            // Se não existir, cria ele com o nome específico (Isolado do [DEFAULT])
+            app = initializeApp(firebaseConfig, myAppName);
         }
+
+        console.log("🔥 Firebase Iniciado:", app.name);
 
         const db = getFirestore(app);
         const auth = getAuth(app);
-        
+
         // --- LÓGICA DO BOTÃO ---
         const btn = document.getElementById('btnGerar');
         
@@ -249,7 +250,7 @@
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
                 
-                // Tratamento de segurança para os inputs
+                // Função segura para pegar valores
                 const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
                 
                 const email = getVal('email');
@@ -260,6 +261,7 @@
                 const lng = getVal('lng');
                 const idLead = whatsappInput.replace(/\D/g, "");
 
+                // Validações
                 if(!email || !whatsappInput || !endereco || !consumo) {
                     alert("Por favor, preencha todos os campos.");
                     return;
@@ -282,6 +284,7 @@
                         handleCodeInApp: true
                     };
 
+                    // Salva no Firestore
                     await setDoc(docRef, {
                         email, whatsapp: idLead, whatsapp_formatted: whatsappInput,
                         endereco, consumo: parseFloat(consumo),
@@ -291,6 +294,9 @@
                         origem: "landing_page"
                     }, { merge: true });
 
+                    console.log("Salvo. Enviando e-mail...");
+
+                    // Envia Link Mágico
                     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
                     
                     window.localStorage.setItem('emailForSignIn', email);
@@ -302,7 +308,7 @@
                     btnAtual.disabled = false;
                     
                     if (error.code === 'auth/unauthorized-domain') {
-                        alert("ERRO DE DOMÍNIO: Adicione este site no Firebase Console > Authentication > Settings.");
+                        alert("ERRO DE DOMÍNIO: Adicione seu domínio no Firebase Console.");
                     } else {
                         alert("Erro: " + error.message);
                     }
