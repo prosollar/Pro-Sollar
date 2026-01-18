@@ -1,44 +1,18 @@
 {
-  "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
     {
       "source": "/login",
       "destination": "/login.html"
     },
     {
-      "source": "/portal",
-      "destination": "/portal.html"
-    },
-    {
-      "source": "/checkout",
-      "destination": "/checkout.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=(self)"
-        }
-      ]
-    }
-  ],
-  "errorPages": [
-    {
-      "status": 404,
-      "path": "/index.html"
+      "source": "/panel",
+      "destination": "/panel.html"
     }
   ]
 }
