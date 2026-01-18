@@ -115,12 +115,13 @@
             </div>
             <div class="glass-card px-6 py-3 flex items-center gap-4">
                 <div class="text-right">
-                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Unidade</p>
-                    <p id="user-name" class="text-xs font-bold">Cliente Pro-Sollar</p>
+                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Usuário Logado</p>
+                    <p id="user-email-display" class="text-xs font-bold text-blue-400">Verificando...</p>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center border border-white/10">
                     <i class="fas fa-user text-[10px] text-blue-400"></i>
                 </div>
+                <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300 ml-2"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </header>
 
@@ -129,20 +130,25 @@
             <p class="text-slate-400 text-sm max-w-xl leading-relaxed font-medium">Sua proposta foi processada e está pronta para entrar na fase de engenharia operacional.</p>
         </section>
 
-        <div class="glass-card p-8 md:p-12 border-blue-500/20 bg-blue-500/[0.02] relative mb-8">
+        <div id="loading-skeleton" class="animate-pulse glass-card p-12 mb-8">
+            <div class="h-8 bg-slate-700 rounded w-1/3 mb-4"></div>
+            <div class="h-4 bg-slate-800 rounded w-1/4"></div>
+        </div>
+
+        <div id="content-panel" class="hidden glass-card p-8 md:p-12 border-blue-500/20 bg-blue-500/[0.02] relative mb-8">
             <div class="flex flex-wrap justify-between items-start gap-6 mb-16">
                 <div>
                     <div class="flex items-center gap-3 mb-2">
                         <div class="pulse-green"></div>
-                        <span class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500">Aguardando seu aceite</span>
+                        <span id="status-badge" class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500">Aguardando seu aceite</span>
                     </div>
                     <h3 id="display-address" class="text-3xl font-black italic text-white">Carregando endereço...</h3>
-                    <p id="display-subtitle" class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-2">Analizando Especificações • 8 Painéis</p>
+                    <p id="display-subtitle" class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-2">Analizando Especificações</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Investimento</p>
-                    <p id="display-price" class="text-3xl font-black text-white italic price-transition">R$ 18.500,00</p>
-                    <p id="savings-badge" class="hidden text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1 italic animate-pulse">Desconto de R$ 925 aplicado</p>
+                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Investimento Estimado</p>
+                    <p id="display-price" class="text-3xl font-black text-white italic price-transition">R$ --.--</p>
+                    <p id="savings-badge" class="hidden text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1 italic animate-pulse">Desconto aplicado</p>
                 </div>
             </div>
 
@@ -210,7 +216,7 @@
             <div onclick="window.open('https://wa.me/5511999999999', '_blank')" class="glass-card p-8 flex items-center justify-between group cursor-pointer hover:bg-green-500/5 transition-all">
                 <div class="flex items-center gap-5">
                     <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/20"><i class="fab fa-whatsapp text-green-500"></i></div>
-                    <div><h4 class="text-sm font-black italic">Suporte Pro-Sollar</h4><p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Falar com Marcio</p></div>
+                    <div><h4 class="text-sm font-black italic">Suporte Pro-Sollar</h4><p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Falar com Especialista</p></div>
                 </div>
                 <i class="fas fa-external-link-alt text-slate-700 group-hover:text-green-500 text-xs"></i>
             </div>
@@ -219,85 +225,176 @@
         <footer class="text-center py-10 opacity-30"><p class="text-[9px] font-black uppercase tracking-[0.8em]">Pro-Sollar High Performance Engineering • 2026</p></footer>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
             projectId: "pro-sollar-performance",
+            storageBucket: "pro-sollar-performance.firebasestorage.app",
+            messagingSenderId: "484051034820",
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Singleton Pattern para evitar erro de duplicidade
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        let currentLeadId = null;
 
-        // Captura o Lead ID da URL
-        const params = new URLSearchParams(window.location.search);
-        const leadId = params.get('id');
-
-        async function loadLead() {
-            if (!leadId) return;
-            const docRef = doc(db, "leads", leadId);
-            const snap = await getDoc(docRef);
-
-            if (snap.exists()) {
-                const data = snap.data();
-                document.getElementById('display-address').innerText = data.endereco || "Endereço não localizado";
-                document.getElementById('display-subtitle').innerText = `${data.endereco.split(',')[1] || 'Guarulhos'} • Residencial • 8 Painéis`;
+        // 1. SEGURANÇA: Verificar se está logado
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Usuário está logado
+                document.getElementById('user-email-display').innerText = user.email;
                 
-                // Se o desconto já estiver ativado no banco, atualiza a UI
-                if (data.valor_selecionado === 17575) {
-                    applyDiscountUI();
+                // Pega o ID da URL
+                const params = new URLSearchParams(window.location.search);
+                const urlId = params.get('id');
+
+                if(urlId) {
+                    currentLeadId = urlId;
+                    await loadLeadData(urlId, user.email);
+                } else {
+                    alert("ID do projeto não encontrado.");
+                    window.location.href = "index.html";
                 }
+
+            } else {
+                // NÃO está logado: Expulsa para o Login
+                console.warn("Acesso não autorizado. Redirecionando...");
+                window.location.href = "login.html"; // Crie essa página depois
+            }
+        });
+
+        // 2. Carrega Dados do Firestore com Verificação de Dono
+        async function loadLeadData(id, userEmail) {
+            try {
+                const docRef = db.collection("leads").doc(id);
+                const docSnap = await docRef.get();
+
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+
+                    // TRAVA DE SEGURANÇA: O e-mail do banco bate com o e-mail logado?
+                    // Nota: Idealmente isso seria Regra de Segurança do Firestore, mas aqui fazemos no Front por enquanto.
+                    if(data.email !== userEmail) {
+                        alert("Você não tem permissão para ver este projeto.");
+                        window.location.href = "index.html";
+                        return;
+                    }
+
+                    // Preenche a tela
+                    document.getElementById('display-address').innerText = data.endereco || "Endereço não processado";
+                    document.getElementById('display-subtitle').innerText = `${data.endereco.split(',')[1] || 'Local'} • Consumo: R$ ${data.consumo}`;
+                    
+                    // Lógica Simples de Preço (Exemplo: Consumo x 45)
+                    // Você pode melhorar essa lógica depois
+                    const valorBase = data.consumo * 45; 
+                    const valorFormatado = valorBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    
+                    // Se não tiver valor salvo, usa o calculado
+                    if(!data.valor_final) {
+                         document.getElementById('display-price').innerText = valorFormatado;
+                    } else {
+                        // Se já salvou com desconto/acréscimo
+                        document.getElementById('display-price').innerText = data.valor_final.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                         if(data.desconto_aplicado) applyDiscountUI(data.valor_final);
+                    }
+
+                    // Mostra o painel e esconde o carregamento
+                    document.getElementById('loading-skeleton').classList.add('hidden');
+                    document.getElementById('content-panel').classList.remove('hidden');
+
+                } else {
+                    alert("Projeto não encontrado no sistema.");
+                    window.location.href = "index.html";
+                }
+            } catch (error) {
+                console.error("Erro ao carregar:", error);
+                alert("Erro de conexão.");
             }
         }
 
+        // 3. Lógica do Desconto
         window.toggleDiscount = async function() {
-            const isCurrentlyDiscounted = document.getElementById('display-price').innerText.includes("17.575");
-            const newValue = isCurrentlyDiscounted ? 18500 : 17575;
-
-            if (leadId) {
-                await updateDoc(doc(db, "leads", leadId), { valor_selecionado: newValue });
-            }
+            if (!currentLeadId) return;
             
-            if (!isCurrentlyDiscounted) applyDiscountUI();
-            else removeDiscountUI();
+            const priceEl = document.getElementById('display-price');
+            const currentText = priceEl.innerText.replace("R$", "").replace(".", "").replace(",",".");
+            let currentVal = parseFloat(currentText);
+
+            const btn = document.getElementById('btn-discount');
+            const isActive = btn.classList.contains('active');
+
+            let newVal;
+
+            if (!isActive) {
+                // Aplicar 5% desconto
+                newVal = currentVal * 0.95;
+                applyDiscountUI(newVal);
+                
+                // Salva no banco
+                await db.collection("leads").doc(currentLeadId).update({
+                    valor_final: newVal,
+                    desconto_aplicado: true
+                });
+
+            } else {
+                // Remover desconto (Volta o valor original aproximado)
+                newVal = currentVal / 0.95;
+                removeDiscountUI(newVal);
+
+                 // Salva no banco
+                 await db.collection("leads").doc(currentLeadId).update({
+                    valor_final: newVal,
+                    desconto_aplicado: false
+                });
+            }
         }
 
-        function applyDiscountUI() {
-            document.getElementById('display-price').innerText = "R$ 17.575,00";
-            document.getElementById('display-price').classList.add('text-green-500');
-            document.getElementById('footer-text').innerText = "Condição à Vista: R$ 17.575,00 aplicada";
+        function applyDiscountUI(val) {
+            const el = document.getElementById('display-price');
+            el.innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            el.classList.add('text-green-500');
+            
+            document.getElementById('footer-text').innerText = "Condição à Vista Aplicada";
             document.getElementById('footer-text').classList.add('text-green-500');
             document.getElementById('savings-badge').classList.remove('hidden');
+            
             const btn = document.getElementById('btn-discount');
             btn.classList.add('active');
             btn.innerHTML = '<i class="fas fa-check mr-2 text-green-500"></i> Desconto Ativado';
         }
 
-        function removeDiscountUI() {
-            document.getElementById('display-price').innerText = "R$ 18.500,00";
-            document.getElementById('display-price').classList.remove('text-green-500');
+        function removeDiscountUI(val) {
+            const el = document.getElementById('display-price');
+            el.innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            el.classList.remove('text-green-500');
+            
             document.getElementById('footer-text').innerText = "Condição padrão selecionada";
             document.getElementById('footer-text').classList.remove('text-green-500');
             document.getElementById('savings-badge').classList.add('hidden');
+            
             const btn = document.getElementById('btn-discount');
             btn.classList.remove('active');
             btn.innerHTML = '<i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista';
         }
 
-        document.getElementById('btn-final-action').onclick = () => {
-            window.location.href = `checkout.html?id=${leadId}`;
-        };
-
-        loadLead();
-    </script>
-
-    <script>
-        function toggleUpload() {
+        window.toggleUpload = function() {
             document.getElementById('comp-upload').classList.toggle('hidden');
+        }
+
+        window.logout = function() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
         }
     </script>
 
