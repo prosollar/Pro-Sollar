@@ -276,8 +276,9 @@ Substitua o trecho do **Script Principal** (aquele que te passei anteriormente) 
 
                     <input type="hidden" id="lat"> <input type="hidden" id="lng">
 
-                    <button type="submit" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.3em] text-[11px] font-black flex items-center justify-center mt-2">
-                        Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
+                    <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.3em] text-[11px] font-black flex items-center justify-center mt-2">
+    Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
+</button>
                         <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
