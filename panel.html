@@ -239,7 +239,7 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // Singleton Pattern para evitar erro de duplicidade
+        // Singleton Pattern
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -248,7 +248,7 @@
         const auth = firebase.auth();
         let currentLeadId = null;
 
-        // 1. SEGURANÇA: Verificar se está logado
+        // 1. MONITORAMENTO DE LOGIN E SEGURANÇA
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 // Usuário está logado
@@ -259,21 +259,51 @@
                 const urlId = params.get('id');
 
                 if(urlId) {
+                    // CENÁRIO A: Tem ID na URL (Veio pelo link mágico)
                     currentLeadId = urlId;
                     await loadLeadData(urlId, user.email);
                 } else {
-                    alert("ID do projeto não encontrado.");
-                    window.location.href = "index.html";
+                    // CENÁRIO B: NÃO tem ID (Login Manual) -> BUSCA INTELIGENTE
+                    console.log("Login manual detectado. Buscando projeto...");
+                    await findLeadByEmail(user.email);
                 }
 
             } else {
                 // NÃO está logado: Expulsa para o Login
-                console.warn("Acesso não autorizado. Redirecionando...");
-                window.location.href = "login.html"; // Crie essa página depois
+                console.warn("Acesso não autorizado.");
+                window.location.href = "login.html";
             }
         });
 
-        // 2. Carrega Dados do Firestore com Verificação de Dono
+        // 2. BUSCA INTELIGENTE (A Mágica do Login Manual)
+        async function findLeadByEmail(email) {
+            try {
+                // Procura um projeto onde o dono seja esse e-mail
+                const snapshot = await db.collection("leads")
+                    .where("email", "==", email)
+                    .orderBy("atualizado_em", "desc") // Pega o mais recente
+                    .limit(1)
+                    .get();
+
+                if (!snapshot.empty) {
+                    // ACHOU! Carrega o projeto
+                    const doc = snapshot.docs[0];
+                    currentLeadId = doc.id;
+                    await loadLeadData(doc.id, email);
+                } else {
+                    // NÃO ACHOU (E-mail novo ou sem projeto)
+                    alert("Não encontramos nenhuma proposta para este e-mail. Vamos criar uma nova?");
+                    window.location.href = "index.html"; 
+                }
+            } catch (error) {
+                console.error("Erro na busca:", error);
+                // Se der erro de índice no console, o Firebase vai mandar um link para criar.
+                // Enquanto isso, avisa o usuário.
+                alert("Erro ao buscar proposta. Verifique se o e-mail está correto.");
+            }
+        }
+
+        // 3. Carrega Dados do Firestore
         async function loadLeadData(id, userEmail) {
             try {
                 const docRef = db.collection("leads").doc(id);
@@ -282,76 +312,68 @@
                 if (docSnap.exists) {
                     const data = docSnap.data();
 
-                    // TRAVA DE SEGURANÇA: O e-mail do banco bate com o e-mail logado?
-                    // Nota: Idealmente isso seria Regra de Segurança do Firestore, mas aqui fazemos no Front por enquanto.
+                    // TRAVA DE SEGURANÇA FINAL
                     if(data.email !== userEmail) {
-                        alert("Você não tem permissão para ver este projeto.");
+                        alert("Você não tem permissão para visualizar este projeto.");
                         window.location.href = "index.html";
                         return;
                     }
 
                     // Preenche a tela
                     document.getElementById('display-address').innerText = data.endereco || "Endereço não processado";
-                    document.getElementById('display-subtitle').innerText = `${data.endereco.split(',')[1] || 'Local'} • Consumo: R$ ${data.consumo}`;
+                    document.getElementById('display-subtitle').innerText = `${data.endereco.split(',')[1] || 'Local'} • Consumo Base: R$ ${data.consumo}`;
                     
-                    // Lógica Simples de Preço (Exemplo: Consumo x 45)
-                    // Você pode melhorar essa lógica depois
+                    // Lógica de Preço
                     const valorBase = data.consumo * 45; 
-                    const valorFormatado = valorBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    let valorParaMostrar = data.valor_final ? data.valor_final : valorBase;
                     
-                    // Se não tiver valor salvo, usa o calculado
-                    if(!data.valor_final) {
-                         document.getElementById('display-price').innerText = valorFormatado;
+                    document.getElementById('display-price').innerText = valorParaMostrar.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    
+                    if(data.desconto_aplicado) {
+                        applyDiscountUI(valorParaMostrar);
                     } else {
-                        // Se já salvou com desconto/acréscimo
-                        document.getElementById('display-price').innerText = data.valor_final.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                         if(data.desconto_aplicado) applyDiscountUI(data.valor_final);
+                        removeDiscountUI(valorBase);
                     }
 
-                    // Mostra o painel e esconde o carregamento
                     document.getElementById('loading-skeleton').classList.add('hidden');
                     document.getElementById('content-panel').classList.remove('hidden');
 
                 } else {
-                    alert("Projeto não encontrado no sistema.");
+                    alert("Projeto não encontrado.");
                     window.location.href = "index.html";
                 }
             } catch (error) {
                 console.error("Erro ao carregar:", error);
-                alert("Erro de conexão.");
             }
         }
 
-        // 3. Lógica do Desconto
+        // 4. Lógica do Desconto (Interatividade)
         window.toggleDiscount = async function() {
             if (!currentLeadId) return;
             
             const priceEl = document.getElementById('display-price');
-            const currentText = priceEl.innerText.replace("R$", "").replace(".", "").replace(",",".");
-            let currentVal = parseFloat(currentText);
+            // Limpa formatação para pegar número puro
+            const priceText = priceEl.innerText.replace("R$", "").replace(/\./g, "").replace(",",".");
+            let currentVal = parseFloat(priceText);
+
+            if(isNaN(currentVal)) return;
 
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
-
             let newVal;
 
             if (!isActive) {
-                // Aplicar 5% desconto
-                newVal = currentVal * 0.95;
+                newVal = currentVal * 0.95; // Aplica 5%
                 applyDiscountUI(newVal);
                 
-                // Salva no banco
                 await db.collection("leads").doc(currentLeadId).update({
                     valor_final: newVal,
                     desconto_aplicado: true
                 });
-
             } else {
-                // Remover desconto (Volta o valor original aproximado)
-                newVal = currentVal / 0.95;
+                newVal = currentVal / 0.95; // Remove desconto
                 removeDiscountUI(newVal);
 
-                 // Salva no banco
                  await db.collection("leads").doc(currentLeadId).update({
                     valor_final: newVal,
                     desconto_aplicado: false
