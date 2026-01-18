@@ -328,6 +328,45 @@
             console.error("ERRO: Botão 'btnGerar' não encontrado.");
         }
     </script>
+    <script>
+        // Função Global que o Google Maps procura
+        window.initAutocomplete = function() {
+            const input = document.getElementById('endereco');
+            
+            // Se o campo não existir, para por aqui
+            if (!input) return;
+
+            const autocomplete = new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country: "br" }, // Restringe ao Brasil
+                fields: ["geometry", "formatted_address"],
+                types: ["address"]
+            });
+
+            // Quando o usuário seleciona um endereço:
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                
+                if (place.geometry) {
+                    // Preenche os campos ocultos com Latitude e Longitude
+                    document.getElementById('lat').value = place.geometry.location.lat();
+                    document.getElementById('lng').value = place.geometry.location.lng();
+                    
+                    // Feedback visual (borda verde)
+                    input.style.borderColor = "#22c55e"; 
+                    input.style.borderWidth = "2px";
+                }
+            });
+        };
+
+        // Efeito de Reveal (animação ao rolar a página)
+        const handleReveal = () => {
+            document.querySelectorAll('.reveal').forEach(el => {
+                if(el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
+            });
+        };
+        window.addEventListener('scroll', handleReveal);
+        window.addEventListener('load', handleReveal);
+    </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 </body>
 </html>
