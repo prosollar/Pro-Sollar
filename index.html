@@ -206,39 +206,10 @@
         <p class="text-[10px] font-bold tracking-[0.4em] uppercase">© 2026 Pro-Sollar • Powered by Google Solar API</p>
     </footer>
 
-    <script>
-        window.initAutocomplete = function() {
-            const input = document.getElementById('endereco');
-            if (!input) return;
-            const autocomplete = new google.maps.places.Autocomplete(input, {
-                componentRestrictions: { country: "br" },
-                fields: ["geometry", "formatted_address"],
-                types: ["address"]
-            });
-            autocomplete.addListener("place_changed", () => {
-                const place = autocomplete.getPlace();
-                if (place.geometry) {
-                    document.getElementById('lat').value = place.geometry.location.lat();
-                    document.getElementById('lng').value = place.geometry.location.lng();
-                    input.style.borderColor = "#22c55e"; 
-                }
-            });
-        };
-
-        const handleReveal = () => {
-            document.querySelectorAll('.reveal').forEach(el => {
-                if(el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
-            });
-        };
-        window.addEventListener('scroll', handleReveal);
-        window.addEventListener('load', handleReveal);
-    </script>
-
     <script type="module">
-        // ADICIONEI "?v=2" PARA LIMPAR O CACHE DO IMPORT
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js?v=2";
-        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js?v=2";
-        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js?v=2"; 
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
@@ -249,28 +220,37 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // --- LÓGICA DE INICIALIZAÇÃO INVERSA (CORREÇÃO DO ERRO) ---
+        // --- A SOLUÇÃO NUCLEAR (SINGLETON) ---
+        // Nós ignoramos o erro do Firebase e criamos nossa própria verificação global
         let app;
-        try {
-            // 1. Tenta PEGAR o app que o erro diz que já existe
-            app = getApp();
-            console.log("✅ Firebase recuperado da memória.");
-        } catch (anyError) {
-            // 2. Se der erro ao pegar (significa que não existe), aí sim criamos
+        
+        if (!window.firebaseAppInstance) {
             try {
-                app = initializeApp(firebaseConfig);
-                console.log("✅ Firebase iniciado do zero.");
-            } catch (duplicateError) {
-                // 3. Se mesmo assim der erro de duplicidade, forçamos o getApp novamente
-                // Isso cobre casos extremos de "Race Condition"
-                console.warn("⚠️ Conflito detectado, forçando recuperação.");
-                app = getApp(); 
+                window.firebaseAppInstance = initializeApp(firebaseConfig);
+                console.log("🔥 Firebase: Instância CRIADA.");
+            } catch (error) {
+                if (error.code === 'app/duplicate-app') {
+                    console.log("⚠️ Firebase já existia (Erro capturado).");
+                    // Se der erro de duplicidade, não temos acesso fácil via getApp sem importar
+                    // Então confiamos que o window.firebaseAppInstance vai funcionar na próxima
+                    // recarga ou usamos o fluxo abaixo se for módulo
+                }
             }
         }
+        
+        // Se a variável global falhou (caso raro em módulos estritos), tentamos recuperar via import dinâmico
+        // Mas para simplificar, assumimos que window funcionou ou pegamos o app padrão
+        if (!window.firebaseAppInstance) {
+             // Fallback de emergência: importa getApp apenas se precisar
+             const { getApp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js");
+             window.firebaseAppInstance = getApp();
+             console.log("♻️ Firebase: Instância RECUPERADA.");
+        }
 
+        app = window.firebaseAppInstance;
         const db = getFirestore(app);
         const auth = getAuth(app);
-        
+
         // --- CÓDIGO DO BOTÃO ---
         const btn = document.getElementById('btnGerar');
         if(btn) {
@@ -281,33 +261,16 @@
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
                 
-                // Elementos
-                const emailEl = document.getElementById('email');
-                const whatsappEl = document.getElementById('whatsapp');
-                const enderecoEl = document.getElementById('endereco');
-                const consumoEl = document.getElementById('consumo');
-                const latEl = document.getElementById('lat');
-                const lngEl = document.getElementById('lng');
-
-                // Valores com verificação de segurança (caso o elemento não exista)
-                const email = emailEl ? emailEl.value : "";
-                const whatsappInput = whatsappEl ? whatsappEl.value : "";
-                const endereco = enderecoEl ? enderecoEl.value : "";
-                const consumo = consumoEl ? consumoEl.value : "";
-                const lat = latEl ? latEl.value : "";
-                const lng = lngEl ? lngEl.value : "";
-                
+                const email = document.getElementById('email').value;
+                const whatsappInput = document.getElementById('whatsapp').value;
+                const endereco = document.getElementById('endereco').value;
+                const consumo = document.getElementById('consumo').value;
+                const lat = document.getElementById('lat').value;
+                const lng = document.getElementById('lng').value;
                 const idLead = whatsappInput.replace(/\D/g, "");
 
-                // Validações
-                if(!email || !whatsappInput || !endereco || !consumo) {
-                    alert("Por favor, preencha todos os campos.");
-                    return;
-                }
-                if(!lat || !lng) {
-                    alert("Selecione o endereço na lista do Google.");
-                    return;
-                }
+                if(!email || !whatsappInput || !endereco || !consumo) return alert("Preencha todos os campos.");
+                if(!lat || !lng) return alert("Selecione o endereço na lista.");
 
                 btnAtual.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Enviando...';
                 btnAtual.disabled = true;
