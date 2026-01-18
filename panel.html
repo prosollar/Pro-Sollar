@@ -230,6 +230,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
     <script>
+        // --- CONFIGURAÇÃO ---
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -239,104 +240,89 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // Singleton Pattern
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         let currentLeadId = null;
+        let leadData = null; // Variável global para guardar os dados carregados
 
-        // 1. MONITORAMENTO DE LOGIN E SEGURANÇA
+        // --- 1. SEGURANÇA E LOGIN ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Usuário está logado
                 document.getElementById('user-email-display').innerText = user.email;
                 
-                // Pega o ID da URL
                 const params = new URLSearchParams(window.location.search);
                 const urlId = params.get('id');
 
                 if(urlId) {
-                    // CENÁRIO A: Tem ID na URL (Veio pelo link mágico)
                     currentLeadId = urlId;
-                    await loadLeadData(urlId, user.email);
+                    await carregarPainel(urlId, user.email);
                 } else {
-                    // CENÁRIO B: NÃO tem ID (Login Manual) -> BUSCA INTELIGENTE
-                    console.log("Login manual detectado. Buscando projeto...");
-                    await findLeadByEmail(user.email);
+                    console.log("Login manual. Buscando por e-mail...");
+                    await buscarPorEmail(user.email);
                 }
-
             } else {
-                // NÃO está logado: Expulsa para o Login
-                console.warn("Acesso não autorizado.");
                 window.location.href = "login.html";
             }
         });
 
-        // 2. BUSCA INTELIGENTE (A Mágica do Login Manual)
-        async function findLeadByEmail(email) {
+        async function buscarPorEmail(email) {
             try {
-                // Procura um projeto onde o dono seja esse e-mail
                 const snapshot = await db.collection("leads")
-                    .where("email", "==", email)
-                    .orderBy("atualizado_em", "desc") // Pega o mais recente
+                    .where("perfil.email", "==", email) // Busca dentro do objeto perfil
+                    .orderBy("status.criado_em", "desc")
                     .limit(1)
                     .get();
 
+                // Fallback: Tenta buscar no campo raiz se não achar no perfil (compatibilidade antiga)
+                if (snapshot.empty) {
+                    const snapshotOld = await db.collection("leads")
+                        .where("email", "==", email)
+                        .orderBy("atualizado_em", "desc")
+                        .limit(1)
+                        .get();
+                    
+                    if(!snapshotOld.empty) {
+                        const doc = snapshotOld.docs[0];
+                        currentLeadId = doc.id;
+                        await carregarPainel(doc.id, email);
+                        return;
+                    }
+                }
+
                 if (!snapshot.empty) {
-                    // ACHOU! Carrega o projeto
                     const doc = snapshot.docs[0];
                     currentLeadId = doc.id;
-                    await loadLeadData(doc.id, email);
+                    await carregarPainel(doc.id, email);
                 } else {
-                    // NÃO ACHOU (E-mail novo ou sem projeto)
-                    alert("Não encontramos nenhuma proposta para este e-mail. Vamos criar uma nova?");
-                    window.location.href = "index.html"; 
+                    alert("Nenhuma proposta encontrada.");
+                    window.location.href = "index.html";
                 }
             } catch (error) {
-                console.error("Erro na busca:", error);
-                // Se der erro de índice no console, o Firebase vai mandar um link para criar.
-                // Enquanto isso, avisa o usuário.
-                alert("Erro ao buscar proposta. Verifique se o e-mail está correto.");
+                console.error("Erro busca:", error);
             }
         }
 
-        // 3. Carrega Dados do Firestore
-        async function loadLeadData(id, userEmail) {
+        // --- 2. CARREGAMENTO E RENDERIZAÇÃO ---
+        async function carregarPainel(id, userEmail) {
             try {
                 const docRef = db.collection("leads").doc(id);
                 const docSnap = await docRef.get();
 
                 if (docSnap.exists) {
-                    const data = docSnap.data();
+                    leadData = docSnap.data(); // Salva na global
 
-                    // TRAVA DE SEGURANÇA FINAL
-                    if(data.email !== userEmail) {
-                        alert("Você não tem permissão para visualizar este projeto.");
+                    // Trava de Segurança
+                    // Verifica e-mail no perfil OU na raiz (compatibilidade)
+                    const emailDono = leadData.perfil?.email || leadData.email;
+                    
+                    if(emailDono !== userEmail) {
+                        alert("Acesso negado a este projeto.");
                         window.location.href = "index.html";
                         return;
                     }
 
-                    // Preenche a tela
-                    document.getElementById('display-address').innerText = data.endereco || "Endereço não processado";
-                    document.getElementById('display-subtitle').innerText = `${data.endereco.split(',')[1] || 'Local'} • Consumo Base: R$ ${data.consumo}`;
-                    
-                    // Lógica de Preço
-                    const valorBase = data.consumo * 45; 
-                    let valorParaMostrar = data.valor_final ? data.valor_final : valorBase;
-                    
-                    document.getElementById('display-price').innerText = valorParaMostrar.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    
-                    if(data.desconto_aplicado) {
-                        applyDiscountUI(valorParaMostrar);
-                    } else {
-                        removeDiscountUI(valorBase);
-                    }
-
-                    document.getElementById('loading-skeleton').classList.add('hidden');
-                    document.getElementById('content-panel').classList.remove('hidden');
+                    renderizarDados(leadData);
 
                 } else {
                     alert("Projeto não encontrado.");
@@ -347,36 +333,68 @@
             }
         }
 
-        // 4. Lógica do Desconto (Interatividade)
-        window.toggleDiscount = async function() {
-            if (!currentLeadId) return;
+        function renderizarDados(data) {
+            // A. DADOS DE PERFIL
+            const endereco = data.perfil?.endereco_completo || data.endereco;
+            const cidade = endereco.split(',')[1] || 'Local';
             
-            const priceEl = document.getElementById('display-price');
-            // Limpa formatação para pegar número puro
-            const priceText = priceEl.innerText.replace("R$", "").replace(/\./g, "").replace(",",".");
-            let currentVal = parseFloat(priceText);
+            document.getElementById('display-address').innerText = endereco;
+            
+            // B. DADOS DE ENGENHARIA (Lê do JSON novo)
+            // Se tiver a estrutura nova (engenharia.projetado), usa ela. Se não, usa fallback.
+            let qtdPaineis = data.engenharia?.projetado?.qtd_modulos || 8;
+            let potenciaKwp = data.engenharia?.projetado?.potencia_instalada_kwp || 0;
+            
+            document.getElementById('display-subtitle').innerText = 
+                `${cidade} • Sistema de ${potenciaKwp} kWp • ${qtdPaineis} Painéis`;
 
-            if(isNaN(currentVal)) return;
+            // C. DADOS FINANCEIROS
+            // Verifica se o desconto já foi aplicado no banco
+            const aplicouDesconto = data.status?.desconto_aplicado || false;
+            
+            // Define o preço base (Bruto)
+            const precoBruto = data.financeiro?.investimento_bruto || 18500;
+            const precoComDesconto = data.financeiro?.valor_final || (precoBruto * 0.95);
 
+            // Renderiza o preço inicial
+            if (aplicouDesconto) {
+                applyDiscountUI(precoComDesconto);
+            } else {
+                removeDiscountUI(precoBruto);
+            }
+
+            // Mostra a tela
+            document.getElementById('loading-skeleton').classList.add('hidden');
+            document.getElementById('content-panel').classList.remove('hidden');
+        }
+
+
+        // --- 3. INTERATIVIDADE (DESCONTO) ---
+        window.toggleDiscount = async function() {
+            if (!currentLeadId || !leadData) return;
+            
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
-            let newVal;
+
+            // Valores vindos do banco
+            const bruto = leadData.financeiro.investimento_bruto;
+            const liquido = leadData.financeiro.valor_final || (bruto * 0.95);
 
             if (!isActive) {
-                newVal = currentVal * 0.95; // Aplica 5%
-                applyDiscountUI(newVal);
+                // ATIVAR DESCONTO
+                applyDiscountUI(liquido);
                 
+                // Atualiza Status no Banco
                 await db.collection("leads").doc(currentLeadId).update({
-                    valor_final: newVal,
-                    desconto_aplicado: true
+                    "status.desconto_aplicado": true
                 });
+
             } else {
-                newVal = currentVal / 0.95; // Remove desconto
-                removeDiscountUI(newVal);
+                // REMOVER DESCONTO
+                removeDiscountUI(bruto);
 
                  await db.collection("leads").doc(currentLeadId).update({
-                    valor_final: newVal,
-                    desconto_aplicado: false
+                    "status.desconto_aplicado": false
                 });
             }
         }
@@ -409,6 +427,7 @@
             btn.innerHTML = '<i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista';
         }
 
+        // --- 4. FUNÇÕES EXTRAS ---
         window.toggleUpload = function() {
             document.getElementById('comp-upload').classList.toggle('hidden');
         }
@@ -418,6 +437,13 @@
                 window.location.href = "index.html";
             });
         }
+        
+        // Ação do Botão Final (Checkout)
+        document.getElementById('btn-final-action').onclick = () => {
+             // Por enquanto apenas um alerta, depois criaremos a pagina
+             alert("Redirecionando para contrato digital...");
+             // window.location.href = `checkout.html?id=${currentLeadId}`;
+        };
     </script>
 
 </body>
