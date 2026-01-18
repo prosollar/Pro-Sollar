@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro-Sollar | Ativação do Fluxo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
+
+        :root {
+            --bg-deep: #0a1120;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            color: white;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 2.5rem;
+        }
+
+        .step-pill {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: var(--accent-blue);
+        }
+
+        .date-option {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .date-option:hover:not(.selected) {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+        }
+
+        .date-option.selected {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #1e40af 100%);
+            border-color: var(--accent-blue);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-confirm {
+            background: var(--accent-green);
+            color: #052e16;
+            box-shadow: 0 15px 40px rgba(34, 197, 94, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm:hover {
+            transform: scale(1.02);
+            background: #4ade80;
+            box-shadow: 0 20px 50px rgba(34, 197, 94, 0.4);
+        }
+
+        .input-dark {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        .input-dark:focus {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12 lg:p-20">
+
+    <div class="max-w-6xl mx-auto">
+        
+        <header class="flex justify-between items-center mb-12">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-xl">
+                    <i class="fas fa-bolt text-white text-lg"></i>
+                </div>
+                <h1 class="text-xl font-black uppercase italic leading-none tracking-tighter">Pro-<span class="text-blue-500">Sollar</span></h1>
+            </div>
+            <a href="index.html" class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-white transition-all">
+                <i class="fas fa-times mr-2"></i> Cancelar Ativação
+            </a>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <div class="lg:col-span-7 space-y-8">
+                <section>
+                    <div class="step-pill mb-4 inline-block">PASSO 01 / 02</div>
+                    <h2 class="text-4xl md:text-5xl font-black tracking-tight italic mb-6">Agende sua <br><span class="text-blue-500">Visita Técnica.</span></h2>
+                    <p class="text-slate-400 text-sm max-w-md font-medium leading-relaxed mb-10">
+                        Nossa equipe de engenharia precisa validar a estrutura do seu telhado e conexões elétricas antes da instalação.
+                    </p>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="date-selector">
+                        <div class="date-option glass-card p-6 text-center selected" data-date="19 de Janeiro">
+                            <p class="text-[10px] font-black uppercase opacity-60 mb-2">Segunda</p>
+                            <p class="text-3xl font-black italic">19</p>
+                            <p class="text-[10px] font-black mt-1">JAN</p>
+                        </div>
+                        <div class="date-option glass-card p-6 text-center" data-date="20 de Janeiro">
+                            <p class="text-[10px] font-black uppercase opacity-60 mb-2">Terça</p>
+                            <p class="text-3xl font-black italic">20</p>
+                            <p class="text-[10px] font-black mt-1">JAN</p>
+                        </div>
+                        <div class="date-option glass-card p-6 text-center" data-date="21 de Janeiro">
+                            <p class="text-[10px] font-black uppercase opacity-60 mb-2">Quarta</p>
+                            <p class="text-3xl font-black italic">21</p>
+                            <p class="text-[10px] font-black mt-1">JAN</p>
+                        </div>
+                        <div class="date-option glass-card p-6 text-center" data-date="22 de Janeiro">
+                            <p class="text-[10px] font-black uppercase opacity-60 mb-2">Quinta</p>
+                            <p class="text-3xl font-black italic">22</p>
+                            <p class="text-[10px] font-black mt-1">JAN</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                    <div class="space-y-4">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-blue-500 ml-2">Período de Preferência</p>
+                        <select id="periodo" class="input-dark w-full p-5 rounded-3xl text-xs font-bold uppercase tracking-widest appearance-none">
+                            <option value="Manhã">Manhã (08h às 12h)</option>
+                            <option value="Tarde">Tarde (13h às 18h)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-blue-500 ml-2">WhatsApp para Confirmação</p>
+                        <input type="text" id="display-whatsapp" readonly class="input-dark w-full p-5 rounded-3xl text-xs font-bold tracking-widest opacity-60 cursor-not-allowed">
+                    </div>
+                </section>
+            </div>
+
+            <div class="lg:col-span-5">
+                <div class="glass-card p-8 md:p-12 border-blue-500/20 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[80px]"></div>
+                    
+                    <h3 class="text-xl font-black italic mb-8">Resumo da Ativação</h3>
+                    
+                    <div class="space-y-6 mb-10">
+                        <div class="flex justify-between items-center group">
+                            <div>
+                                <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sistema de Performance</p>
+                                <p class="text-xs font-bold">Residencial • 4.2kWp</p>
+                            </div>
+                            <p class="text-sm font-black italic text-slate-300">R$ 18.500</p>
+                        </div>
+
+                        <div id="box-beneficio" class="hidden flex justify-between items-center p-4 rounded-2xl bg-green-500/5 border border-green-500/10">
+                            <div>
+                                <p class="text-[10px] font-black uppercase text-green-500 tracking-widest">Benefício à Vista</p>
+                                <p class="text-[9px] font-bold text-green-500/60 uppercase mt-0.5">Desconto de 5% aplicado</p>
+                            </div>
+                            <p class="text-sm font-black italic text-green-500">- R$ 925,00</p>
+                        </div>
+
+                        <div class="pt-6 border-t border-white/5">
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">Total para Ativação</p>
+                                    <p id="total-price" class="text-4xl font-black italic text-white leading-none">R$ 18.500</p>
+                                </div>
+                                <p class="text-[10px] font-bold text-slate-500 mb-1">Boleto ou PIX</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-finalizar" class="btn-confirm w-full py-6 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 mb-6">
+                        Confirmar e Agendar <i class="fas fa-chevron-right text-[10px]"></i>
+                    </button>
+
+                    <div class="flex items-center gap-4 px-2 opacity-40">
+                        <i class="fas fa-lock text-xs"></i>
+                        <p class="text-[9px] font-bold uppercase tracking-tighter leading-tight">
+                            Ambiente seguro Pro-Sollar: Sua reserva de engenharia será processada em tempo real.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
+            authDomain: "pro-sollar-performance.firebaseapp.com",
+            projectId: "pro-sollar-performance",
+            appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const params = new URLSearchParams(window.location.search);
+        const leadId = params.get('id');
+        let selectedDate = "19 de Janeiro";
+
+        // Carregar dados salvos
+        async function initCheckout() {
+            if (!leadId) return;
+            const snap = await getDoc(doc(db, "leads", leadId));
+            if (snap.exists()) {
+                const data = snap.data();
+                document.getElementById('display-whatsapp').value = data.whatsapp;
+                
+                // Ajusta preço conforme escolha no portal
+                if (data.valor_selecionado === 17575) {
+                    document.getElementById('total-price').innerText = "R$ 17.575";
+                    document.getElementById('box-beneficio').classList.remove('hidden');
+                }
+            }
+        }
+
+        // Lógica de seleção de data (UI)
+        document.querySelectorAll('.date-option').forEach(opt => {
+            opt.onclick = () => {
+                document.querySelectorAll('.date-option').forEach(el => el.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedDate = opt.getAttribute('data-date');
+            };
+        });
+
+        // Confirmar Agendamento
+        document.getElementById('btn-finalizar').onclick = async () => {
+            const btn = document.getElementById('btn-finalizar');
+            btn.innerHTML = '<i class="fas fa-sync animate-spin mr-2"></i> Reservando...';
+            
+            const periodo = document.getElementById('periodo').value;
+
+            try {
+                await updateDoc(doc(db, "leads", leadId), {
+                    data_visita: selectedDate,
+                    periodo_visita: periodo,
+                    status: "visita_agendada"
+                });
+                
+                // Redireciona para sucesso (ou página final)
+                window.location.href = `checkout.html?id=${leadId}`;
+            } catch (err) {
+                alert("Erro ao confirmar agendamento.");
+                btn.innerHTML = 'Confirmar e Agendar <i class="fas fa-chevron-right text-[10px]"></i>';
+            }
+        };
+
+        initCheckout();
+    </script>
+</body>
+</html>

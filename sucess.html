@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro-Sollar | Projeto Iniciado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
+
+        :root {
+            --bg-deep: #0a1120;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            color: white;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 3rem;
+        }
+
+        .success-icon {
+            width: 100px; height: 100px;
+            background: linear-gradient(135deg, var(--accent-green) 0%, #166534 100%);
+            border-radius: 35% 65% 70% 30% / 30% 30% 70% 70%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 20px 40px rgba(34, 197, 94, 0.3);
+            animation: blob 5s infinite alternate;
+        }
+
+        @keyframes blob {
+            0% { border-radius: 35% 65% 70% 30% / 30% 30% 70% 70%; }
+            100% { border-radius: 50% 50% 30% 70% / 50% 60% 40% 50%; }
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-2xl w-full">
+        <div class="glass-card p-10 md:p-16 text-center relative overflow-hidden">
+            
+            <div class="flex justify-center mb-8">
+                <div class="success-icon">
+                    <i class="fas fa-check text-4xl text-white"></i>
+                </div>
+            </div>
+
+            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-green-500 mb-4">Engenharia Ativada</p>
+            <h2 class="text-4xl md:text-5xl font-black tracking-tight italic mb-6">Tudo pronto,<br><span id="customer-name" class="text-white">Carregando...</span></h2>
+            
+            <p id="success-message" class="text-slate-400 text-sm font-medium leading-relaxed mb-10 max-w-sm mx-auto">
+                Sua visita técnica para a <span id="display-address" class="text-white">unidade</span> foi agendada com sucesso. Nossa equipe entrará em contato em breve.
+            </p>
+
+            <div class="bg-white/5 border border-white/10 rounded-3xl p-6 mb-10 text-left">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                        <i class="fas fa-shield-check text-blue-500 text-sm"></i>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-white italic">Garantia Pro-Sollar</p>
+                </div>
+                <p class="text-[11px] text-slate-300 leading-relaxed font-medium">
+                    Conforme solicitado, o pagamento de <span id="final-price-display" class="text-white font-black italic underline underline-offset-4 decoration-green-500">R$ 18.500,00</span> será processado apenas no ato da visita técnica, após a validação física do seu projeto por nosso engenheiro.
+                </p>
+            </div>
+
+            <button id="btn-back-portal" class="w-full py-5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/5 transition-all mb-4">
+                Voltar ao Portal do Cliente
+            </button>
+            
+            <div onclick="window.print()" class="flex items-center justify-center gap-3 opacity-30 cursor-pointer hover:opacity-100 transition-all">
+                <i class="fas fa-print text-xs"></i>
+                <p class="text-[9px] font-bold uppercase tracking-widest">Salvar comprovante de agendamento</p>
+            </div>
+
+        </div>
+
+        <footer class="mt-12 text-center opacity-20">
+            <p class="text-[9px] font-black uppercase tracking-[1em]">High Performance Engineering • 2026</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
+            authDomain: "pro-sollar-performance.firebaseapp.com",
+            projectId: "pro-sollar-performance",
+            appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const params = new URLSearchParams(window.location.search);
+        const leadId = params.get('id');
+
+        async function loadSuccessData() {
+            if (!leadId) return;
+
+            const snap = await getDoc(doc(db, "leads", leadId));
+            if (snap.exists()) {
+                const data = snap.data();
+                
+                // Nome dinâmico (se não houver nome no lead, usa um padrão elegante)
+                document.getElementById('customer-name').innerText = data.nome || "Cliente Pro-Sollar";
+                
+                // Endereço simplificado
+                const logradouro = data.endereco ? data.endereco.split(',')[0] : "sua unidade";
+                document.getElementById('display-address').innerText = logradouro;
+
+                // Valor Final
+                const valorFinal = data.valor_selecionado || 18500;
+                document.getElementById('final-price-display').innerText = `R$ ${valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+                // Mensagem de agendamento
+                if (data.data_visita) {
+                    document.getElementById('success-message').innerHTML = `Sua visita técnica para <b>${logradouro}</b> foi confirmada para o dia <b>${data.data_visita}</b> no período da <b>${data.periodo_visita}</b>.`;
+                }
+            }
+        }
+
+        document.getElementById('btn-back-portal').onclick = () => {
+            window.location.href = `panel.html?id=${leadId}`;
+        };
+
+        loadSuccessData();
+    </script>
+</body>
+</html>
