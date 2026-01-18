@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acesso Restrito | Pro-Sollar</title>
+    <title>Acessando... | Pro-Sollar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,7 +11,6 @@
 
         :root {
             --bg-deep: #0a1120;
-            --accent-yellow: #facc15;
         }
 
         body {
@@ -19,104 +18,135 @@
             background-color: var(--bg-deep);
             color: white;
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background-image: 
-                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 10% 80%, rgba(250, 204, 21, 0.05) 0%, transparent 30%);
-            background-attachment: fixed;
+                radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
         }
 
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 2.5rem;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        .card-glow::before {
-            content: ""; position: absolute; inset: -1px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), transparent, rgba(250, 204, 21, 0.5));
-            border-radius: 2.5rem; z-index: -1; opacity: 0.4;
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
 
-        .input-dark {
-            background: rgba(0, 0, 0, 0.4) !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
-            color: #fff !important;
-            text-align: center;
-            letter-spacing: 0.8rem;
-            font-weight: 800;
-        }
-
-        .btn-yellow {
-            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
-            color: #000;
-            font-weight: 800;
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
-            transition: all 0.3s ease;
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="flex items-center justify-center p-6">
+<body>
 
-    <div class="w-full max-w-md relative">
-        <div class="flex items-center justify-center space-x-3 mb-12">
-            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                <i class="fas fa-solar-panel text-white text-2xl"></i>
+    <div class="container max-w-md px-6">
+        <div class="glass-card p-8 text-center space-y-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
+
+            <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-fingerprint text-blue-400 text-2xl"></i>
             </div>
-            <span class="text-2xl font-black tracking-tighter uppercase">Pro-<span class="text-blue-500">Sollar</span></span>
-        </div>
 
-        <div class="card-glow relative">
-            <div class="glass-card p-10 space-y-8">
-                <div class="text-center space-y-2">
-                    <h2 class="text-2xl font-bold tracking-tight">Validação de Acesso</h2>
-                    <p class="text-slate-400 text-sm">Digite o token enviado ao seu WhatsApp.</p>
-                </div>
+            <h1 id="tituloStatus" class="text-2xl font-bold">Identificando...</h1>
+            <p id="mensagemStatus" class="text-slate-400 text-sm">Validando suas credenciais de acesso.</p>
 
-                <form id="loginForm" class="space-y-6">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Código de Segurança</label>
-                        <input type="text" id="token" maxlength="6" placeholder="000000" 
-                        class="input-dark w-full py-5 rounded-2xl text-2xl">
-                    </div>
-
-                    <button type="submit" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.3em] text-[11px] font-black flex items-center justify-center">
-                        Acessar Meu Projeto <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
-                    </button>
-                </form>
-
-                <p class="text-[10px] text-center text-slate-500 uppercase tracking-widest leading-relaxed">
-                    Projeto vinculado à <br>
-                    <span class="text-slate-300">Rua Camamu, 372</span>
-                </p>
+            <div id="loadingArea" class="flex justify-center py-4">
+                <div class="loader"></div>
             </div>
+            
+            <button id="btnEntrar" class="hidden w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20">
+                Acessar Painel Solar
+            </button>
+            
+            <p class="text-xs text-slate-600 mt-4">Pro-Sollar Secure Access • ID: <span id="displayId">...</span></p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Use as mesmas credenciais do seu Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
-            projectId: "pro-sollar-performance"
+            projectId: "pro-sollar-performance",
+            storageBucket: "pro-sollar-performance.firebasestorage.app",
+            messagingSenderId: "484051034820",
+            appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const token = document.getElementById('token').value;
+        async function validarAcesso() {
+            // 1. Pega o ID da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const idLead = urlParams.get('id');
+            const status = urlParams.get('status');
+
+            const titulo = document.getElementById('tituloStatus');
+            const msg = document.getElementById('mensagemStatus');
+            const loader = document.getElementById('loadingArea');
+            const btn = document.getElementById('btnEntrar');
             
-            // Lógica de validação do token
-            // Se o token estiver correto, redireciona para o Portal
-            if(token.length === 6) {
-                window.location.href = "portal.html";
+            document.getElementById('displayId').innerText = idLead || "N/A";
+
+            if (!idLead) {
+                titulo.innerText = "Acesso Negado";
+                msg.innerText = "Nenhum identificador encontrado. Retornando...";
+                msg.classList.add("text-red-400");
+                setTimeout(() => window.location.href = "index.html", 3000);
+                return;
             }
-        });
+
+            try {
+                // 2. Busca no Firebase
+                const docRef = doc(db, "leads", idLead);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const dados = docSnap.data();
+                    
+                    if (status === 'new') {
+                        // Se for novo, faz uma "cena" de carregamento e entra
+                        titulo.innerText = "Gerando Proposta";
+                        msg.innerText = "Nossa IA está calculando sua economia...";
+                        
+                        setTimeout(() => {
+                            window.location.href = `panel.html?id=${idLead}`;
+                        }, 2500); // Delay proposital para parecer que a IA está "pensando"
+                    } else {
+                        // Se for retorno, pede confirmação
+                        titulo.innerText = "Bem-vindo de volta!";
+                        msg.innerText = `Localizamos o projeto para: ${dados.endereco}`;
+                        loader.classList.add('hidden');
+                        btn.classList.remove('hidden');
+                        
+                        btn.onclick = () => window.location.href = `panel.html?id=${idLead}`;
+                    }
+
+                } else {
+                    titulo.innerText = "Lead não encontrado";
+                    msg.innerText = "Não encontramos um projeto para este número.";
+                    msg.classList.add("text-red-400");
+                    setTimeout(() => window.location.href = "index.html", 3000);
+                }
+            } catch (error) {
+                console.error(error);
+                titulo.innerText = "Erro de Conexão";
+                msg.innerText = "Verifique sua internet.";
+            }
+        }
+
+        window.onload = validarAcesso;
     </script>
 </body>
 </html>
