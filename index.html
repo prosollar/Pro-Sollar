@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro-Sollar | Engenharia de Performance</title>
+    <title>Pro-Sollar | Inteligência Energética</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -12,8 +12,8 @@
         :root {
             --bg-deep: #0a1120;
             --accent-blue: #3b82f6;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-yellow: #facc15;
+            --accent-green: #22c55e;
         }
 
         body {
@@ -21,136 +21,258 @@
             background-color: var(--bg-deep);
             color: white;
             min-height: 100vh;
-            background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 10% 80%, rgba(250, 204, 21, 0.05) 0%, transparent 30%);
+            background-attachment: fixed;
         }
 
+        /* Glassmorphism Effect */
         .glass-card {
-            background: var(--glass);
+            background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
+        /* Card Glow Border */
+        .card-glow { position: relative; }
+        .card-glow::before {
+            content: ""; position: absolute; inset: -1px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), transparent, rgba(250, 204, 21, 0.5));
+            border-radius: 2.5rem; z-index: -1; opacity: 0.4;
+        }
+
+        /* Inputs Premium UI */
         .input-dark {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.5);
+            color: #fff !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .input-dark:focus {
-            border-color: var(--accent-blue);
-            background: rgba(59, 130, 246, 0.05);
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            background: rgba(0, 0, 0, 0.6) !important;
             outline: none;
         }
 
-        .btn-primary {
-            background: var(--accent-blue);
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        .btn-yellow {
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
             transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-yellow:hover { 
+            transform: scale(1.02); 
+            box-shadow: 0 0 35px rgba(250, 204, 21, 0.6); 
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.5);
+        /* Google Autocomplete Styles */
+        .pac-container {
+            background-color: #1e293b !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border-radius: 1.25rem !important;
+            margin-top: 10px !important;
+            font-family: inherit !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
         }
+        .pac-item { color: #cbd5e1 !important; border-top: 1px solid rgba(255, 255, 255, 0.05) !important; padding: 12px !important; cursor: pointer; }
+        .pac-item-query { color: white !important; font-weight: bold !important; }
+        .pac-item:hover { background-color: #334155 !important; }
+
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
     </style>
 </head>
-<body class="flex items-center justify-center p-6 md:p-12">
+<body class="overflow-x-hidden">
 
-    <div class="max-w-xl w-full">
-        
-        <header class="text-center mb-12">
-            <div class="inline-flex items-center space-x-3 mb-6">
-                <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-2xl">
-                    <i class="fas fa-solar-panel text-white text-2xl"></i>
-                </div>
-                <div class="text-left">
-                    <h1 class="text-2xl font-black uppercase tracking-tighter italic leading-none">Pro-<span class="text-blue-500">Sollar</span></h1>
-                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-1">Engenharia de Performance</p>
-                </div>
+    <nav class="container mx-auto p-8 flex justify-between items-center relative z-10">
+        <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                <i class="fas fa-solar-panel text-white text-2xl"></i>
             </div>
-            <h2 class="text-4xl md:text-5xl font-black tracking-tight italic">Simule sua <br><span class="text-blue-500">Liberdade Energética.</span></h2>
-        </header>
+            <span class="text-2xl font-black tracking-tighter uppercase">Pro-<span class="text-blue-500">Sollar</span></span>
+        </div>
+        <button class="bg-blue-600/20 border border-blue-500/30 px-6 py-2 rounded-full text-sm font-bold hover:bg-blue-600 transition">
+            Acesso Parceiro
+        </button>
+    </nav>
 
-        <div class="glass-card p-8 md:p-12 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[80px]"></div>
-            
-            <div class="space-y-6 relative z-10">
-                <div>
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-3 block">Endereço da Instalação</label>
-                    <input type="text" id="input-endereco" placeholder="Rua Camamu, 372" class="input-dark w-full p-5 rounded-2xl text-xs font-bold tracking-wide">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-3 block">WhatsApp</label>
-                        <input type="text" id="input-whatsapp" placeholder="(11) 99999-9999" class="input-dark w-full p-5 rounded-2xl text-xs font-bold tracking-wide">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-3 block">Consumo Médio (R$)</label>
-                        <input type="number" id="input-consumo" placeholder="450" class="input-dark w-full p-5 rounded-2xl text-xs font-bold tracking-wide">
-                    </div>
-                </div>
-
-                <button onclick="gerarProposta()" id="btn-main" class="btn-primary w-full py-6 rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 mt-4">
-                    Gerar Proposta <i class="fas fa-chevron-right text-[10px]"></i>
-                </button>
+    <main class="container mx-auto px-6 py-12 lg:py-16 grid lg:grid-cols-2 gap-16 items-center">
+        <div class="space-y-8">
+            <div class="inline-block px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-[0.3em] uppercase">
+                Satellite Intelligence
+            </div>
+            <h1 class="text-6xl lg:text-7xl font-extrabold leading-[1.1]">
+                Economia que vem do <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Céu.</span>
+            </h1>
+            <p class="text-slate-400 text-xl leading-relaxed max-w-lg">
+                Usamos visão computacional para analisar seu telhado e entregar sua independência energética em 30 segundos.
+            </p>
+            <div class="flex gap-8 text-xs font-bold uppercase tracking-widest text-slate-500">
+                <div class="flex items-center space-x-2"><i class="fas fa-microchip text-blue-500"></i> <span>AI Solar</span></div>
+                <div class="flex items-center space-x-2"><i class="fas fa-globe-americas text-blue-500"></i> <span>GeoData</span></div>
             </div>
         </div>
 
-        <footer class="mt-12 text-center opacity-20">
-            <p class="text-[9px] font-black uppercase tracking-[1em]">Pro-Sollar High Performance • 2026</p>
-        </footer>
+        <div class="card-glow">
+            <div class="glass-card p-10 space-y-8">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold tracking-tight text-white">Simule Seu Potential</h2>
+                    <i class="fas fa-bolt text-yellow-400 animate-pulse"></i>
+                </div>
 
-    </div>
+                <form id="simuladorForm" class="space-y-5">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Local da Instalação</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-500/70 group-focus-within:text-blue-400 transition-colors">
+                                <i class="fas fa-satellite-dish"></i>
+                            </div>
+                            <input type="text" id="endereco" placeholder="Digite seu endereço..." 
+                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Gasto Mensal Médio</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-yellow-500/70 group-focus-within:text-yellow-400 transition-colors">
+                                <i class="fas fa-coins text-sm"></i>
+                            </div>
+                            <input type="number" id="consumo" placeholder="Ex: 450.00" 
+                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Seu WhatsApp</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-green-500/70 group-focus-within:text-green-400 transition-colors">
+                                <i class="fab fa-whatsapp text-lg"></i>
+                            </div>
+                            <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" 
+                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="lat"> <input type="hidden" id="lng">
+
+                    <button type="submit" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.3em] text-[11px] font-black flex items-center justify-center mt-2">
+                        Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <section class="container mx-auto px-6 py-20 reveal">
+        <div class="grid md:grid-cols-3 gap-8 text-center">
+            <div class="glass-card p-10 border-blue-500/10">
+                <i class="fas fa-satellite text-3xl text-blue-500 mb-6"></i>
+                <h3 class="text-lg font-bold mb-3">Análise Geoespacial</h3>
+                <p class="text-slate-400 text-sm">Mapeamento milimétrico via satélite para maior eficiência.</p>
+            </div>
+            <div class="glass-card p-10 border-yellow-500/10">
+                <i class="fas fa-sun text-3xl text-yellow-500 mb-6"></i>
+                <h3 class="text-lg font-bold mb-3">Energia Limpa</h3>
+                <p class="text-slate-400 text-sm">Aproveitamento total da incidência solar da sua região.</p>
+            </div>
+            <div class="glass-card p-10 border-green-500/10">
+                <i class="fas fa-wallet text-3xl text-green-500 mb-6"></i>
+                <h3 class="text-lg font-bold mb-3">Economia Imediata</h3>
+                <p class="text-slate-400 text-sm">Redução de até 95% no custo da sua energia elétrica.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="container mx-auto px-6 py-12 text-center text-slate-600 border-t border-white/5">
+        <p class="text-[10px] font-bold tracking-[0.4em] uppercase">© 2026 Pro-Sollar • Powered by Google Solar API</p>
+    </footer>
+
+    <script>
+        window.initAutocomplete = function() {
+            const input = document.getElementById('endereco');
+            if (!input) return;
+            const autocomplete = new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country: "br" },
+                fields: ["geometry", "formatted_address"],
+                types: ["address"]
+            });
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (place.geometry) {
+                    document.getElementById('lat').value = place.geometry.location.lat();
+                    document.getElementById('lng').value = place.geometry.location.lng();
+                }
+            });
+        };
+
+        const handleReveal = () => {
+            document.querySelectorAll('.reveal').forEach(el => {
+                if(el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
+            });
+        };
+        window.addEventListener('scroll', handleReveal);
+        window.addEventListener('load', handleReveal);
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
             projectId: "pro-sollar-performance",
+            storageBucket: "pro-sollar-performance.firebasestorage.app",
+            messagingSenderId: "484051034820",
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        window.gerarProposta = async function() {
-            const endereco = document.getElementById('input-endereco').value;
-            const whatsapp = document.getElementById('input-whatsapp').value.replace(/\D/g, '');
-            const consumo = document.getElementById('input-consumo').value;
+        document.getElementById('simuladorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalHTML = btn.innerHTML;
+            
+            const whatsapp = document.getElementById('whatsapp').value;
+            const endereco = document.getElementById('endereco').value;
+            const consumo = document.getElementById('consumo').value;
+            const idLead = whatsapp.replace(/\D/g, "");
 
-            if (!endereco || !whatsapp) {
-                alert("Preencha os campos obrigatórios.");
-                return;
-            }
+            if(!whatsapp || !endereco) return alert("Preencha os campos obrigatórios.");
 
-            const btn = document.getElementById('btn-main');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-sync animate-spin"></i> Processando...';
-            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-sync animate-spin mr-2"></i> Analisando Dados...';
 
             try {
-                await setDoc(doc(db, "leads", whatsapp), {
-                    endereco: endereco,
-                    whatsapp: whatsapp,
-                    consumo: consumo,
-                    status: "aguardando_portal",
-                    valor_selecionado: 18500,
-                    data_criacao: new Date()
-                });
+                await setDoc(doc(db, "leads", idLead), {
+                    whatsapp,
+                    endereco,
+                    consumo,
+                    lat: document.getElementById('lat').value,
+                    lng: document.getElementById('lng').value,
+                    status: "novo_lead",
+                    criado_em: serverTimestamp(),
+                    valor_selecionado: 18500
+                }, { merge: true });
 
-                window.location.href = `panel.html?id=${whatsapp}`;
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao conectar.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                window.location.href = `panel.html?id=${idLead}`;
+            } catch (error) {
+                console.error(error);
+                btn.innerHTML = originalHTML;
+                alert("Erro ao conectar com o sistema.");
             }
-        };
+        });
     </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 </body>
 </html>
