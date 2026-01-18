@@ -210,12 +210,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
-
     <script>
-        // 2. Configuração do Projeto
+        // CONFIGURAÇÃO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -225,46 +221,145 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // 3. Inicialização Segura (Verifica se JÁ existe antes de criar)
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-            console.log("🔥 Firebase conectado (Modo Compat).");
-        } else {
-            console.log("♻️ Firebase já estava ativo.");
-        }
-
-        // Inicializa os serviços
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // 4. Lógica do Botão
-        const btn = document.getElementById('btnGerar');
+        // ---------------------------------------------------------
+        // ALGORITMO DE ENGENHARIA FINANCEIRA (25 ANOS)
+        // ---------------------------------------------------------
+        function calcularEngenhariaFinanceira(consumoReais) {
+            
+            // INPUTS TÉCNICOS & PREMISSAS
+            const INPUTS = {
+                tarifa_atual: 0.92,       
+                irradiacao_media: 4.8,    
+                eficiencia_global: 0.75, 
+                modulo: { modelo: "N-Type 600W", potencia_w: 600, area_m2: 2.69 },
+                financeiro: {
+                    preco_venda_kwp: 3800.00,
+                    inflacao_energetica_aa: 0.10, // 10% a.a.
+                    inflacao_servicos_aa: 0.045,  // 4.5% a.a.
+                    degradacao_mensal: 0.0007,    // 0.07% a.m
+                    custo_limpeza_un: 20.00,      
+                    frequencia_limpeza_meses: 6,
+                    perc_troca_inversor: 0.0815,  
+                    frequencia_inversor_anos: 10
+                }
+            };
 
+            // DIMENSIONAMENTO TÉCNICO
+            const consumoKwh = consumoReais / INPUTS.tarifa_atual;
+            let kwpNecessario = consumoKwh / (INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global);
+            
+            let qtdModulos = Math.ceil((kwpNecessario * 1000) / INPUTS.modulo.potencia_w);
+            if (qtdModulos < 4) qtdModulos = 4;
+
+            const potenciaInstaladaKwp = (qtdModulos * INPUTS.modulo.potencia_w) / 1000;
+            const areaTelhado = qtdModulos * INPUTS.modulo.area_m2;
+            const geracaoMediaMensal = potenciaInstaladaKwp * INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global;
+
+            // FLUXO DE CAIXA (25 ANOS)
+            const investimentoInicial = potenciaInstaladaKwp * INPUTS.financeiro.preco_venda_kwp;
+            const investimentoComDesconto = investimentoInicial * 0.95;
+            
+            let fluxoCaixa = [];
+            let saldoAcumulado = -investimentoComDesconto;
+            let paybackMes = 0;
+            let paybackEncontrado = false;
+
+            for (let m = 1; m <= 300; m++) {
+                const anoAtual = Math.ceil(m / 12);
+                const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
+                const geracaoMes = geracaoMediaMensal * fatorDegradacao;
+                const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
+                const tarifaMes = INPUTS.tarifa_atual * fatorInflacaoEnergia;
+                const receitaBruta = geracaoMes * tarifaMes;
+
+                let custoManutencao = 0;
+                let custoInversor = 0;
+
+                if (m % INPUTS.financeiro.frequencia_limpeza_meses === 0) {
+                    const fatorIpca = Math.pow((1 + INPUTS.financeiro.inflacao_servicos_aa), (m-1)/12);
+                    custoManutencao = (qtdModulos * INPUTS.financeiro.custo_limpeza_un) * fatorIpca;
+                }
+
+                if (m === 120 || m === 240) {
+                    custoInversor = investimentoInicial * INPUTS.financeiro.perc_troca_inversor;
+                }
+
+                const totalDespesas = custoManutencao + custoInversor;
+                const fluxoLiquido = receitaBruta - totalDespesas;
+                saldoAcumulado += fluxoLiquido;
+
+                if (!paybackEncontrado && saldoAcumulado >= 0) {
+                    paybackMes = m;
+                    paybackEncontrado = true;
+                }
+
+                fluxoCaixa.push({
+                    mes: m,
+                    ano: anoAtual,
+                    geracao_kwh: parseFloat(geracaoMes.toFixed(1)),
+                    tarifa_vigente: parseFloat(tarifaMes.toFixed(3)),
+                    receita_economia: parseFloat(receitaBruta.toFixed(2)),
+                    saidas: {
+                        limpeza: parseFloat(custoManutencao.toFixed(2)),
+                        inversor: parseFloat(custoInversor.toFixed(2)),
+                        total: parseFloat(totalDespesas.toFixed(2))
+                    },
+                    fluxo_liquido: parseFloat(fluxoLiquido.toFixed(2)),
+                    fluxo_acumulado: parseFloat(saldoAcumulado.toFixed(2))
+                });
+            }
+
+            return {
+                configuracao_sistema: {
+                    modulo: { ...INPUTS.modulo },
+                    inversor: { fator_overload: 1.4, potencia_calculada_kw: parseFloat((potenciaInstaladaKwp/1.4).toFixed(2)) },
+                    premissas: { ...INPUTS.financeiro, eficiencia_global: INPUTS.eficiencia_global }
+                },
+                engenharia: {
+                    projetado: {
+                        potencia_instalada_kwp: parseFloat(potenciaInstaladaKwp.toFixed(2)),
+                        qtd_modulos: qtdModulos,
+                        area_ocupada_m2: parseFloat(areaTelhado.toFixed(2)),
+                        geracao_mensal_media_inicial: parseFloat(geracaoMediaMensal.toFixed(0))
+                    },
+                    realizado: { status_monitoramento: "aguardando_instalacao", historico_diario_recente: [], historico_mensal: [] }
+                },
+                financeiro: {
+                    investimento_bruto: parseFloat(investimentoInicial.toFixed(2)),
+                    valor_final: parseFloat(investimentoComDesconto.toFixed(2)),
+                    payback_anos: parseFloat((paybackMes / 12).toFixed(1)),
+                    economia_total_acumulada: parseFloat(saldoAcumulado.toFixed(2)),
+                    roi_percentual: parseFloat(((saldoAcumulado / investimentoComDesconto) * 100).toFixed(0)),
+                    fluxo_caixa_mensal: fluxoCaixa
+                }
+            };
+        }
+
+        // LÓGICA DO BOTÃO
+        const btn = document.getElementById('btnGerar');
         if (btn) {
-            // Clona o botão para limpar eventos antigos e garantir clique limpo
             const novoBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(novoBtn, btn);
 
             novoBtn.addEventListener('click', async function(e) {
-                // Previne qualquer comportamento padrão
                 e.preventDefault();
-                
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
-
-                // Captura os dados com segurança
                 const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
                 
                 const email = getVal('email');
                 const whatsappInput = getVal('whatsapp');
                 const endereco = getVal('endereco');
-                const consumo = getVal('consumo');
+                const consumoInput = getVal('consumo');
                 const lat = getVal('lat');
                 const lng = getVal('lng');
                 const idLead = whatsappInput.replace(/\D/g, "");
 
-                // Validações
-                if (!email || !whatsappInput || !endereco || !consumo) {
+                if (!email || !whatsappInput || !endereco || !consumoInput) {
                     alert("Por favor, preencha todos os campos.");
                     return;
                 }
@@ -273,92 +368,72 @@
                     return;
                 }
 
-                // Feedback Visual
-                btnAtual.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Enviando...';
+                btnAtual.innerHTML = '<i class="fas fa-calculator fa-spin mr-2"></i> Processando Engenharia...';
                 btnAtual.disabled = true;
 
                 try {
-                    // Referência ao documento
                     const docRef = db.collection("leads").doc(idLead);
-                    const docSnap = await docRef.get();
+                    const dadosCompletos = calcularEngenhariaFinanceira(parseFloat(consumoInput));
+
+                    const payload = {
+                        status_geral: "novo_lead",
+                        perfil: {
+                            email: email,
+                            whatsapp: idLead,
+                            whatsapp_formatted: whatsappInput,
+                            endereco_completo: endereco,
+                            coordenadas: { lat: parseFloat(lat), lng: parseFloat(lng) },
+                            consumo_mensal_reais: parseFloat(consumoInput),
+                            origem: { tipo: "organico", data_captura: new Date().toISOString() }
+                        },
+                        ...dadosCompletos,
+                        status: { fase: "novo_lead", criado_em: firebase.firestore.FieldValue.serverTimestamp() }
+                    };
+
+                    await docRef.set(payload, { merge: true });
 
                     const actionCodeSettings = {
                         url: window.location.origin + `/login.html?id=${idLead}&verifying=true`,
                         handleCodeInApp: true
                     };
 
-                    // Salva no Firestore
-                    await docRef.set({
-                        email: email,
-                        whatsapp: idLead,
-                        whatsapp_formatted: whatsappInput,
-                        endereco: endereco,
-                        consumo: parseFloat(consumo),
-                        lat: parseFloat(lat),
-                        lng: parseFloat(lng),
-                        status: docSnap.exists ? "retorno" : "novo_lead",
-                        atualizado_em: firebase.firestore.FieldValue.serverTimestamp(),
-                        origem: "landing_page"
-                    }, { merge: true });
-
-                    console.log("Salvo no banco. Enviando e-mail...");
-
-                    // Envia Link Mágico
+                    btnAtual.innerHTML = '<i class="fas fa-paper-plane animate-pulse mr-2"></i> Enviando Proposta...';
                     await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-                    
-                    // Salva e-mail localmente para o login
                     window.localStorage.setItem('emailForSignIn', email);
-                    
-                    // Redireciona
                     window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
 
                 } catch (error) {
-                    console.error("Erro no processo:", error);
+                    console.error("Erro:", error);
                     btnAtual.innerHTML = originalHTML;
                     btnAtual.disabled = false;
-
-                    if (error.code === 'auth/unauthorized-domain') {
-                        alert("ERRO DE DOMÍNIO: Vá no Firebase Console > Authentication > Settings e adicione o domínio da Vercel.");
-                    } else {
-                        alert("Erro: " + error.message);
-                    }
+                    alert("Erro ao processar: " + error.message);
                 }
             });
-        } else {
-            console.error("ERRO: Botão 'btnGerar' não encontrado.");
         }
     </script>
+
     <script>
-        // Função Global que o Google Maps procura
         window.initAutocomplete = function() {
             const input = document.getElementById('endereco');
-            
-            // Se o campo não existir, para por aqui
             if (!input) return;
 
             const autocomplete = new google.maps.places.Autocomplete(input, {
-                componentRestrictions: { country: "br" }, // Restringe ao Brasil
+                componentRestrictions: { country: "br" },
                 fields: ["geometry", "formatted_address"],
                 types: ["address"]
             });
 
-            // Quando o usuário seleciona um endereço:
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
-                
                 if (place.geometry) {
-                    // Preenche os campos ocultos com Latitude e Longitude
                     document.getElementById('lat').value = place.geometry.location.lat();
                     document.getElementById('lng').value = place.geometry.location.lng();
-                    
-                    // Feedback visual (borda verde)
                     input.style.borderColor = "#22c55e"; 
                     input.style.borderWidth = "2px";
                 }
             });
         };
 
-        // Efeito de Reveal (animação ao rolar a página)
         const handleReveal = () => {
             document.querySelectorAll('.reveal').forEach(el => {
                 if(el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
@@ -367,6 +442,8 @@
         window.addEventListener('scroll', handleReveal);
         window.addEventListener('load', handleReveal);
     </script>
+    
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
+
 </body>
 </html>
