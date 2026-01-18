@@ -271,40 +271,53 @@
         const db = getFirestore(app);
 
         document.getElementById('simuladorForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const originalHTML = btn.innerHTML;
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const originalHTML = btn.innerHTML;
+    
+    const whatsapp = document.getElementById('whatsapp').value;
+    const endereco = document.getElementById('endereco').value;
+    const consumo = document.getElementById('consumo').value;
+    const idLead = whatsapp.replace(/\D/g, ""); // Remove parênteses e traços
+
+    if(!whatsapp || !endereco) return alert("Preencha os campos obrigatórios.");
+
+    btn.innerHTML = '<i class="fas fa-sync animate-spin mr-2"></i> Processando...';
+
+    try {
+        const { getDoc, doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+        
+        // 1. Tenta buscar se o cliente já existe
+        const docRef = doc(db, "leads", idLead);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            // CLIENTE JÁ EXISTE: Reconhece e manda para o login do portal
+            console.log("Cliente reconhecido. Redirecionando para acesso.");
+            window.location.href = `/login?id=${idLead}&status=returning`;
+        } else {
+            // CLIENTE NOVO: Cria o registro e manda para o fluxo de checkout/proposta
+            await setDoc(docRef, {
+                whatsapp,
+                endereco,
+                consumo,
+                lat: document.getElementById('lat').value,
+                lng: document.getElementById('lng').value,
+                status: "novo_lead",
+                criado_em: serverTimestamp(),
+                valor_selecionado: 17575 // Valor padrão que você mencionou
+            });
             
-            const whatsapp = document.getElementById('whatsapp').value;
-            const endereco = document.getElementById('endereco').value;
-            const consumo = document.getElementById('consumo').value;
-            const idLead = whatsapp.replace(/\D/g, "");
+            console.log("Novo lead criado.");
+            window.location.href = `/login?id=${idLead}&status=new`;
+        }
+    } catch (error) {
+        console.error("Erro no Firebase:", error);
+        btn.innerHTML = originalHTML;
+        alert("Erro ao conectar com a inteligência Pro-Sollar.");
+    }
+});
 
-            if(!whatsapp || !endereco) return alert("Preencha os campos obrigatórios.");
-
-            btn.innerHTML = '<i class="fas fa-sync animate-spin mr-2"></i> Analisando Dados...';
-
-            try {
-                await setDoc(doc(db, "leads", idLead), {
-                    whatsapp,
-                    endereco,
-                    consumo,
-                    lat: document.getElementById('lat').value,
-                    lng: document.getElementById('lng').value,
-                    status: "novo_lead",
-                    criado_em: serverTimestamp(),
-                    valor_selecionado: 18500
-                }, { merge: true });
-
-                // O redirecionamento agora vai para a tela de login que criamos
-window.location.href = `/login?id=${idLead}`; 
-
-            } catch (error) {
-                console.error(error);
-                btn.innerHTML = originalHTML;
-                alert("Erro ao conectar com o sistema.");
-            }
-        });
     </script>
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
