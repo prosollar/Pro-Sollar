@@ -3,16 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acessando... | Pro-Sollar</title>
+    <title>Acesso Seguro | Pro-Sollar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
-
-        :root {
-            --bg-deep: #0a1120;
-        }
-
+        :root { --bg-deep: #0a1120; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-deep);
@@ -21,10 +17,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
         }
-
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
@@ -32,7 +26,6 @@
             border-radius: 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-
         .loader {
             border: 3px solid rgba(255,255,255,0.1);
             border-left-color: #3b82f6;
@@ -41,7 +34,6 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -49,30 +41,29 @@
 
     <div class="container max-w-md px-6">
         <div class="glass-card p-8 text-center space-y-6 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50"></div>
-
-            <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-fingerprint text-blue-400 text-2xl"></i>
+            
+            <div id="iconContainer" class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-500">
+                <i id="statusIcon" class="fas fa-circle-notch animate-spin text-blue-400 text-3xl"></i>
             </div>
 
-            <h1 id="tituloStatus" class="text-2xl font-bold">Identificando...</h1>
-            <p id="mensagemStatus" class="text-slate-400 text-sm">Validando suas credenciais de acesso.</p>
+            <h1 id="titulo" class="text-2xl font-bold">Processando...</h1>
+            <p id="mensagem" class="text-slate-400 text-sm leading-relaxed">
+                Aguarde enquanto conectamos com o servidor.
+            </p>
 
-            <div id="loadingArea" class="flex justify-center py-4">
-                <div class="loader"></div>
+            <div id="actionArea" class="hidden pt-4 border-t border-white/5">
+                <p class="text-xs text-slate-500 mb-3">Não recebeu o e-mail?</p>
+                <button onclick="window.location.href='index.html'" class="text-xs text-blue-400 font-bold hover:text-blue-300 uppercase tracking-widest">
+                    Tentar Novamente
+                </button>
             </div>
             
-            <button id="btnEntrar" class="hidden w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20">
-                Acessar Painel Solar
-            </button>
-            
-            <p class="text-xs text-slate-600 mt-4">Pro-Sollar Secure Access • ID: <span id="displayId">...</span></p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
@@ -84,69 +75,91 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        async function validarAcesso() {
-            // 1. Pega o ID da URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const idLead = urlParams.get('id');
-            const status = urlParams.get('status');
+        // UI Elements
+        const titulo = document.getElementById('titulo');
+        const msg = document.getElementById('mensagem');
+        const iconContainer = document.getElementById('iconContainer');
+        const icon = document.getElementById('statusIcon');
+        const actionArea = document.getElementById('actionArea');
 
-            const titulo = document.getElementById('tituloStatus');
-            const msg = document.getElementById('mensagemStatus');
-            const loader = document.getElementById('loadingArea');
-            const btn = document.getElementById('btnEntrar');
-            
-            document.getElementById('displayId').innerText = idLead || "N/A";
-
-            if (!idLead) {
-                titulo.innerText = "Acesso Negado";
-                msg.innerText = "Nenhum identificador encontrado. Retornando...";
-                msg.classList.add("text-red-400");
-                setTimeout(() => window.location.href = "index.html", 3000);
-                return;
-            }
-
-            try {
-                // 2. Busca no Firebase
-                const docRef = doc(db, "leads", idLead);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const dados = docSnap.data();
-                    
-                    if (status === 'new') {
-                        // Se for novo, faz uma "cena" de carregamento e entra
-                        titulo.innerText = "Gerando Proposta";
-                        msg.innerText = "Nossa IA está calculando sua economia...";
-                        
-                        setTimeout(() => {
-                            window.location.href = `panel.html?id=${idLead}`;
-                        }, 2500); // Delay proposital para parecer que a IA está "pensando"
-                    } else {
-                        // Se for retorno, pede confirmação
-                        titulo.innerText = "Bem-vindo de volta!";
-                        msg.innerText = `Localizamos o projeto para: ${dados.endereco}`;
-                        loader.classList.add('hidden');
-                        btn.classList.remove('hidden');
-                        
-                        btn.onclick = () => window.location.href = `panel.html?id=${idLead}`;
-                    }
-
-                } else {
-                    titulo.innerText = "Lead não encontrado";
-                    msg.innerText = "Não encontramos um projeto para este número.";
-                    msg.classList.add("text-red-400");
-                    setTimeout(() => window.location.href = "index.html", 3000);
+        async function gerenciarLogin() {
+            // Verifica se é o usuário CLICANDO NO LINK DO E-MAIL
+            if (isSignInWithEmailLink(auth, window.location.href)) {
+                
+                titulo.innerText = "Validando Token";
+                msg.innerText = "Autenticando acesso seguro...";
+                
+                // Recupera o email que salvamos no index.html
+                let email = window.localStorage.getItem('emailForSignIn');
+                
+                // Se o usuário trocou de dispositivo (ex: pediu no PC, abriu email no celular), pedimos o email
+                if (!email) {
+                    email = window.prompt('Por favor, confirme seu e-mail para validação:');
                 }
-            } catch (error) {
-                console.error(error);
-                titulo.innerText = "Erro de Conexão";
-                msg.innerText = "Verifique sua internet.";
+
+                try {
+                    // Tenta fazer o login
+                    const result = await signInWithEmailLink(auth, email, window.location.href);
+                    
+                    // Sucesso!
+                    window.localStorage.removeItem('emailForSignIn'); // Limpa cache
+                    
+                    // Pega o ID da URL (que enviamos no link mágico)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const idLead = urlParams.get('id');
+
+                    titulo.innerText = "Acesso Permitido";
+                    msg.innerText = "Redirecionando para o painel...";
+                    icon.classList.remove('fa-circle-notch', 'animate-spin');
+                    icon.classList.add('fa-check');
+                    iconContainer.classList.remove('bg-blue-500/10');
+                    iconContainer.classList.add('bg-green-500/10');
+                    icon.classList.replace('text-blue-400', 'text-green-500');
+
+                    setTimeout(() => {
+                        // Manda para o Painel
+                        window.location.href = `panel.html?id=${idLead}`;
+                    }, 1500);
+
+                } catch (error) {
+                    console.error(error);
+                    titulo.innerText = "Link Expirado ou Inválido";
+                    msg.innerText = "Este link de acesso já foi usado ou expirou.";
+                    msg.classList.add("text-red-400");
+                    icon.classList.remove('fa-circle-notch', 'animate-spin');
+                    icon.classList.add('fa-times');
+                    icon.classList.replace('text-blue-400', 'text-red-500');
+                    actionArea.classList.remove('hidden');
+                }
+
+            } 
+            // Verifica se é o usuário ACABANDO DE ENVIAR O FORMULÁRIO (Check Email)
+            else {
+                const urlParams = new URLSearchParams(window.location.search);
+                const status = urlParams.get('status');
+                const userEmail = urlParams.get('email');
+
+                if (status === 'check_email') {
+                    titulo.innerText = "Verifique seu E-mail";
+                    msg.innerHTML = `Enviamos um link mágico de acesso para:<br><b class="text-white">${userEmail || 'sua caixa de entrada'}</b>.<br><br>Clique no link recebido para entrar.`;
+                    
+                    icon.classList.remove('fa-circle-notch', 'animate-spin');
+                    icon.classList.add('fa-envelope-open-text');
+                    icon.classList.replace('text-blue-400', 'text-yellow-400');
+                    iconContainer.classList.replace('bg-blue-500/10', 'bg-yellow-500/10');
+                    
+                    // Mostra botão de voltar caso tenha errado o email
+                    actionArea.classList.remove('hidden');
+                } else {
+                    // Acesso direto sem parâmetros (não permitido)
+                    window.location.href = 'index.html';
+                }
             }
         }
 
-        window.onload = validarAcesso;
+        gerenciarLogin();
     </script>
 </body>
 </html>
