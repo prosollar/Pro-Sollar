@@ -210,8 +210,12 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+
     <script>
-        // Configuração
+        // 2. Configuração do Projeto
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -221,32 +225,34 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // 2. VERIFICAÇÃO GLOBAL (A Mais Segura Possível)
-        // Se já existe app (firebase.apps.length), não faz nada. Se não, cria.
+        // 3. Inicialização Segura (Verifica se JÁ existe antes de criar)
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
-            console.log("🔥 Firebase Iniciado (Modo Compat).");
+            console.log("🔥 Firebase conectado (Modo Compat).");
         } else {
             console.log("♻️ Firebase já estava ativo.");
         }
 
-        // Inicializa serviços
+        // Inicializa os serviços
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // 3. LÓGICA DO BOTÃO
+        // 4. Lógica do Botão
         const btn = document.getElementById('btnGerar');
-        
-        if(btn) {
-            // Clone para limpar eventos antigos
+
+        if (btn) {
+            // Clona o botão para limpar eventos antigos e garantir clique limpo
             const novoBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(novoBtn, btn);
 
             novoBtn.addEventListener('click', async function(e) {
+                // Previne qualquer comportamento padrão
+                e.preventDefault();
+                
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
-                
-                // Pega valores
+
+                // Captura os dados com segurança
                 const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
                 
                 const email = getVal('email');
@@ -258,19 +264,21 @@
                 const idLead = whatsappInput.replace(/\D/g, "");
 
                 // Validações
-                if(!email || !whatsappInput || !endereco || !consumo) {
+                if (!email || !whatsappInput || !endereco || !consumo) {
                     alert("Por favor, preencha todos os campos.");
                     return;
                 }
-                if(!lat || !lng) {
-                    alert("Por favor, selecione o endereço na lista do Google.");
+                if (!lat || !lng) {
+                    alert("Por favor, selecione o endereço na lista do Google Maps.");
                     return;
                 }
 
+                // Feedback Visual
                 btnAtual.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Enviando...';
                 btnAtual.disabled = true;
 
                 try {
+                    // Referência ao documento
                     const docRef = db.collection("leads").doc(idLead);
                     const docSnap = await docRef.get();
 
@@ -281,32 +289,43 @@
 
                     // Salva no Firestore
                     await docRef.set({
-                        email, whatsapp: idLead, whatsapp_formatted: whatsappInput,
-                        endereco, consumo: parseFloat(consumo),
-                        lat: parseFloat(lat), lng: parseFloat(lng),
+                        email: email,
+                        whatsapp: idLead,
+                        whatsapp_formatted: whatsappInput,
+                        endereco: endereco,
+                        consumo: parseFloat(consumo),
+                        lat: parseFloat(lat),
+                        lng: parseFloat(lng),
                         status: docSnap.exists ? "retorno" : "novo_lead",
                         atualizado_em: firebase.firestore.FieldValue.serverTimestamp(),
                         origem: "landing_page"
                     }, { merge: true });
 
+                    console.log("Salvo no banco. Enviando e-mail...");
+
                     // Envia Link Mágico
                     await auth.sendSignInLinkToEmail(email, actionCodeSettings);
                     
+                    // Salva e-mail localmente para o login
                     window.localStorage.setItem('emailForSignIn', email);
+                    
+                    // Redireciona
                     window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
 
                 } catch (error) {
-                    console.error("Erro:", error);
+                    console.error("Erro no processo:", error);
                     btnAtual.innerHTML = originalHTML;
                     btnAtual.disabled = false;
-                    
+
                     if (error.code === 'auth/unauthorized-domain') {
-                        alert("ERRO: Domínio não autorizado. Adicione o domínio da Vercel no Firebase Console.");
+                        alert("ERRO DE DOMÍNIO: Vá no Firebase Console > Authentication > Settings e adicione o domínio da Vercel.");
                     } else {
                         alert("Erro: " + error.message);
                     }
                 }
             });
+        } else {
+            console.error("ERRO: Botão 'btnGerar' não encontrado.");
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
