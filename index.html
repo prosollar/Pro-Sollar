@@ -176,7 +176,7 @@ Substitua o trecho do **Script Principal** (aquele que te passei anteriormente) 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; // Importamos Auth
+        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
@@ -187,277 +187,106 @@ Substitua o trecho do **Script Principal** (aquele que te passei anteriormente) 
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); // Inicializa Auth
-
-        document.getElementById('simuladorForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const btn = e.target.querySelector('button');
-            const originalHTML = btn.innerHTML;
-            
-            // Tratamento dos dados
-            const email = document.getElementById('email').value; // Novo campo
-            const whatsappInput = document.getElementById('whatsapp').value;
-            const endereco = document.getElementById('endereco').value;
-            const consumo = document.getElementById('consumo').value;
-            const lat = document.getElementById('lat').value;
-            const lng = document.getElementById('lng').value;
-            
-            const idLead = whatsappInput.replace(/\D/g, "");
-
-            // Validações
-            if(!email || !whatsappInput || !endereco || !consumo) {
-                alert("Por favor, preencha todos os campos, incluindo o e-mail.");
-                return;
-            }
-
-            if(!lat || !lng) {
-                alert("Por favor, selecione o endereço na lista do Google.");
-                return;
-            }
-
-            btn.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Analisando Telhado...';
-            btn.disabled = true;
-
-            try {
-                const docRef = doc(db, "leads", idLead);
-                const docSnap = await getDoc(docRef);
-
-                // Configuração do Link de Login por Email
-                const actionCodeSettings = {
-                    url: window.location.origin + `/login.html?id=${idLead}&verifying=true`, // Para onde o usuário vai após clicar no email
-                    handleCodeInApp: true
-                };
-
-                // Salvamos (ou atualizamos) os dados do Lead
-                await setDoc(docRef, {
-                    email: email, // Salvando e-mail
-                    whatsapp: idLead,
-                    whatsapp_formatted: whatsappInput,
-                    endereco: endereco,
-                    consumo: parseFloat(consumo),
-                    lat: parseFloat(lat),
-                    lng: parseFloat(lng),
-                    status: docSnap.exists() ? "retorno" : "novo_lead",
-                    atualizado_em: serverTimestamp(),
-                    origem: "landing_page"
-                }, { merge: true });
-
-                // Envia o E-mail de Autenticação (Aqui acontece a mágica)
-                await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-                
-                // Salva o email localmente para não precisar digitar de novo no login
-                window.localStorage.setItem('emailForSignIn', email);
-
-                console.log("Link de acesso enviado para: " + email);
-                
-                // Redireciona para tela de aviso "Cheque seu e-mail"
-                window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
-
-            } catch (error) {
-                console.error("Erro:", error);
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-                alert("Erro ao processar. Verifique os dados.");
-            }
-        });
-    </script>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Seu WhatsApp</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-green-500/70 group-focus-within:text-green-400 transition-colors">
-                                <i class="fab fa-whatsapp text-lg"></i>
-                            </div>
-                            <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" 
-                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
-                        </div>
-                    </div>
-
-                    <input type="hidden" id="lat"> <input type="hidden" id="lng">
-
-                    <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.3em] text-[11px] font-black flex items-center justify-center mt-2">
-    Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
-</button>
-                        <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
-        authDomain: "pro-sollar-performance.firebaseapp.com",
-        projectId: "pro-sollar-performance",
-        appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    window.gerarProposta = async function() {
-        const endereco = document.getElementById('input-endereco').value;
-        const whatsapp = document.getElementById('input-whatsapp').value.replace(/\D/g, '');
-
-        if (!endereco || !whatsapp) return;
-
+        // Inicialização com tratamento de erro
+        let app, db, auth;
         try {
-            await setDoc(doc(db, "leads", whatsapp), {
-                endereco: endereco,
-                whatsapp: whatsapp,
-                data_criacao: new Date()
-            });
-            // O segredo da fluidez: passa o ID para a próxima página reconhecer
-            window.location.href = `panel.html?id=${whatsapp}`;
-        } catch (e) { console.error(e); }
-    };
-</script>
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            console.log("Firebase conectado com sucesso.");
+        } catch (e) {
+            console.error("Erro fatal ao iniciar Firebase:", e);
+            alert("Erro de configuração no sistema. Verifique o console (F12).");
+        }
 
-                    </button>
-                </form>
-            </div>
-        </div>
-    </main>
+        // Mudamos para 'click' no botão, em vez de 'submit' no form
+        const btn = document.getElementById('btnGerar');
+        
+        if(btn) {
+            btn.addEventListener('click', async function(e) {
+                // Não precisa de e.preventDefault() pois mudamos para type="button"
+                
+                const originalHTML = btn.innerHTML;
+                
+                // 1. Captura os dados
+                const email = document.getElementById('email').value;
+                const whatsappInput = document.getElementById('whatsapp').value;
+                const endereco = document.getElementById('endereco').value;
+                const consumo = document.getElementById('consumo').value;
+                const lat = document.getElementById('lat').value;
+                const lng = document.getElementById('lng').value;
+                
+                const idLead = whatsappInput.replace(/\D/g, "");
 
-    <section class="container mx-auto px-6 py-20 reveal">
-        <div class="grid md:grid-cols-3 gap-8 text-center">
-            <div class="glass-card p-10 border-blue-500/10">
-                <i class="fas fa-satellite text-3xl text-blue-500 mb-6"></i>
-                <h3 class="text-lg font-bold mb-3">Análise Geoespacial</h3>
-                <p class="text-slate-400 text-sm">Mapeamento milimétrico via satélite para maior eficiência.</p>
-            </div>
-            <div class="glass-card p-10 border-yellow-500/10">
-                <i class="fas fa-sun text-3xl text-yellow-500 mb-6"></i>
-                <h3 class="text-lg font-bold mb-3">Energia Limpa</h3>
-                <p class="text-slate-400 text-sm">Aproveitamento total da incidência solar da sua região.</p>
-            </div>
-            <div class="glass-card p-10 border-green-500/10">
-                <i class="fas fa-wallet text-3xl text-green-500 mb-6"></i>
-                <h3 class="text-lg font-bold mb-3">Economia Imediata</h3>
-                <p class="text-slate-400 text-sm">Redução de até 95% no custo da sua energia elétrica.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="container mx-auto px-6 py-12 text-center text-slate-600 border-t border-white/5">
-        <p class="text-[10px] font-bold tracking-[0.4em] uppercase">© 2026 Pro-Sollar • Powered by Google Solar API</p>
-    </footer>
-
-    </footer>
-
-    <script>
-        window.initAutocomplete = function() {
-            const input = document.getElementById('endereco');
-            if (!input) return;
-            
-            const autocomplete = new google.maps.places.Autocomplete(input, {
-                componentRestrictions: { country: "br" },
-                fields: ["geometry", "formatted_address"],
-                types: ["address"]
-            });
-
-            autocomplete.addListener("place_changed", () => {
-                const place = autocomplete.getPlace();
-                if (place.geometry) {
-                    document.getElementById('lat').value = place.geometry.location.lat();
-                    document.getElementById('lng').value = place.geometry.location.lng();
-                    // Feedback visual de que o endereço foi "travado"
-                    input.style.borderColor = "#22c55e"; 
+                // 2. Validações
+                if(!email || !whatsappInput || !endereco || !consumo) {
+                    alert("Por favor, preencha todos os campos.");
+                    return;
                 }
-            });
-        };
+                
+                if(!lat || !lng) {
+                    alert("Por favor, selecione o endereço na lista do Google.");
+                    return;
+                }
 
-        // Efeito de Reveal no Scroll
-        const handleReveal = () => {
-            document.querySelectorAll('.reveal').forEach(el => {
-                if(el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
-            });
-        };
-        window.addEventListener('scroll', handleReveal);
-        window.addEventListener('load', handleReveal);
-    </script>
+                // 3. Feedback Visual
+                btn.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Processando...';
+                btn.disabled = true;
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+                try {
+                    // Referência do documento
+                    const docRef = doc(db, "leads", idLead);
+                    const docSnap = await getDoc(docRef);
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
-            authDomain: "pro-sollar-performance.firebaseapp.com",
-            projectId: "pro-sollar-performance",
-            storageBucket: "pro-sollar-performance.firebasestorage.app",
-            messagingSenderId: "484051034820",
-            appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
-        };
+                    // Configurações do Link Mágico
+                    const actionCodeSettings = {
+                        // IMPORTANTE: Essa URL deve ser exatamente a URL onde seu site está (Vercel ou Localhost)
+                        url: window.location.origin + `/login.html?id=${idLead}&verifying=true`,
+                        handleCodeInApp: true
+                    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        document.getElementById('simuladorForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const btn = e.target.querySelector('button');
-            const originalHTML = btn.innerHTML;
-            
-            // Tratamento dos dados
-            const whatsappInput = document.getElementById('whatsapp').value;
-            const endereco = document.getElementById('endereco').value;
-            const consumo = document.getElementById('consumo').value;
-            const lat = document.getElementById('lat').value;
-            const lng = document.getElementById('lng').value;
-            
-            // Sanitização do ID (apenas números)
-            const idLead = whatsappInput.replace(/\D/g, "");
-
-            // Validações
-            if(!whatsappInput || !endereco || !consumo) {
-                alert("Por favor, preencha todos os campos.");
-                return;
-            }
-
-            if(!lat || !lng) {
-                alert("Por favor, selecione uma opção sugerida pelo Google Maps no campo de endereço.");
-                return;
-            }
-
-            // Loading state
-            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin mr-2"></i> Conectando Satélite...';
-            btn.disabled = true;
-
-            try {
-                const docRef = doc(db, "leads", idLead);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    // CLIENTE RETORNANDO -> Vai para Login
-                    console.log("Lead existente.");
-                    window.location.href = `login.html?id=${idLead}&status=returning`;
-                } else {
-                    // NOVO CLIENTE -> Salva e vai para Login (ou Checkout/Panel direto)
+                    // Salva no Firestore
                     await setDoc(docRef, {
-                        whatsapp: idLead, // Salvar limpo
-                        whatsapp_formatted: whatsappInput, // Salvar formatado visualmente
+                        email: email,
+                        whatsapp: idLead,
+                        whatsapp_formatted: whatsappInput,
                         endereco: endereco,
                         consumo: parseFloat(consumo),
                         lat: parseFloat(lat),
                         lng: parseFloat(lng),
-                        status: "novo_lead",
-                        criado_em: serverTimestamp(),
+                        status: docSnap.exists() ? "retorno" : "novo_lead",
+                        atualizado_em: serverTimestamp(),
                         origem: "landing_page"
-                    });
-                    
-                    console.log("Novo lead criado.");
-                    // Redireciona para o login para ele confirmar dados ou ver proposta
-                    window.location.href = `login.html?id=${idLead}&status=new`;
-                }
-            } catch (error) {
-                console.error("Erro:", error);
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-                alert("Erro de conexão. Tente novamente.");
-            }
-        });
-    </script>
+                    }, { merge: true });
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
+                    console.log("Dados salvos. Enviando e-mail...");
+
+                    // Envia o E-mail
+                    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+                    
+                    // Salva email local
+                    window.localStorage.setItem('emailForSignIn', email);
+                    
+                    // Redireciona
+                    window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
+
+                } catch (error) {
+                    console.error("Erro detalhado:", error);
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    
+                    // Mensagens de erro amigáveis
+                    if (error.code === 'auth/unauthorized-domain') {
+                        alert("Erro de Domínio: Adicione este site (vercel ou localhost) na lista de domínios autorizados no Firebase Console > Authentication > Settings.");
+                    } else {
+                        alert("Erro ao processar: " + error.message);
+                    }
+                }
+            });
+        } else {
+            console.error("Botão 'btnGerar' não encontrado no HTML.");
+        }
+    </script>
 </body>
 </html>
 </body>
