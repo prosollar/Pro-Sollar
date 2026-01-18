@@ -207,7 +207,8 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // 1. IMPORTANTE: Adicionei getApps e getApp na importação
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; 
 
@@ -220,40 +221,26 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // --- A SOLUÇÃO NUCLEAR (SINGLETON) ---
-        // Nós ignoramos o erro do Firebase e criamos nossa própria verificação global
+        // 2. CORREÇÃO DEFINITIVA DO ERRO "ALREADY EXISTS"
         let app;
         
-        if (!window.firebaseAppInstance) {
-            try {
-                window.firebaseAppInstance = initializeApp(firebaseConfig);
-                console.log("🔥 Firebase: Instância CRIADA.");
-            } catch (error) {
-                if (error.code === 'app/duplicate-app') {
-                    console.log("⚠️ Firebase já existia (Erro capturado).");
-                    // Se der erro de duplicidade, não temos acesso fácil via getApp sem importar
-                    // Então confiamos que o window.firebaseAppInstance vai funcionar na próxima
-                    // recarga ou usamos o fluxo abaixo se for módulo
-                }
-            }
-        }
-        
-        // Se a variável global falhou (caso raro em módulos estritos), tentamos recuperar via import dinâmico
-        // Mas para simplificar, assumimos que window funcionou ou pegamos o app padrão
-        if (!window.firebaseAppInstance) {
-             // Fallback de emergência: importa getApp apenas se precisar
-             const { getApp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js");
-             window.firebaseAppInstance = getApp();
-             console.log("♻️ Firebase: Instância RECUPERADA.");
+        // Verifica se já existe algum app inicializado na memória
+        if (getApps().length > 0) {
+            app = getApp(); // Se existe, PEGA ele. Não cria outro.
+            console.log("✅ Firebase recuperado da memória.");
+        } else {
+            app = initializeApp(firebaseConfig); // Se não existe, cria um novo.
+            console.log("🔥 Firebase iniciado do zero.");
         }
 
-        app = window.firebaseAppInstance;
         const db = getFirestore(app);
         const auth = getAuth(app);
-
-        // --- CÓDIGO DO BOTÃO ---
+        
+        // --- LÓGICA DO BOTÃO ---
         const btn = document.getElementById('btnGerar');
+        
         if(btn) {
+            // Removemos listeners antigos clonando o botão
             const novoBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(novoBtn, btn);
 
@@ -261,16 +248,33 @@
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
                 
-                const email = document.getElementById('email').value;
-                const whatsappInput = document.getElementById('whatsapp').value;
-                const endereco = document.getElementById('endereco').value;
-                const consumo = document.getElementById('consumo').value;
-                const lat = document.getElementById('lat').value;
-                const lng = document.getElementById('lng').value;
+                // Pega valores com segurança (caso o elemento não exista no DOM)
+                const emailEl = document.getElementById('email');
+                const whatsappEl = document.getElementById('whatsapp');
+                const enderecoEl = document.getElementById('endereco');
+                const consumoEl = document.getElementById('consumo');
+                const latEl = document.getElementById('lat');
+                const lngEl = document.getElementById('lng');
+
+                const email = emailEl ? emailEl.value : "";
+                const whatsappInput = whatsappEl ? whatsappEl.value : "";
+                const endereco = enderecoEl ? enderecoEl.value : "";
+                const consumo = consumoEl ? consumoEl.value : "";
+                const lat = latEl ? latEl.value : "";
+                const lng = lngEl ? lngEl.value : "";
+                
                 const idLead = whatsappInput.replace(/\D/g, "");
 
-                if(!email || !whatsappInput || !endereco || !consumo) return alert("Preencha todos os campos.");
-                if(!lat || !lng) return alert("Selecione o endereço na lista.");
+                // Validações
+                if(!email || !whatsappInput || !endereco || !consumo) {
+                    alert("Por favor, preencha todos os campos.");
+                    return;
+                }
+                
+                if(!lat || !lng) {
+                    alert("Por favor, selecione o endereço na lista do Google.");
+                    return;
+                }
 
                 btnAtual.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Enviando...';
                 btnAtual.disabled = true;
@@ -284,26 +288,44 @@
                         handleCodeInApp: true
                     };
 
+                    // Salva no Firestore
                     await setDoc(docRef, {
-                        email, whatsapp: idLead, whatsapp_formatted: whatsappInput,
-                        endereco, consumo: parseFloat(consumo),
-                        lat: parseFloat(lat), lng: parseFloat(lng),
+                        email: email,
+                        whatsapp: idLead,
+                        whatsapp_formatted: whatsappInput,
+                        endereco: endereco,
+                        consumo: parseFloat(consumo),
+                        lat: parseFloat(lat),
+                        lng: parseFloat(lng),
                         status: docSnap.exists() ? "retorno" : "novo_lead",
-                        atualizado_em: serverTimestamp(), origem: "landing_page"
+                        atualizado_em: serverTimestamp(),
+                        origem: "landing_page"
                     }, { merge: true });
 
+                    console.log("Dados salvos. Enviando e-mail...");
+
+                    // Envia Link Mágico
                     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
                     
                     window.localStorage.setItem('emailForSignIn', email);
+                    
+                    // Redireciona
                     window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
 
                 } catch (error) {
-                    console.error(error);
+                    console.error("Erro:", error);
                     btnAtual.innerHTML = originalHTML;
                     btnAtual.disabled = false;
-                    alert("Erro: " + error.message);
+                    
+                    if (error.code === 'auth/unauthorized-domain') {
+                        alert("Erro de Domínio: Este site não está autorizado no Firebase Authentication.");
+                    } else {
+                        alert("Erro: " + error.message);
+                    }
                 }
             });
+        } else {
+            console.error("ERRO: Botão não encontrado.");
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
