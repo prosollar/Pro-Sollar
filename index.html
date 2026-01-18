@@ -151,6 +151,119 @@
                     </div>
 
                     <div class="space-y-2">
+                        <div class="space-y-2">
+    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Seu E-mail</label>
+    <div class="relative group">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-purple-500/70 group-focus-within:text-purple-400 transition-colors">
+            <i class="fas fa-envelope text-lg"></i>
+        </div>
+        <input type="email" id="email" placeholder="nome@email.com" 
+        class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
+    </div>
+</div>
+<div class="space-y-2">
+    ```
+
+---
+
+### Passo 2: Atualizar o Script para salvar o E-mail
+
+Agora, vamos atualizar o script no final do `index.html` para pegar esse e-mail e salvar no Firebase.
+
+Substitua o trecho do **Script Principal** (aquele que te passei anteriormente) por este atualizado:
+
+```html
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; // Importamos Auth
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
+            authDomain: "pro-sollar-performance.firebaseapp.com",
+            projectId: "pro-sollar-performance",
+            storageBucket: "pro-sollar-performance.firebasestorage.app",
+            messagingSenderId: "484051034820",
+            appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); // Inicializa Auth
+
+        document.getElementById('simuladorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button');
+            const originalHTML = btn.innerHTML;
+            
+            // Tratamento dos dados
+            const email = document.getElementById('email').value; // Novo campo
+            const whatsappInput = document.getElementById('whatsapp').value;
+            const endereco = document.getElementById('endereco').value;
+            const consumo = document.getElementById('consumo').value;
+            const lat = document.getElementById('lat').value;
+            const lng = document.getElementById('lng').value;
+            
+            const idLead = whatsappInput.replace(/\D/g, "");
+
+            // Validações
+            if(!email || !whatsappInput || !endereco || !consumo) {
+                alert("Por favor, preencha todos os campos, incluindo o e-mail.");
+                return;
+            }
+
+            if(!lat || !lng) {
+                alert("Por favor, selecione o endereço na lista do Google.");
+                return;
+            }
+
+            btn.innerHTML = '<i class="fas fa-satellite-dish animate-pulse mr-2"></i> Analisando Telhado...';
+            btn.disabled = true;
+
+            try {
+                const docRef = doc(db, "leads", idLead);
+                const docSnap = await getDoc(docRef);
+
+                // Configuração do Link de Login por Email
+                const actionCodeSettings = {
+                    url: window.location.origin + `/login.html?id=${idLead}&verifying=true`, // Para onde o usuário vai após clicar no email
+                    handleCodeInApp: true
+                };
+
+                // Salvamos (ou atualizamos) os dados do Lead
+                await setDoc(docRef, {
+                    email: email, // Salvando e-mail
+                    whatsapp: idLead,
+                    whatsapp_formatted: whatsappInput,
+                    endereco: endereco,
+                    consumo: parseFloat(consumo),
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng),
+                    status: docSnap.exists() ? "retorno" : "novo_lead",
+                    atualizado_em: serverTimestamp(),
+                    origem: "landing_page"
+                }, { merge: true });
+
+                // Envia o E-mail de Autenticação (Aqui acontece a mágica)
+                await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+                
+                // Salva o email localmente para não precisar digitar de novo no login
+                window.localStorage.setItem('emailForSignIn', email);
+
+                console.log("Link de acesso enviado para: " + email);
+                
+                // Redireciona para tela de aviso "Cheque seu e-mail"
+                window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
+
+            } catch (error) {
+                console.error("Erro:", error);
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                alert("Erro ao processar. Verifique os dados.");
+            }
+        });
+    </script>
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Seu WhatsApp</label>
                         <div class="relative group">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-green-500/70 group-focus-within:text-green-400 transition-colors">
