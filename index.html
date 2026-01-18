@@ -207,8 +207,8 @@
     </footer>
 
     <script type="module">
-        // 1. IMPORTANTE: Adicionei getApps e getApp na importação
-        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // Importamos getApp para verificar se nossa instância nomeada já existe
+        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; 
 
@@ -221,16 +221,19 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // 2. CORREÇÃO DEFINITIVA DO ERRO "ALREADY EXISTS"
+        // --- SOLUÇÃO DO NOME EXCLUSIVO (A "BALA DE PRATA") ---
+        // Ao dar um nome ("ProSollarApp"), evitamos o conflito com o [DEFAULT] travado
+        const appName = "ProSollarApp";
         let app;
-        
-        // Verifica se já existe algum app inicializado na memória
-        if (getApps().length > 0) {
-            app = getApp(); // Se existe, PEGA ele. Não cria outro.
-            console.log("✅ Firebase recuperado da memória.");
-        } else {
-            app = initializeApp(firebaseConfig); // Se não existe, cria um novo.
-            console.log("🔥 Firebase iniciado do zero.");
+
+        try {
+            // Tenta pegar o NOSSO app específico
+            app = getApp(appName);
+            console.log("✅ App 'ProSollarApp' recuperado.");
+        } catch (e) {
+            // Se não existir, cria ele com o nome específico
+            app = initializeApp(firebaseConfig, appName);
+            console.log("🔥 App 'ProSollarApp' criado.");
         }
 
         const db = getFirestore(app);
@@ -240,7 +243,7 @@
         const btn = document.getElementById('btnGerar');
         
         if(btn) {
-            // Removemos listeners antigos clonando o botão
+            // Removemos listeners antigos
             const novoBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(novoBtn, btn);
 
@@ -248,21 +251,15 @@
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
                 
-                // Pega valores com segurança (caso o elemento não exista no DOM)
-                const emailEl = document.getElementById('email');
-                const whatsappEl = document.getElementById('whatsapp');
-                const enderecoEl = document.getElementById('endereco');
-                const consumoEl = document.getElementById('consumo');
-                const latEl = document.getElementById('lat');
-                const lngEl = document.getElementById('lng');
-
-                const email = emailEl ? emailEl.value : "";
-                const whatsappInput = whatsappEl ? whatsappEl.value : "";
-                const endereco = enderecoEl ? enderecoEl.value : "";
-                const consumo = consumoEl ? consumoEl.value : "";
-                const lat = latEl ? latEl.value : "";
-                const lng = lngEl ? lngEl.value : "";
+                // Tratamento de Inputs com segurança
+                const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
                 
+                const email = getVal('email');
+                const whatsappInput = getVal('whatsapp');
+                const endereco = getVal('endereco');
+                const consumo = getVal('consumo');
+                const lat = getVal('lat');
+                const lng = getVal('lng');
                 const idLead = whatsappInput.replace(/\D/g, "");
 
                 // Validações
@@ -290,42 +287,38 @@
 
                     // Salva no Firestore
                     await setDoc(docRef, {
-                        email: email,
-                        whatsapp: idLead,
-                        whatsapp_formatted: whatsappInput,
-                        endereco: endereco,
-                        consumo: parseFloat(consumo),
-                        lat: parseFloat(lat),
-                        lng: parseFloat(lng),
+                        email, whatsapp: idLead, whatsapp_formatted: whatsappInput,
+                        endereco, consumo: parseFloat(consumo),
+                        lat: parseFloat(lat), lng: parseFloat(lng),
                         status: docSnap.exists() ? "retorno" : "novo_lead",
                         atualizado_em: serverTimestamp(),
                         origem: "landing_page"
                     }, { merge: true });
 
-                    console.log("Dados salvos. Enviando e-mail...");
+                    console.log("Salvo. Enviando e-mail...");
 
                     // Envia Link Mágico
                     await sendSignInLinkToEmail(auth, email, actionCodeSettings);
                     
                     window.localStorage.setItem('emailForSignIn', email);
-                    
-                    // Redireciona
                     window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
 
                 } catch (error) {
-                    console.error("Erro:", error);
+                    console.error("Erro detalhado:", error);
                     btnAtual.innerHTML = originalHTML;
                     btnAtual.disabled = false;
                     
                     if (error.code === 'auth/unauthorized-domain') {
-                        alert("Erro de Domínio: Este site não está autorizado no Firebase Authentication.");
+                        alert("ERRO DE DOMÍNIO: Adicione seu domínio (localhost ou vercel) no Firebase Console > Authentication > Settings.");
+                    } else if (error.code === 'auth/quota-exceeded') {
+                         alert("Cota de e-mails excedida. Tente mais tarde.");
                     } else {
                         alert("Erro: " + error.message);
                     }
                 }
             });
         } else {
-            console.error("ERRO: Botão não encontrado.");
+            console.error("ERRO CRÍTICO: Botão não encontrado.");
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
