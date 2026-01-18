@@ -206,12 +206,12 @@
         <p class="text-[10px] font-bold tracking-[0.4em] uppercase">© 2026 Pro-Sollar • Powered by Google Solar API</p>
     </footer>
 
-    <script type="module">
-        // 1. Mudamos para a versão 10.9.0 para limpar qualquer cache antigo
-        import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-        import { getAuth, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js"; 
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
+    <script>
+        // Configuração
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -221,28 +221,24 @@
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        // 2. ISOLAMENTO TOTAL: Usamos um nome específico para o seu app
-        // Isso impede que extensões do Chrome interfiram no seu site
-        const myAppName = "ProSollarSystem";
-        let app;
-
-        try {
-            // Tenta pegar o nosso app específico se ele já existir
-            app = getApp(myAppName);
-        } catch (e) {
-            // Se não existir, cria ele com o nome específico (Isolado do [DEFAULT])
-            app = initializeApp(firebaseConfig, myAppName);
+        // 2. VERIFICAÇÃO GLOBAL (A Mais Segura Possível)
+        // Se já existe app (firebase.apps.length), não faz nada. Se não, cria.
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+            console.log("🔥 Firebase Iniciado (Modo Compat).");
+        } else {
+            console.log("♻️ Firebase já estava ativo.");
         }
 
-        console.log("🔥 Firebase Iniciado:", app.name);
+        // Inicializa serviços
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // --- LÓGICA DO BOTÃO ---
+        // 3. LÓGICA DO BOTÃO
         const btn = document.getElementById('btnGerar');
         
         if(btn) {
+            // Clone para limpar eventos antigos
             const novoBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(novoBtn, btn);
 
@@ -250,7 +246,7 @@
                 const btnAtual = e.target.closest('button');
                 const originalHTML = btnAtual.innerHTML;
                 
-                // Função segura para pegar valores
+                // Pega valores
                 const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
                 
                 const email = getVal('email');
@@ -266,7 +262,6 @@
                     alert("Por favor, preencha todos os campos.");
                     return;
                 }
-                
                 if(!lat || !lng) {
                     alert("Por favor, selecione o endereço na lista do Google.");
                     return;
@@ -276,8 +271,8 @@
                 btnAtual.disabled = true;
 
                 try {
-                    const docRef = doc(db, "leads", idLead);
-                    const docSnap = await getDoc(docRef);
+                    const docRef = db.collection("leads").doc(idLead);
+                    const docSnap = await docRef.get();
 
                     const actionCodeSettings = {
                         url: window.location.origin + `/login.html?id=${idLead}&verifying=true`,
@@ -285,30 +280,28 @@
                     };
 
                     // Salva no Firestore
-                    await setDoc(docRef, {
+                    await docRef.set({
                         email, whatsapp: idLead, whatsapp_formatted: whatsappInput,
                         endereco, consumo: parseFloat(consumo),
                         lat: parseFloat(lat), lng: parseFloat(lng),
-                        status: docSnap.exists() ? "retorno" : "novo_lead",
-                        atualizado_em: serverTimestamp(),
+                        status: docSnap.exists ? "retorno" : "novo_lead",
+                        atualizado_em: firebase.firestore.FieldValue.serverTimestamp(),
                         origem: "landing_page"
                     }, { merge: true });
 
-                    console.log("Salvo. Enviando e-mail...");
-
                     // Envia Link Mágico
-                    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+                    await auth.sendSignInLinkToEmail(email, actionCodeSettings);
                     
                     window.localStorage.setItem('emailForSignIn', email);
                     window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
 
                 } catch (error) {
-                    console.error("Erro detalhado:", error);
+                    console.error("Erro:", error);
                     btnAtual.innerHTML = originalHTML;
                     btnAtual.disabled = false;
                     
                     if (error.code === 'auth/unauthorized-domain') {
-                        alert("ERRO DE DOMÍNIO: Adicione seu domínio no Firebase Console.");
+                        alert("ERRO: Domínio não autorizado. Adicione o domínio da Vercel no Firebase Console.");
                     } else {
                         alert("Erro: " + error.message);
                     }
