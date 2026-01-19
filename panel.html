@@ -313,7 +313,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script> <script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
+
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -326,7 +328,7 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-        const storage = firebase.storage(); // Init Storage
+        const storage = firebase.storage(); 
         
         let currentLeadId = null;
         let leadData = null;
@@ -337,7 +339,7 @@
         let currentTimeRange = 25;
         let currentInterestRate = 1.50;
         let currentLoanTerm = 60;
-        let isNegotiating = false; // Controle de fluxo
+        let isNegotiating = false; 
         let selectedFile = null;
 
         // AUTH & LOAD
@@ -404,7 +406,6 @@
             document.getElementById('kpi-payback').innerText = (data.financeiro?.payback_anos || 0) + " Anos";
             document.getElementById('kpi-roi').innerText = (data.financeiro?.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 
-            // Verifica se já está em análise
             if (data.status?.fase === "em_analise_concorrencia") {
                 showAnaliseEnviadaUI();
             }
@@ -515,7 +516,6 @@
 
         // --- SISTEMA DE NEGOCIAÇÃO E UPLOAD ---
         
-        // 1. Toggle do Box de Upload
         window.toggleUpload = function() {
             const uploadBox = document.getElementById('comp-upload');
             const btnFinal = document.getElementById('btn-final-action');
@@ -525,94 +525,67 @@
 
             uploadBox.classList.toggle('hidden');
             
-            // Verifica estado atual
             if (!uploadBox.classList.contains('hidden')) {
-                // MODO NEGOCIAÇÃO ATIVO
+                // MODO NEGOCIAÇÃO
                 isNegotiating = true;
-                btnChallenge.classList.add('active'); // Botão challenge fica "ligado"
-                
-                // Muda o Botão Principal
+                btnChallenge.classList.add('active'); 
                 btnFinal.className = "btn-negotiate-action w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
                 btnFinal.innerHTML = 'Solicitar Avaliação Comparativa <i class="fas fa-file-signature text-sm"></i>';
-                
-                // Muda Texto de Status
                 statusTitle.innerText = "Análise de Concorrência";
                 statusIcon.className = "fas fa-search-dollar text-blue-500 text-xl";
-                
-                // Remove comportamento de aprovar, adiciona envio
                 btnFinal.onclick = enviarAnaliseComparativa;
-
             } else {
-                // VOLTA AO MODO PADRÃO (Aprovação)
+                // VOLTA AO MODO PADRÃO
                 isNegotiating = false;
                 btnChallenge.classList.remove('active');
-                
-                // Restaura Botão Principal
                 btnFinal.className = "btn-approve w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
                 btnFinal.innerHTML = 'Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>';
-                
                 statusTitle.innerText = "Tudo pronto para economizar?";
                 statusIcon.className = "fas fa-file-contract text-blue-500 text-xl";
-                
                 btnFinal.onclick = () => alert("Redirecionando para contrato...");
             }
         }
 
-        // 2. Manipulação do Arquivo
         window.handleFileSelect = function(input) {
             if (input.files && input.files[0]) {
                 selectedFile = input.files[0];
-                
-                // Visual Update
                 document.getElementById('upload-text').innerText = "Arquivo selecionado: " + selectedFile.name;
                 document.getElementById('upload-text').classList.add('text-green-400');
                 document.getElementById('upload-icon').className = "fas fa-file-pdf text-4xl text-green-500 mb-4";
             }
         }
 
-        // 3. Envio para o Firebase (Ação Principal)
         async function enviarAnaliseComparativa() {
             if (!selectedFile) {
                 alert("Por favor, selecione o arquivo PDF da proposta concorrente antes de enviar.");
                 return;
             }
-
             const btn = document.getElementById('btn-final-action');
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
             try {
-                // A. Upload para Storage
                 const storageRef = storage.ref();
                 const fileRef = storageRef.child(`competitors/${currentLeadId}/${selectedFile.name}`);
-                
                 await fileRef.put(selectedFile);
                 const fileUrl = await fileRef.getDownloadURL();
 
-                // B. Atualiza Firestore
                 await db.collection("leads").doc(currentLeadId).update({
                     "status.fase": "em_analise_concorrencia",
                     "status.data_solicitacao_analise": firebase.firestore.FieldValue.serverTimestamp(),
-                    "concorrencia": {
-                        arquivo_url: fileUrl,
-                        nome_arquivo: selectedFile.name
-                    }
+                    "concorrencia": { arquivo_url: fileUrl, nome_arquivo: selectedFile.name }
                 });
-
-                // C. Feedback Visual
                 showAnaliseEnviadaUI();
-
             } catch (error) {
                 console.error("Erro upload:", error);
-                alert("Erro ao enviar arquivo. Verifique se o Storage está ativado no console.");
+                alert("Erro ao enviar arquivo.");
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
         }
 
         function showAnaliseEnviadaUI() {
-            // Esconde controles e mostra mensagem de sucesso travada
             document.getElementById('comp-upload').innerHTML = `
                 <div class="text-center py-4">
                     <i class="fas fa-check-circle text-5xl text-green-500 mb-4"></i>
@@ -622,9 +595,7 @@
                 </div>
             `;
             document.getElementById('comp-upload').classList.remove('hidden', 'upload-area');
-            document.getElementById('comp-upload').onclick = null; // Remove clique
-            
-            // Esconde botões de ação
+            document.getElementById('comp-upload').onclick = null; 
             document.getElementById('btn-final-action').style.display = 'none';
             document.getElementById('btn-challenge').style.display = 'none';
             document.getElementById('btn-discount').style.display = 'none';
@@ -632,8 +603,7 @@
 
         // --- GLOBAL ACTIONS ---
         window.toggleDiscount = async function() {
-            if(isNegotiating) return; // Bloqueia se estiver negociando
-            
+            // DESTRAVADO: Agora o cliente pode alternar mesmo com a caixa aberta
             if (!currentLeadId || !leadData) return;
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
@@ -673,10 +643,9 @@
             updateChart();
         }
 
-        window.toggleUpload = toggleUpload; // Expose
+        window.toggleUpload = toggleUpload; 
         window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
         
-        // Default action (Overwritten when negotiating)
         document.getElementById('btn-final-action').onclick = () => alert("Redirecionando para contrato...");
     </script>
 </body>
