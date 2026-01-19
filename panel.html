@@ -131,11 +131,11 @@
         }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 20px; width: 20px;
+            height: 16px; width: 16px;
             border-radius: 50%;
             background: var(--accent-blue);
             cursor: pointer;
-            margin-top: -8px;
+            margin-top: -6px;
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
         input[type=range]::-webkit-slider-runnable-track {
@@ -143,6 +143,19 @@
             cursor: pointer;
             background: rgba(255,255,255,0.1);
             border-radius: 2px;
+        }
+        
+        .control-group label {
+             font-size: 10px; 
+             text-transform: uppercase; 
+             font-weight: 800; 
+             letter-spacing: 0.1em;
+             color: #93c5fd;
+        }
+        .control-value {
+            font-size: 14px;
+            font-weight: 900;
+            color: white;
         }
     </style>
 </head>
@@ -226,18 +239,24 @@
                     </div>
                 </div>
 
-                <div id="interest-control" class="hidden mb-6 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="text-[10px] uppercase font-bold text-blue-300 tracking-widest">
-                            <i class="fas fa-sliders-h mr-2"></i>Simular Taxa de Juros (a.m.)
-                        </label>
-                        <span id="rate-display" class="text-lg font-black text-white">1.50%</span>
+                <div id="finan-controls" class="hidden mb-6 bg-blue-500/10 border border-blue-500/20 p-5 rounded-xl space-y-4">
+                    
+                    <div class="control-group">
+                        <div class="flex justify-between items-center mb-2">
+                            <label><i class="fas fa-percentage mr-2"></i>Taxa de Juros (a.m.)</label>
+                            <span id="rate-display" class="control-value">1.50%</span>
+                        </div>
+                        <input type="range" id="rate-slider" min="0.50" max="3.50" step="0.01" value="1.50" oninput="window.updateInterestRate(this.value)">
                     </div>
-                    <input type="range" id="rate-slider" min="0.50" max="3.50" step="0.01" value="1.50" oninput="window.updateInterestRate(this.value)">
-                    <div class="flex justify-between text-[9px] text-slate-500 mt-1 font-bold">
-                        <span>0.5% (Rural)</span>
-                        <span>3.5% (Mercado)</span>
+
+                    <div class="control-group border-t border-blue-500/20 pt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label><i class="fas fa-calendar-alt mr-2"></i>Prazo de Pagamento</label>
+                            <span id="term-display" class="control-value">60x</span>
+                        </div>
+                        <input type="range" id="term-slider" min="12" max="84" step="12" value="60" oninput="window.updateLoanTerm(this.value)">
                     </div>
+
                 </div>
 
                 <p id="chart-desc" class="text-center text-xs text-slate-400 mb-6 font-medium">
@@ -319,9 +338,12 @@
         let currentLeadId = null;
         let leadData = null;
         let wealthChart = null;
+        
+        // ESTADO GLOBAL DO SIMULADOR
         let currentChartMode = 'cash'; // 'cash' ou 'finan'
         let currentTimeRange = 25; // Anos
-        let currentInterestRate = 1.50; // Taxa de Juros Padrão
+        let currentInterestRate = 1.50; // Taxa % a.m.
+        let currentLoanTerm = 60; // Meses
 
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
@@ -398,11 +420,17 @@
             updateChart();
         }
 
-        // --- CONTROLE DE JUROS ---
+        // --- CONTROLES DE SIMULAÇÃO ---
         window.updateInterestRate = function(val) {
             currentInterestRate = parseFloat(val);
             document.getElementById('rate-display').innerText = currentInterestRate.toFixed(2) + "%";
-            updateChart(); // Reage instantaneamente
+            updateChart();
+        }
+
+        window.updateLoanTerm = function(val) {
+            currentLoanTerm = parseInt(val);
+            document.getElementById('term-display').innerText = currentLoanTerm + "x";
+            updateChart();
         }
 
         // --- SISTEMA DE GRÁFICOS ---
@@ -413,19 +441,19 @@
             
             const desc = document.getElementById('chart-desc');
             const btn1Year = document.getElementById('time-1');
-            const interestControl = document.getElementById('interest-control');
+            const finanControls = document.getElementById('finan-controls');
 
             if(mode === 'cash') {
                 desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
                 btn1Year.classList.add('hidden-important'); 
-                interestControl.classList.add('hidden'); // Esconde o Slider
+                finanControls.classList.add('hidden'); // Esconde Sliders
                 
                 if(currentTimeRange === 1) window.switchTimeRange(25);
 
             } else {
-                desc.innerText = "Fluxo de Caixa Mensal: Economia Gerada vs Parcela Fixa (60x)";
+                desc.innerText = "Simulador de Financiamento: Economia vs Parcela";
                 btn1Year.classList.remove('hidden-important');
-                interestControl.classList.remove('hidden'); // Mostra o Slider
+                finanControls.classList.remove('hidden'); // Mostra Sliders
             }
             
             updateChart();
@@ -446,7 +474,7 @@
             const investimentoAtual = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
             const ctx = document.getElementById('wealthChart').getContext('2d');
 
-            // --- MODO 1: À VISTA (ACUMULADO) ---
+            // --- MODO 1: À VISTA ---
             if (currentChartMode === 'cash') {
                 
                 const labels = ["Início"];
@@ -498,11 +526,11 @@
                 });
 
             } 
-            // --- MODO 2: FINANCIAMENTO (MENSAL - DINÂMICO) ---
+            // --- MODO 2: FINANCIAMENTO (SIMULADOR) ---
             else {
-                const prazo = 60;
+                // USA AS VARIÁVEIS GLOBAIS DO SLIDER
+                const prazo = currentLoanTerm;
                 const carencia = 2; 
-                // AQUI ESTÁ A MÁGICA: USA O VALOR DO SLIDER
                 const taxaAm = currentInterestRate / 100; 
                 
                 const parcela = (investimentoAtual * taxaAm * Math.pow(1+taxaAm, prazo)) / (Math.pow(1+taxaAm, prazo) - 1);
@@ -510,6 +538,7 @@
                 const labels = [];
                 const dataEconomia = [];
                 const dataParcela = [];
+                
                 const mesesVisualizacao = currentTimeRange * 12; 
 
                 for(let i=1; i <= mesesVisualizacao; i++) {
@@ -544,7 +573,7 @@
                                 borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0.4, fill: false, order: 1
                             },
                             {
-                                label: 'Parcela Fixa (R$)',
+                                label: `Parcela Fixa (${prazo}x)`,
                                 data: dataParcela,
                                 borderColor: '#3b82f6', backgroundColor: gradientBlue,
                                 borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, order: 2,
@@ -575,6 +604,7 @@
             }
         }
 
+        // --- GLOBAL ACTIONS ---
         window.toggleDiscount = async function() {
             if (!currentLeadId || !leadData) return;
             const btn = document.getElementById('btn-discount');
