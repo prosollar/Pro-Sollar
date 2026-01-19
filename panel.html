@@ -66,7 +66,7 @@
         
         .chart-container { position: relative; height: 320px; width: 100%; }
 
-        /* TOGGLE SWITCH STYLE */
+        /* TOGGLE SWITCH STYLE (Main Mode) */
         .chart-toggle {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
@@ -83,7 +83,7 @@
             letter-spacing: 1px;
             transition: all 0.3s ease;
             color: #64748b;
-            cursor: pointer; /* Importante para UX */
+            cursor: pointer;
         }
         .toggle-btn.active {
             background: var(--accent-blue);
@@ -95,6 +95,33 @@
             color: #064e3b;
             box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
         }
+
+        /* TIME SELECTOR STYLE (5y, 15y, 25y) */
+        .time-selector {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .time-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .time-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .time-btn.active {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            color: white;
+            box-shadow: 0 0 10px rgba(255,255,255,0.05);
+        }
+
     </style>
 </head>
 <body class="p-4 md:p-10 lg:p-16">
@@ -184,6 +211,13 @@
                 <div class="chart-container">
                     <canvas id="wealthChart"></canvas>
                 </div>
+
+                <div class="time-selector">
+                    <div id="time-5" onclick="window.switchTimeRange(5)" class="time-btn">5 ANOS</div>
+                    <div id="time-15" onclick="window.switchTimeRange(15)" class="time-btn">15 ANOS</div>
+                    <div id="time-25" onclick="window.switchTimeRange(25)" class="time-btn active">25 ANOS</div>
+                </div>
+
             </div>
 
             <div class="pt-8 border-t border-white/5">
@@ -249,6 +283,7 @@
         let leadData = null;
         let wealthChart = null;
         let currentChartMode = 'cash'; // 'cash' ou 'finan'
+        let currentTimeRange = 25; // Anos (Default)
 
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
@@ -321,21 +356,30 @@
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('content-panel').classList.remove('hidden');
 
-            // PLOTA O GRÁFICO INICIAL
+            // PLOTA O GRÁFICO
             updateChart();
         }
 
         // --- SISTEMA DE GRÁFICOS ---
         window.switchChartMode = function(mode) {
             currentChartMode = mode;
-            
             document.getElementById('mode-cash').className = mode === 'cash' ? 'toggle-btn active-green' : 'toggle-btn';
             document.getElementById('mode-finan').className = mode === 'finan' ? 'toggle-btn active' : 'toggle-btn';
-
+            
             const desc = document.getElementById('chart-desc');
             if(mode === 'cash') desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
             else desc.innerText = "Fluxo de Caixa Mensal: Economia Gerada vs Parcela Fixa (60x)";
+            
+            updateChart();
+        }
 
+        window.switchTimeRange = function(range) {
+            currentTimeRange = range;
+            
+            // Atualiza botões
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`time-${range}`).classList.add('active');
+            
             updateChart();
         }
 
@@ -345,7 +389,6 @@
             
             const precoString = document.getElementById('display-price').innerText;
             const investimentoAtual = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
-
             const ctx = document.getElementById('wealthChart').getContext('2d');
 
             // --- MODO 1: À VISTA (ACUMULADO) ---
@@ -353,21 +396,17 @@
                 
                 const labels = ["Início"];
                 const dataSolar = [-investimentoAtual];
-                // CORREÇÃO CDI: Começa no 0 (não tem custo inicial)
                 const dataCDI = [0]; 
                 const taxaCdiLiq = 0.095; // 9.5% a.a.
 
-                const dadosAnuais = fluxo.filter(m => m.mes % 12 === 0);
+                // FILTRA POR TEMPO
+                const dadosAnuais = fluxo.filter(m => (m.mes % 12 === 0) && (m.ano <= currentTimeRange));
+                
                 dadosAnuais.forEach(d => {
                     labels.push("Ano " + d.ano);
                     dataSolar.push(d.fluxo_acumulado); 
-                    
-                    // Lógica CDI: Lucro Acumulado sobre o valor que ficaria no banco
-                    // Montante = Investimento * (1+i)^n
-                    // Lucro = Montante - Investimento
                     const montanteCdi = investimentoAtual * Math.pow((1+taxaCdiLiq), d.ano);
-                    const lucroCdi = montanteCdi - investimentoAtual;
-                    dataCDI.push(lucroCdi);
+                    dataCDI.push(montanteCdi - investimentoAtual);
                 });
 
                 let gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -415,13 +454,15 @@
                 const labels = [];
                 const dataEconomia = [];
                 const dataParcela = [];
-                const mesesVisualizacao = 84; 
+                
+                // MÁXIMO DE MESES NO GRÁFICO = TEMPO ESCOLHIDO (EM MESES)
+                const mesesVisualizacao = currentTimeRange * 12; 
 
                 for(let i=1; i <= mesesVisualizacao; i++) {
                     labels.push(i);
                     
                     const dadoMes = fluxo[i-1];
-                    const economia = dadoMes ? dadoMes.receita_economia : 0;
+                    const economia = dadoMes ? dadoMes.receita_economia : 0; // Isso já contém sazonalidade do JSON
                     dataEconomia.push(economia);
 
                     if (i <= carencia) {
