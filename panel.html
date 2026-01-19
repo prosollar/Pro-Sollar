@@ -38,6 +38,7 @@
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Botões de Ação */
         .btn-approve {
             background: var(--accent-green);
             color: #052e16;
@@ -50,7 +51,6 @@
             background: #4ade80;
         }
 
-        /* Botão Azul (Negociação/Análise) */
         .btn-negotiate-action {
             background: var(--accent-blue);
             color: white;
@@ -79,6 +79,7 @@
         
         .chart-container { position: relative; height: 320px; width: 100%; }
 
+        /* Chart Controls */
         .chart-toggle {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
@@ -134,6 +135,7 @@
         }
         .hidden-important { display: none !important; }
 
+        /* Sliders */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
@@ -424,15 +426,18 @@
             const btn1Year = document.getElementById('time-1');
             const finanControls = document.getElementById('finan-controls');
 
+            // Lógica de Visibilidade dos Controles
             if(mode === 'cash') {
                 desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
                 btn1Year.classList.add('hidden-important'); 
-                finanControls.classList.add('hidden');
+                finanControls.classList.add('hidden'); // ESCONDE OS SLIDERS
+                
                 if(currentTimeRange === 1) window.switchTimeRange(25);
+
             } else {
                 desc.innerText = "Simulador de Financiamento: Economia vs Parcela";
                 btn1Year.classList.remove('hidden-important');
-                finanControls.classList.remove('hidden');
+                finanControls.classList.remove('hidden'); // MOSTRA OS SLIDERS
             }
             updateChart();
         }
@@ -518,9 +523,9 @@
             const btnChallenge = document.getElementById('btn-challenge');
             const statusTitle = document.getElementById('status-title');
             const statusIcon = document.getElementById('status-icon');
-            const btnDiscount = document.getElementById('btn-discount'); // Referência ao botão de desconto
+            const btnDiscount = document.getElementById('btn-discount');
 
-            // LÓGICA DE EXCLUSIVIDADE: Se Desconto estiver ativo, desativa antes de abrir
+            // 1. Lógica de Exclusividade: Se Desconto estiver ativo, desliga ele.
             if (btnDiscount.classList.contains('active')) {
                 window.toggleDiscount(); 
             }
@@ -528,7 +533,7 @@
             uploadBox.classList.toggle('hidden');
             
             if (!uploadBox.classList.contains('hidden')) {
-                // MODO NEGOCIAÇÃO
+                // MODO NEGOCIAÇÃO ATIVO
                 isNegotiating = true;
                 btnChallenge.classList.add('active'); 
                 btnFinal.className = "btn-negotiate-action w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
@@ -611,9 +616,9 @@
             const bruto = leadData.financeiro.investimento_bruto;
             const liquido = leadData.financeiro.valor_final;
 
-            // LÓGICA DE EXCLUSIVIDADE: Se Desafio estiver ativo, fecha ele antes
+            // 2. Lógica de Exclusividade: Se Negociação estiver ativa, fecha ela.
             if (isNegotiating) {
-                window.toggleUpload(); // Fecha a caixa e reseta o modo
+                window.toggleUpload(); // Reseta o modo negociação
             }
 
             if (!isActive) {
