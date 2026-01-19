@@ -245,22 +245,7 @@
                 }
             };
 
-            // CURVA DE SAZONALIDADE (Brasil - Hemisfério Sul)
-            // Janeiro gera +15% da média, Junho gera -20% da média.
-            const SAZONALIDADE = [
-                1.15, // Jan (Verão)
-                1.10, // Fev
-                1.05, // Mar
-                0.95, // Abr
-                0.85, // Mai
-                0.80, // Jun (Inverno - Baixa)
-                0.85, // Jul
-                0.95, // Ago
-                1.00, // Set
-                1.05, // Out
-                1.10, // Nov
-                1.15  // Dez (Verão)
-            ];
+            const SAZONALIDADE = [1.15, 1.10, 1.05, 0.95, 0.85, 0.80, 0.85, 0.95, 1.00, 1.05, 1.10, 1.15];
 
             // 1. DIMENSIONAMENTO TÉCNICO
             const consumoKwh = consumoReais / INPUTS.tarifa_atual;
@@ -272,30 +257,25 @@
             const potenciaInstaladaKwp = (qtdModulos * INPUTS.modulo.potencia_w) / 1000;
             const areaTelhado = qtdModulos * INPUTS.modulo.area_m2;
             
-            // Geração Média Base (Sem Sazonalidade)
             const geracaoMediaBase = potenciaInstaladaKwp * INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global;
 
             // 2. CÁLCULO DO PREÇO (30x ECONOMIA ANO 1 - COM SAZONALIDADE)
             let somaEconomiaAno1 = 0;
 
             for (let m = 1; m <= 12; m++) {
-                const indiceMes = (m - 1) % 12; // 0 a 11
+                const indiceMes = (m - 1) % 12;
                 const fatorSazonal = SAZONALIDADE[indiceMes];
                 const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
-                
-                // Aplica Sazonalidade aqui
                 const geracaoMes = geracaoMediaBase * fatorDegradacao * fatorSazonal;
-                
                 const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
                 const tarifaMes = INPUTS.tarifa_atual * fatorInflacaoEnergia;
-                
                 somaEconomiaAno1 += (geracaoMes * tarifaMes);
             }
             const mediaEconomiaMensalAno1 = somaEconomiaAno1 / 12;
             const investimentoInicial = mediaEconomiaMensalAno1 * 30;
             const investimentoComDesconto = investimentoInicial * 0.95; 
 
-            // 3. FLUXO DE CAIXA COMPLETO (25 ANOS - MÊS A MÊS COM CURVA)
+            // 3. FLUXO DE CAIXA COMPLETO (25 ANOS)
             let fluxoCaixa = [];
             let saldoAcumulado = -investimentoComDesconto;
             let paybackMes = 0;
@@ -305,12 +285,10 @@
                 const anoAtual = Math.ceil(m / 12);
                 const indiceMes = (m - 1) % 12;
                 
-                // Fatores Multiplicadores
                 const fatorSazonal = SAZONALIDADE[indiceMes];
                 const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
                 const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
                 
-                // Geração REAL do mês (Curva Senoidal)
                 const geracaoMes = geracaoMediaBase * fatorDegradacao * fatorSazonal;
                 const tarifaMes = INPUTS.tarifa_atual * fatorInflacaoEnergia;
                 const receitaBruta = geracaoMes * tarifaMes;
@@ -378,7 +356,7 @@
             };
         }
 
-        // LÓGICA DO BOTÃO
+        // LÓGICA DO BOTÃO E SALVAMENTO
         const btn = document.getElementById('btnGerar');
         if (btn) {
             const novoBtn = btn.cloneNode(true);
@@ -390,27 +368,27 @@
                 const originalHTML = btnAtual.innerHTML;
                 const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
                 
-                const email = getVal('email');
+                const email = getVal('email').toLowerCase().trim(); // E-mail Limpo
                 const whatsappInput = getVal('whatsapp');
                 const endereco = getVal('endereco');
                 const consumoInput = getVal('consumo');
                 const lat = getVal('lat');
                 const lng = getVal('lng');
-                const idLead = whatsappInput.replace(/\D/g, "");
 
                 if (!email || !whatsappInput || !endereco || !consumoInput) {
-                    alert("Por favor, preencha todos os campos.");
-                    return;
+                    alert("Por favor, preencha todos os campos."); return;
                 }
                 if (!lat || !lng) {
-                    alert("Por favor, selecione o endereço na lista do Google Maps.");
-                    return;
+                    alert("Por favor, selecione o endereço na lista do Google Maps."); return;
                 }
 
                 btnAtual.innerHTML = '<i class="fas fa-calculator fa-spin mr-2"></i> Processando Engenharia...';
                 btnAtual.disabled = true;
 
                 try {
+                    // MUDANÇA CRÍTICA: ID AGORA É O EMAIL
+                    const idLead = email; 
+                    
                     const docRef = db.collection("leads").doc(idLead);
                     const dadosCompletos = calcularEngenhariaFinanceira(parseFloat(consumoInput));
 
@@ -418,7 +396,8 @@
                         status_geral: "novo_lead",
                         perfil: {
                             email: email,
-                            whatsapp: idLead,
+                            // Whatsapp vira apenas um campo de dado, não mais o ID
+                            whatsapp: whatsappInput.replace(/\D/g, ""), 
                             whatsapp_formatted: whatsappInput,
                             endereco_completo: endereco,
                             coordenadas: { lat: parseFloat(lat), lng: parseFloat(lng) },
@@ -432,14 +411,17 @@
                     await docRef.set(payload, { merge: true });
 
                     const actionCodeSettings = {
-                        url: window.location.origin + `/login.html?id=${idLead}&verifying=true`,
+                        // Passamos o email como ID na URL também para facilitar o login.html
+                        url: window.location.origin + `/login.html?id=${encodeURIComponent(idLead)}&verifying=true`,
                         handleCodeInApp: true
                     };
 
                     btnAtual.innerHTML = '<i class="fas fa-paper-plane animate-pulse mr-2"></i> Enviando Proposta...';
                     await auth.sendSignInLinkToEmail(email, actionCodeSettings);
                     window.localStorage.setItem('emailForSignIn', email);
-                    window.location.href = `login.html?id=${idLead}&status=check_email&email=${email}`;
+                    
+                    // Redireciona
+                    window.location.href = `login.html?id=${encodeURIComponent(idLead)}&status=check_email&email=${email}`;
 
                 } catch (error) {
                     console.error("Erro:", error);
@@ -481,8 +463,6 @@
         window.addEventListener('scroll', handleReveal);
         window.addEventListener('load', handleReveal);
     </script>
-    
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
     
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 
