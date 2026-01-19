@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro-Sollar | Ativação do Fluxo</title>
+    <title>Pro-Sollar | Finalização e Agendamento</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -13,6 +13,7 @@
             --bg-deep: #0a1120;
             --accent-blue: #3b82f6;
             --accent-green: #22c55e;
+            --accent-yellow: #facc15;
             --glass: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
         }
@@ -23,253 +24,326 @@
             color: white;
             min-height: 100vh;
             background-image: 
-                radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08) 0%, transparent 40%);
+                radial-gradient(circle at 10% 10%, rgba(34, 197, 94, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.1) 0%, transparent 40%);
             background-attachment: fixed;
         }
 
         .glass-card {
             background: var(--glass);
-            backdrop-filter: blur(30px);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
-            border-radius: 2.5rem;
-        }
-
-        .step-pill {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            padding: 4px 12px;
-            border-radius: 99px;
-            font-size: 9px;
-            font-weight: 900;
-            letter-spacing: 1px;
-            color: var(--accent-blue);
-        }
-
-        .date-option {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .date-option:hover:not(.selected) {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateY(-5px);
-            border-color: var(--accent-blue);
-        }
-
-        .date-option.selected {
-            background: linear-gradient(135deg, var(--accent-blue) 0%, #1e40af 100%);
-            border-color: var(--accent-blue);
-            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-confirm {
-            background: var(--accent-green);
-            color: #052e16;
-            box-shadow: 0 15px 40px rgba(34, 197, 94, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .btn-confirm:hover {
-            transform: scale(1.02);
-            background: #4ade80;
-            box-shadow: 0 20px 50px rgba(34, 197, 94, 0.4);
+            border-radius: 2rem;
         }
 
         .input-dark {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
             transition: all 0.3s;
         }
-
         .input-dark:focus {
             border-color: var(--accent-blue);
-            background: rgba(59, 130, 246, 0.05);
             outline: none;
+            background: rgba(0, 0, 0, 0.5);
         }
+        
+        /* Calendário Customizado (Básico para Webkit) */
+        ::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, var(--accent-green) 0%, #15803d 100%);
+            box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
+            transition: all 0.3s;
+        }
+        .btn-confirm:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 40px rgba(34, 197, 94, 0.6);
+        }
+
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-left-color: var(--accent-green);
+            border-radius: 50%;
+            width: 24px; height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-6 md:p-12 lg:p-20">
+<body class="p-4 md:p-10">
 
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         
-        <header class="flex justify-between items-center mb-12">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-xl">
-                    <i class="fas fa-bolt text-white text-lg"></i>
-                </div>
-                <h1 class="text-xl font-black uppercase italic leading-none tracking-tighter">Pro-<span class="text-blue-500">Sollar</span></h1>
+        <header class="flex items-center gap-4 mb-8 cursor-pointer" onclick="window.history.back()">
+            <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition">
+                <i class="fas fa-arrow-left text-slate-400"></i>
             </div>
-            <a href="index.html" class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-white transition-all">
-                <i class="fas fa-times mr-2"></i> Cancelar Ativação
-            </a>
+            <h1 class="text-xl font-bold text-slate-300">Voltar para Proposta</h1>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div id="loading-skeleton" class="glass-card p-12 text-center">
+            <i class="fas fa-circle-notch fa-spin text-3xl text-blue-500 mb-4"></i>
+            <p class="text-slate-400">Preparando seu contrato...</p>
+        </div>
+
+        <div id="checkout-content" class="hidden grid lg:grid-cols-5 gap-8">
             
-            <div class="lg:col-span-7 space-y-8">
-                <section>
-                    <div class="step-pill mb-4 inline-block">PASSO 01 / 02</div>
-                    <h2 class="text-4xl md:text-5xl font-black tracking-tight italic mb-6">Agende sua <br><span class="text-blue-500">Visita Técnica.</span></h2>
-                    <p class="text-slate-400 text-sm max-w-md font-medium leading-relaxed mb-10">
-                        Nossa equipe de engenharia precisa validar a estrutura do seu telhado e conexões elétricas antes da instalação.
-                    </p>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="date-selector">
-                        <div class="date-option glass-card p-6 text-center selected" data-date="19 de Janeiro">
-                            <p class="text-[10px] font-black uppercase opacity-60 mb-2">Segunda</p>
-                            <p class="text-3xl font-black italic">19</p>
-                            <p class="text-[10px] font-black mt-1">JAN</p>
-                        </div>
-                        <div class="date-option glass-card p-6 text-center" data-date="20 de Janeiro">
-                            <p class="text-[10px] font-black uppercase opacity-60 mb-2">Terça</p>
-                            <p class="text-3xl font-black italic">20</p>
-                            <p class="text-[10px] font-black mt-1">JAN</p>
-                        </div>
-                        <div class="date-option glass-card p-6 text-center" data-date="21 de Janeiro">
-                            <p class="text-[10px] font-black uppercase opacity-60 mb-2">Quarta</p>
-                            <p class="text-3xl font-black italic">21</p>
-                            <p class="text-[10px] font-black mt-1">JAN</p>
-                        </div>
-                        <div class="date-option glass-card p-6 text-center" data-date="22 de Janeiro">
-                            <p class="text-[10px] font-black uppercase opacity-60 mb-2">Quinta</p>
-                            <p class="text-3xl font-black italic">22</p>
-                            <p class="text-[10px] font-black mt-1">JAN</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                    <div class="space-y-4">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-blue-500 ml-2">Período de Preferência</p>
-                        <select id="periodo" class="input-dark w-full p-5 rounded-3xl text-xs font-bold uppercase tracking-widest appearance-none">
-                            <option value="Manhã">Manhã (08h às 12h)</option>
-                            <option value="Tarde">Tarde (13h às 18h)</option>
-                        </select>
-                    </div>
-                    <div class="space-y-4">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-blue-500 ml-2">WhatsApp para Confirmação</p>
-                        <input type="text" id="display-whatsapp" readonly class="input-dark w-full p-5 rounded-3xl text-xs font-bold tracking-widest opacity-60 cursor-not-allowed">
-                    </div>
-                </section>
-            </div>
-
-            <div class="lg:col-span-5">
-                <div class="glass-card p-8 md:p-12 border-blue-500/20 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[80px]"></div>
+            <div class="lg:col-span-3 space-y-6">
+                
+                <div class="glass-card p-8 border-l-4 border-l-blue-500">
+                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Resumo do Sistema</h2>
                     
-                    <h3 class="text-xl font-black italic mb-8">Resumo da Ativação</h3>
-                    
-                    <div class="space-y-6 mb-10">
-                        <div class="flex justify-between items-center group">
-                            <div>
-                                <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sistema de Performance</p>
-                                <p class="text-xs font-bold">Residencial • 4.2kWp</p>
-                            </div>
-                            <p class="text-sm font-black italic text-slate-300">R$ 18.500</p>
+                    <div class="flex items-start gap-6">
+                        <div class="w-24 h-24 bg-gradient-to-br from-blue-900 to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/10">
+                            <i class="fas fa-solar-panel text-4xl text-blue-400"></i>
                         </div>
-
-                        <div id="box-beneficio" class="hidden flex justify-between items-center p-4 rounded-2xl bg-green-500/5 border border-green-500/10">
-                            <div>
-                                <p class="text-[10px] font-black uppercase text-green-500 tracking-widest">Benefício à Vista</p>
-                                <p class="text-[9px] font-bold text-green-500/60 uppercase mt-0.5">Desconto de 5% aplicado</p>
-                            </div>
-                            <p class="text-sm font-black italic text-green-500">- R$ 925,00</p>
-                        </div>
-
-                        <div class="pt-6 border-t border-white/5">
-                            <div class="flex justify-between items-end">
-                                <div>
-                                    <p class="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-1">Total para Ativação</p>
-                                    <p id="total-price" class="text-4xl font-black italic text-white leading-none">R$ 18.500</p>
-                                </div>
-                                <p class="text-[10px] font-bold text-slate-500 mb-1">Boleto ou PIX</p>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-white mb-1">Kit Gerador Fotovoltaico</h3>
+                            <p id="system-desc" class="text-slate-400 text-sm mb-4">Carregando especificações...</p>
+                            
+                            <div class="flex gap-4 text-xs font-bold uppercase tracking-wide">
+                                <div class="bg-white/5 px-3 py-1 rounded-md"><i class="fas fa-certificate text-yellow-500 mr-2"></i>Tier 1</div>
+                                <div class="bg-white/5 px-3 py-1 rounded-md"><i class="fas fa-shield-alt text-green-500 mr-2"></i>25 Anos</div>
                             </div>
                         </div>
                     </div>
 
-                    <button id="btn-finalizar" class="btn-confirm w-full py-6 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 mb-6">
-                        Confirmar e Agendar <i class="fas fa-chevron-right text-[10px]"></i>
-                    </button>
-
-                    <div class="flex items-center gap-4 px-2 opacity-40">
-                        <i class="fas fa-lock text-xs"></i>
-                        <p class="text-[9px] font-bold uppercase tracking-tighter leading-tight">
-                            Ambiente seguro Pro-Sollar: Sua reserva de engenharia será processada em tempo real.
-                        </p>
+                    <div class="mt-8 pt-8 border-t border-white/5 flex justify-between items-end">
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Endereço de Instalação</p>
+                            <p id="install-address" class="text-sm font-medium text-white max-w-xs">...</p>
+                        </div>
+                        <div class="text-right">
+                            <p id="price-label" class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Valor Final</p>
+                            <p id="final-price" class="text-3xl font-black text-green-400">R$ --</p>
+                        </div>
                     </div>
                 </div>
+
+                <div class="glass-card p-8">
+                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Dados do Titular</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] text-slate-400 uppercase font-bold">E-mail</label>
+                            <p id="client-email" class="text-white font-medium">...</p>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 uppercase font-bold">WhatsApp</label>
+                            <p id="client-phone" class="text-white font-medium">...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="glass-card p-8 h-full flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/20 blur-[50px] rounded-full pointer-events-none"></div>
+
+                    <form id="booking-form" onsubmit="confirmarPedido(event)">
+                        <div>
+                            <h2 class="text-xl font-bold text-white mb-2">Agendar Vistoria</h2>
+                            <p class="text-xs text-slate-400 mb-8">Escolha a melhor data para nossa equipe técnica validar o telhado.</p>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Data da Visita</label>
+                                    <input type="date" id="visit-date" required class="input-dark w-full px-4 py-3 rounded-xl text-sm">
+                                </div>
+                                
+                                <div>
+                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Período Preferencial</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="periodo" value="manha" class="peer hidden" checked>
+                                            <div class="bg-black/20 border border-white/10 peer-checked:border-green-500 peer-checked:bg-green-500/20 rounded-xl py-3 text-center text-xs font-bold text-slate-400 peer-checked:text-green-400 transition-all">
+                                                <i class="fas fa-sun mr-2"></i>Manhã
+                                            </div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="periodo" value="tarde" class="peer hidden">
+                                            <div class="bg-black/20 border border-white/10 peer-checked:border-green-500 peer-checked:bg-green-500/20 rounded-xl py-3 text-center text-xs font-bold text-slate-400 peer-checked:text-green-400 transition-all">
+                                                <i class="fas fa-cloud-sun mr-2"></i>Tarde
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 space-y-4">
+                            <label class="flex items-start gap-3 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="checkbox" id="terms" required class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-600 bg-slate-900/50 checked:border-green-500 checked:bg-green-500 transition-all">
+                                    <i class="fas fa-check text-black text-[10px] absolute left-1 top-1 opacity-0 peer-checked:opacity-100"></i>
+                                </div>
+                                <span class="text-xs text-slate-400 leading-tight group-hover:text-slate-300 transition">
+                                    Concordo com a formalização da proposta digital e autorizo a visita técnica no local.
+                                </span>
+                            </label>
+
+                            <button type="submit" id="btn-submit" class="btn-confirm w-full py-4 rounded-xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 text-white">
+                                Confirmar e Assinar <i class="fas fa-file-signature"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div class="glass-card p-10 max-w-md text-center mx-4 animate-bounce-in">
+                <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,197,94,0.6)]">
+                    <i class="fas fa-check text-4xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Pedido Confirmado!</h2>
+                <p class="text-slate-300 text-sm mb-6">Parabéns pela decisão de se tornar independente. Nossa equipe entrará em contato em até 24h.</p>
+                <button onclick="window.location.href='index.html'" class="bg-white/10 border border-white/20 hover:bg-white/20 text-white w-full py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition">
+                    Voltar ao Início
+                </button>
             </div>
         </div>
+
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
             projectId: "pro-sollar-performance",
+            storageBucket: "pro-sollar-performance.firebasestorage.app",
+            messagingSenderId: "484051034820",
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        let currentLeadId = null;
+        let leadData = null;
 
-        const params = new URLSearchParams(window.location.search);
-        const leadId = params.get('id');
-        let selectedDate = "19 de Janeiro";
+        // 1. DATA MÍNIMA (Amanhã)
+        const dateInput = document.getElementById('visit-date');
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.min = tomorrow.toISOString().split('T')[0];
 
-        // Carregar dados salvos
-        async function initCheckout() {
-            if (!leadId) return;
-            const snap = await getDoc(doc(db, "leads", leadId));
-            if (snap.exists()) {
-                const data = snap.data();
-                document.getElementById('display-whatsapp').value = data.whatsapp;
-                
-                // Ajusta preço conforme escolha no portal
-                if (data.valor_selecionado === 17575) {
-                    document.getElementById('total-price').innerText = "R$ 17.575";
-                    document.getElementById('box-beneficio').classList.remove('hidden');
+        // 2. LOAD DATA
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const params = new URLSearchParams(window.location.search);
+                currentLeadId = params.get('id');
+
+                if(currentLeadId) {
+                    await carregarDados(currentLeadId, user.email);
+                } else {
+                    alert("ID do pedido inválido.");
+                    window.location.href = "panel.html";
                 }
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function carregarDados(id, email) {
+            try {
+                const docSnap = await db.collection("leads").doc(id).get();
+                if (docSnap.exists) {
+                    leadData = docSnap.data();
+                    
+                    // Validação simples de segurança
+                    const emailDono = leadData.perfil?.email || leadData.email;
+                    if(emailDono !== email) { alert("Acesso negado."); return; }
+
+                    renderizar(leadData);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar:", error);
             }
         }
 
-        // Lógica de seleção de data (UI)
-        document.querySelectorAll('.date-option').forEach(opt => {
-            opt.onclick = () => {
-                document.querySelectorAll('.date-option').forEach(el => el.classList.remove('selected'));
-                opt.classList.add('selected');
-                selectedDate = opt.getAttribute('data-date');
-            };
-        });
-
-        // Confirmar Agendamento
-        document.getElementById('btn-finalizar').onclick = async () => {
-            const btn = document.getElementById('btn-finalizar');
-            btn.innerHTML = '<i class="fas fa-sync animate-spin mr-2"></i> Reservando...';
+        function renderizar(data) {
+            // Engenharia
+            const qtd = data.engenharia?.projetado?.qtd_modulos || 0;
+            const kwp = data.engenharia?.projetado?.potencia_instalada_kwp || 0;
+            const modulo = data.configuracao_sistema?.modulo?.modelo || "Painéis Monocristalinos";
             
-            const periodo = document.getElementById('periodo').value;
+            document.getElementById('system-desc').innerText = `${qtd}x Painéis ${modulo} • Potência Total ${kwp} kWp`;
+            document.getElementById('install-address').innerText = data.perfil?.endereco_completo || data.endereco;
+
+            // Preço (Inteligência de Estado: À Vista ou Financiado?)
+            const isDiscount = data.status?.desconto_aplicado || false;
+            const precoBruto = data.financeiro?.investimento_bruto;
+            const precoLiq = data.financeiro?.valor_final;
+            
+            const valorFinal = isDiscount ? precoLiq : precoBruto;
+            
+            document.getElementById('final-price').innerText = valorFinal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+            
+            if(isDiscount) {
+                document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
+                document.getElementById('price-label').classList.add('text-green-500');
+            }
+
+            // Cliente
+            document.getElementById('client-email').innerText = data.perfil?.email || data.email;
+            document.getElementById('client-phone').innerText = data.perfil?.whatsapp_formatted || "Via WhatsApp";
+
+            // Show
+            document.getElementById('loading-skeleton').classList.add('hidden');
+            document.getElementById('checkout-content').classList.remove('hidden');
+        }
+
+        // 3. CONFIRMAÇÃO
+        window.confirmarPedido = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            const originalHTML = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loader"></div> Processando...';
+
+            // Coleta dados do form
+            const dataVisita = document.getElementById('visit-date').value;
+            const periodo = document.querySelector('input[name="periodo"]:checked').value;
 
             try {
-                await updateDoc(doc(db, "leads", leadId), {
-                    data_visita: selectedDate,
-                    periodo_visita: periodo,
-                    status: "visita_agendada"
+                // Atualiza Firebase
+                await db.collection("leads").doc(currentLeadId).update({
+                    "status.fase": "visita_agendada", // Muda fase do lead
+                    "status.data_fechamento": firebase.firestore.FieldValue.serverTimestamp(),
+                    "agendamento": {
+                        data_visita: dataVisita,
+                        periodo: periodo,
+                        status: "pendente_confirmacao"
+                    },
+                    "fechamento": {
+                        valor_final: document.getElementById('final-price').innerText,
+                        condicao: leadData.status?.desconto_aplicado ? "a_vista" : "padrao"
+                    }
                 });
-                
-                // Redireciona para sucesso (ou página final)
-                window.location.href = `sucess.html?id=${leadId}`;
-            } catch (err) {
-                alert("Erro ao confirmar agendamento.");
-                btn.innerHTML = 'Confirmar e Agendar <i class="fas fa-chevron-right text-[10px]"></i>';
+
+                // Sucesso
+                document.getElementById('success-modal').classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Erro ao salvar:", error);
+                alert("Erro ao processar o agendamento. Tente novamente.");
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
             }
         };
-
-        initCheckout();
     </script>
 </body>
 </html>
