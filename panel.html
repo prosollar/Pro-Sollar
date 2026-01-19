@@ -121,9 +121,29 @@
             color: white;
             box-shadow: 0 0 10px rgba(255,255,255,0.05);
         }
-        /* Utilitário para esconder suavemente */
         .hidden-important { display: none !important; }
 
+        /* SLIDER CUSTOMIZADO */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px; width: 20px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body class="p-4 md:p-10 lg:p-16">
@@ -197,12 +217,26 @@
             </div>
 
             <div class="glass-card p-8 mb-8 relative overflow-hidden">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-2">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4">
                     <h3 class="text-lg font-bold text-white mb-4 md:mb-0"><i class="fas fa-chart-line text-blue-500 mr-2"></i> Análise Financeira</h3>
                     
                     <div class="chart-toggle">
                         <div id="mode-cash" onclick="window.switchChartMode('cash')" class="toggle-btn active-green">À Vista</div>
                         <div id="mode-finan" onclick="window.switchChartMode('finan')" class="toggle-btn">Financiado</div>
+                    </div>
+                </div>
+
+                <div id="interest-control" class="hidden mb-6 bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-[10px] uppercase font-bold text-blue-300 tracking-widest">
+                            <i class="fas fa-sliders-h mr-2"></i>Simular Taxa de Juros (a.m.)
+                        </label>
+                        <span id="rate-display" class="text-lg font-black text-white">1.50%</span>
+                    </div>
+                    <input type="range" id="rate-slider" min="0.50" max="3.50" step="0.01" value="1.50" oninput="window.updateInterestRate(this.value)">
+                    <div class="flex justify-between text-[9px] text-slate-500 mt-1 font-bold">
+                        <span>0.5% (Rural)</span>
+                        <span>3.5% (Mercado)</span>
                     </div>
                 </div>
 
@@ -287,6 +321,7 @@
         let wealthChart = null;
         let currentChartMode = 'cash'; // 'cash' ou 'finan'
         let currentTimeRange = 25; // Anos
+        let currentInterestRate = 1.50; // Taxa de Juros Padrão
 
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
@@ -363,7 +398,14 @@
             updateChart();
         }
 
-        // --- SISTEMA DE GRÁFICOS E TEMPO ---
+        // --- CONTROLE DE JUROS ---
+        window.updateInterestRate = function(val) {
+            currentInterestRate = parseFloat(val);
+            document.getElementById('rate-display').innerText = currentInterestRate.toFixed(2) + "%";
+            updateChart(); // Reage instantaneamente
+        }
+
+        // --- SISTEMA DE GRÁFICOS ---
         window.switchChartMode = function(mode) {
             currentChartMode = mode;
             document.getElementById('mode-cash').className = mode === 'cash' ? 'toggle-btn active-green' : 'toggle-btn';
@@ -371,17 +413,19 @@
             
             const desc = document.getElementById('chart-desc');
             const btn1Year = document.getElementById('time-1');
+            const interestControl = document.getElementById('interest-control');
 
             if(mode === 'cash') {
                 desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
-                btn1Year.classList.add('hidden-important'); // Esconde 1 Ano
+                btn1Year.classList.add('hidden-important'); 
+                interestControl.classList.add('hidden'); // Esconde o Slider
                 
-                // Se estava em 1 ano, força ir para 25 anos para não bugar o gráfico à vista
                 if(currentTimeRange === 1) window.switchTimeRange(25);
 
             } else {
                 desc.innerText = "Fluxo de Caixa Mensal: Economia Gerada vs Parcela Fixa (60x)";
-                btn1Year.classList.remove('hidden-important'); // Mostra 1 Ano
+                btn1Year.classList.remove('hidden-important');
+                interestControl.classList.remove('hidden'); // Mostra o Slider
             }
             
             updateChart();
@@ -410,7 +454,6 @@
                 const dataCDI = [0]; 
                 const taxaCdiLiq = 0.095; 
 
-                // Filtra pelo tempo escolhido
                 const dadosAnuais = fluxo.filter(m => (m.mes % 12 === 0) && (m.ano <= currentTimeRange));
                 
                 dadosAnuais.forEach(d => {
@@ -431,13 +474,13 @@
                         labels: labels,
                         datasets: [
                             {
-                                label: 'Patrimônio Solar',
+                                label: 'Patrimônio Solar (Economia + Valorização)',
                                 data: dataSolar,
                                 borderColor: '#22c55e', backgroundColor: gradient,
                                 borderWidth: 3, pointBackgroundColor: '#fff', fill: true, tension: 0.3
                             },
                             {
-                                label: 'Renda Fixa (CDI)',
+                                label: 'Rendimentos CDI (Lucro Bancário)',
                                 data: dataCDI,
                                 borderColor: '#64748b', borderWidth: 2, borderDash: [5,5], pointRadius: 0, fill: false, tension: 0.3
                             }
@@ -455,18 +498,18 @@
                 });
 
             } 
-            // --- MODO 2: FINANCIAMENTO (MENSAL) ---
+            // --- MODO 2: FINANCIAMENTO (MENSAL - DINÂMICO) ---
             else {
                 const prazo = 60;
                 const carencia = 2; 
-                const taxaAm = 0.015; 
+                // AQUI ESTÁ A MÁGICA: USA O VALOR DO SLIDER
+                const taxaAm = currentInterestRate / 100; 
+                
                 const parcela = (investimentoAtual * taxaAm * Math.pow(1+taxaAm, prazo)) / (Math.pow(1+taxaAm, prazo) - 1);
 
                 const labels = [];
                 const dataEconomia = [];
                 const dataParcela = [];
-                
-                // MÁXIMO DE MESES NO GRÁFICO = TEMPO ESCOLHIDO (EM MESES)
                 const mesesVisualizacao = currentTimeRange * 12; 
 
                 for(let i=1; i <= mesesVisualizacao; i++) {
@@ -532,7 +575,6 @@
             }
         }
 
-        // --- GLOBAL ACTIONS ---
         window.toggleDiscount = async function() {
             if (!currentLeadId || !leadData) return;
             const btn = document.getElementById('btn-discount');
