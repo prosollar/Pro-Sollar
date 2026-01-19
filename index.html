@@ -175,8 +175,9 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-green-500/70 group-focus-within:text-green-400 transition-colors">
                                 <i class="fab fa-whatsapp text-lg"></i>
                             </div>
-                            <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" 
-                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
+                            <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" maxlength="15"
+                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm"
+                            oninput="mascaraTelefone(this)">
                         </div>
                     </div>
 
@@ -232,13 +233,21 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // --- MÁSCARA DE MOEDA (VISUAL) ---
+        // --- MÁSCARA MOEDA ---
         function mascaraMoeda(i) {
             let v = i.value.replace(/\D/g, '');
             v = (v / 100).toFixed(2) + '';
             v = v.replace(".", ",");
             v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
             i.value = v; 
+        }
+
+        // --- MÁSCARA TELEFONE (WhatsApp) ---
+        function mascaraTelefone(i) {
+            let v = i.value.replace(/\D/g, ""); // Remove tudo o que não é dígito
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); // Coloca parênteses em volta dos dois primeiros dígitos
+            v = v.replace(/(\d)(\d{4})$/, "$1-$2");    // Coloca hífen entre o quarto e o quinto dígitos
+            i.value = v;
         }
 
         // --- ALGORITMO DE ENGENHARIA FINANCEIRA (SAZONAL) ---
@@ -383,7 +392,7 @@
                 const email = getVal('email').toLowerCase().trim();
                 const whatsappInput = getVal('whatsapp');
                 const endereco = getVal('endereco');
-                const consumoRaw = getVal('consumo'); // Vem formatado: 1.500,00
+                const consumoRaw = getVal('consumo'); 
                 const lat = getVal('lat');
                 const lng = getVal('lng');
 
@@ -407,6 +416,7 @@
                 try {
                     const idLead = email; 
                     const docRef = db.collection("leads").doc(idLead);
+                    
                     const dadosCompletos = calcularEngenhariaFinanceira(consumoLimpo);
 
                     const payload = {
