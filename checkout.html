@@ -63,6 +63,19 @@
             border-radius: 1.5rem;
         }
 
+        /* Estilo da Lista de Equipamentos */
+        .equip-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s;
+        }
+        .equip-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+
         .loader {
             border: 3px solid rgba(255,255,255,0.1);
             border-left-color: var(--accent-green);
@@ -95,28 +108,59 @@
                 
                 <div class="glass-card p-8 border-l-4 border-l-green-500">
                     <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-sm font-black uppercase tracking-widest text-slate-500">Resumo da Proposta</h2>
+                        <h2 class="text-sm font-black uppercase tracking-widest text-slate-500">Composição do Sistema</h2>
                         <span class="bg-green-500/10 text-green-400 text-[10px] font-bold px-3 py-1 rounded-full border border-green-500/20 uppercase tracking-wide">
                             Pré-Aprovado
                         </span>
                     </div>
                     
-                    <div class="flex items-start gap-6">
-                        <div class="w-24 h-24 bg-gradient-to-br from-blue-900 to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/10">
-                            <i class="fas fa-solar-panel text-4xl text-blue-400"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="text-2xl font-bold text-white mb-1">Sistema Solar Premium</h3>
-                            <p id="system-desc" class="text-slate-400 text-sm mb-4">Carregando...</p>
-                            
-                            <div class="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wide">
-                                <div class="bg-white/5 px-3 py-1 rounded-md"><i class="fas fa-certificate text-yellow-500 mr-2"></i>Garantia de 25 Anos</div>
-                                <div class="bg-white/5 px-3 py-1 rounded-md"><i class="fas fa-tools text-blue-400 mr-2"></i>Instalação Inclusa</div>
+                    <div class="space-y-3 mb-8">
+                        
+                        <div class="equip-item">
+                            <div class="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center text-yellow-500">
+                                <i class="fas fa-solar-panel text-lg"></i>
+                            </div>
+                            <div>
+                                <p id="panel-model" class="text-sm font-bold text-white">Carregando Módulos...</p>
+                                <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5">
+                                    <span class="text-green-400"><i class="fas fa-chart-line mr-1"></i>25 Anos Performance</span>
+                                    <span>•</span>
+                                    <span><i class="fas fa-box mr-1"></i>8 Anos Produto</span>
+                                </div>
                             </div>
                         </div>
+
+                        <div class="equip-item">
+                            <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400">
+                                <i class="fas fa-microchip text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">Inversor Inteligente (String)</p>
+                                <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5">
+                                    <span class="text-blue-300"><i class="fas fa-shield-alt mr-1"></i>5 Anos Garantia</span>
+                                    <span>•</span>
+                                    <span>Monitoramento Wi-Fi</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="equip-item">
+                            <div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-400">
+                                <i class="fas fa-file-contract text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">Seguro Risco Engenharia</p>
+                                <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5">
+                                    <span class="text-purple-300"><i class="fas fa-check-circle mr-1"></i>1 Ano Incluso</span>
+                                    <span>•</span>
+                                    <span>Renovável</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div class="mt-8 pt-8 border-t border-white/5 flex justify-between items-end">
+                    <div class="pt-6 border-t border-white/5 flex justify-between items-end">
                         <div>
                             <p class="text-xs text-slate-500 mb-1">Local de Instalação</p>
                             <p id="install-address" class="text-sm font-medium text-white max-w-xs">...</p>
@@ -298,12 +342,14 @@
         }
 
         function renderizar(data) {
-            // Engenharia
+            // Engenharia e Equipamentos
             const qtd = data.engenharia?.projetado?.qtd_modulos || 0;
             const kwp = data.engenharia?.projetado?.potencia_instalada_kwp || 0;
-            const modulo = data.configuracao_sistema?.modulo?.modelo || "Painéis Monocristalinos";
+            const modulo = data.configuracao_sistema?.modulo?.modelo || "Painel Monocristalino N-Type";
             
-            document.getElementById('system-desc').innerText = `${qtd}x Painéis ${modulo} • Potência Total ${kwp} kWp`;
+            // Atualiza o card de Painéis com a quantidade e modelo real
+            document.getElementById('panel-model').innerText = `${qtd}x ${modulo} (${kwp} kWp)`;
+            
             document.getElementById('install-address').innerText = data.perfil?.endereco_completo || data.endereco;
 
             // Preço (Respeitando a escolha anterior)
