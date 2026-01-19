@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro-Sollar | Finalização e Agendamento</title>
+    <title>Pro-Sollar | Formalização</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -48,21 +48,19 @@
             background: rgba(0, 0, 0, 0.5);
         }
         
-        /* Calendário Customizado (Básico para Webkit) */
-        ::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            opacity: 0.5;
-            cursor: pointer;
-        }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; cursor: pointer; }
 
         .btn-confirm {
             background: linear-gradient(135deg, var(--accent-green) 0%, #15803d 100%);
             box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
             transition: all 0.3s;
         }
-        .btn-confirm:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 40px rgba(34, 197, 94, 0.6);
+        .btn-confirm:hover { transform: scale(1.02); box-shadow: 0 0 40px rgba(34, 197, 94, 0.6); }
+
+        .transparency-card {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 1.5rem;
         }
 
         .loader {
@@ -83,50 +81,55 @@
             <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition">
                 <i class="fas fa-arrow-left text-slate-400"></i>
             </div>
-            <h1 class="text-xl font-bold text-slate-300">Voltar para Proposta</h1>
+            <h1 class="text-xl font-bold text-slate-300">Voltar para Negociação</h1>
         </header>
 
         <div id="loading-skeleton" class="glass-card p-12 text-center">
             <i class="fas fa-circle-notch fa-spin text-3xl text-blue-500 mb-4"></i>
-            <p class="text-slate-400">Preparando seu contrato...</p>
+            <p class="text-slate-400">Carregando termos da proposta...</p>
         </div>
 
         <div id="checkout-content" class="hidden grid lg:grid-cols-5 gap-8">
             
             <div class="lg:col-span-3 space-y-6">
                 
-                <div class="glass-card p-8 border-l-4 border-l-blue-500">
-                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Resumo do Sistema</h2>
+                <div class="glass-card p-8 border-l-4 border-l-green-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-sm font-black uppercase tracking-widest text-slate-500">Resumo da Proposta</h2>
+                        <span class="bg-green-500/10 text-green-400 text-[10px] font-bold px-3 py-1 rounded-full border border-green-500/20 uppercase tracking-wide">
+                            Pré-Aprovado
+                        </span>
+                    </div>
                     
                     <div class="flex items-start gap-6">
                         <div class="w-24 h-24 bg-gradient-to-br from-blue-900 to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/10">
                             <i class="fas fa-solar-panel text-4xl text-blue-400"></i>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-2xl font-bold text-white mb-1">Kit Gerador Fotovoltaico</h3>
-                            <p id="system-desc" class="text-slate-400 text-sm mb-4">Carregando especificações...</p>
+                            <h3 class="text-2xl font-bold text-white mb-1">Sistema Solar Premium</h3>
+                            <p id="system-desc" class="text-slate-400 text-sm mb-4">Carregando...</p>
                             
-                            <div class="flex gap-4 text-xs font-bold uppercase tracking-wide">
-                                <div class="bg-white/5 px-3 py-1 rounded-md"><i class="fas fa-certificate text-yellow-500 mr-2"></i>Tier 1</div>
-                                <div class="bg-white/5 px-3 py-1 rounded-md"><i class="fas fa-shield-alt text-green-500 mr-2"></i>25 Anos</div>
+                            <div class="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wide">
+                                <div class="bg-white/5 px-3 py-1 rounded-md"><i class="fas fa-certificate text-yellow-500 mr-2"></i>Garantia de 25 Anos</div>
+                                <div class="bg-white/5 px-3 py-1 rounded-md"><i class="fas fa-tools text-blue-400 mr-2"></i>Instalação Inclusa</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-8 pt-8 border-t border-white/5 flex justify-between items-end">
                         <div>
-                            <p class="text-xs text-slate-500 mb-1">Endereço de Instalação</p>
+                            <p class="text-xs text-slate-500 mb-1">Local de Instalação</p>
                             <p id="install-address" class="text-sm font-medium text-white max-w-xs">...</p>
                         </div>
                         <div class="text-right">
-                            <p id="price-label" class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Valor Final</p>
+                            <p id="price-label" class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Investimento Total</p>
                             <p id="final-price" class="text-3xl font-black text-green-400">R$ --</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="glass-card p-8">
-                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Dados do Titular</h2>
+                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Titular do Contrato</h2>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] text-slate-400 uppercase font-bold">E-mail</label>
@@ -141,14 +144,34 @@
 
             </div>
 
-            <div class="lg:col-span-2">
-                <div class="glass-card p-8 h-full flex flex-col justify-between relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/20 blur-[50px] rounded-full pointer-events-none"></div>
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="transparency-card p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-shield-alt text-blue-400 text-xl"></i>
+                        <h3 class="text-sm font-bold text-white">Transparência Total</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed text-justify">
+                        Este valor é baseado em dados de satélite. Após o agendamento, nossa engenharia fará uma 
+                        <strong class="text-white">Validação Técnica Presencial</strong> no seu imóvel.
+                    </p>
+                    <ul class="mt-3 space-y-2">
+                        <li class="flex items-start gap-2 text-[10px] text-slate-300">
+                            <i class="fas fa-check text-green-500 mt-0.5"></i>
+                            <span>Se tudo estiver ok, o valor está travado e garantido.</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-[10px] text-slate-300">
+                            <i class="fas fa-info-circle text-yellow-500 mt-0.5"></i>
+                            <span>Se houver divergência técnica, renegociamos ou cancelamos sem custo.</span>
+                        </li>
+                    </ul>
+                </div>
 
+                <div class="glass-card p-8 relative overflow-hidden">
                     <form id="booking-form" onsubmit="confirmarPedido(event)">
                         <div>
                             <h2 class="text-xl font-bold text-white mb-2">Agendar Vistoria</h2>
-                            <p class="text-xs text-slate-400 mb-8">Escolha a melhor data para nossa equipe técnica validar o telhado.</p>
+                            <p class="text-xs text-slate-400 mb-6">Escolha a data para o engenheiro validar o projeto.</p>
 
                             <div class="space-y-4">
                                 <div>
@@ -157,7 +180,7 @@
                                 </div>
                                 
                                 <div>
-                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Período Preferencial</label>
+                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Período</label>
                                     <div class="grid grid-cols-2 gap-3">
                                         <label class="cursor-pointer">
                                             <input type="radio" name="periodo" value="manha" class="peer hidden" checked>
@@ -178,17 +201,17 @@
 
                         <div class="mt-8 space-y-4">
                             <label class="flex items-start gap-3 cursor-pointer group">
-                                <div class="relative flex items-center">
+                                <div class="relative flex items-center mt-1">
                                     <input type="checkbox" id="terms" required class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-600 bg-slate-900/50 checked:border-green-500 checked:bg-green-500 transition-all">
                                     <i class="fas fa-check text-black text-[10px] absolute left-1 top-1 opacity-0 peer-checked:opacity-100"></i>
                                 </div>
-                                <span class="text-xs text-slate-400 leading-tight group-hover:text-slate-300 transition">
-                                    Concordo com a formalização da proposta digital e autorizo a visita técnica no local.
+                                <span class="text-[11px] text-slate-400 leading-tight group-hover:text-slate-300 transition text-justify">
+                                    Autorizo a visita técnica e estou ciente de que a <strong>Proposta Comercial Definitiva</strong> dependerá da validação das condições do telhado e rede elétrica pelo engenheiro responsável.
                                 </span>
                             </label>
 
                             <button type="submit" id="btn-submit" class="btn-confirm w-full py-4 rounded-xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 text-white">
-                                Confirmar e Assinar <i class="fas fa-file-signature"></i>
+                                Reservar e Agendar <i class="fas fa-calendar-check"></i>
                             </button>
                         </div>
                     </form>
@@ -198,12 +221,14 @@
         </div>
 
         <div id="success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-            <div class="glass-card p-10 max-w-md text-center mx-4 animate-bounce-in">
-                <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,197,94,0.6)]">
+            <div class="glass-card p-10 max-w-md text-center mx-4 animate-bounce-in border border-green-500/30">
+                <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.4)]">
                     <i class="fas fa-check text-4xl text-white"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-white mb-2">Pedido Confirmado!</h2>
-                <p class="text-slate-300 text-sm mb-6">Parabéns pela decisão de se tornar independente. Nossa equipe entrará em contato em até 24h.</p>
+                <h2 class="text-2xl font-bold text-white mb-2">Visita Agendada!</h2>
+                <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                    Sua reserva de preço foi realizada com sucesso. Nossa equipe de engenharia entrará em contato em até 24h para confirmar os detalhes da visita.
+                </p>
                 <button onclick="window.location.href='index.html'" class="bg-white/10 border border-white/20 hover:bg-white/20 text-white w-full py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition">
                     Voltar ao Início
                 </button>
@@ -233,13 +258,13 @@
         let currentLeadId = null;
         let leadData = null;
 
-        // 1. DATA MÍNIMA (Amanhã)
+        // DATA MÍNIMA (Amanhã)
         const dateInput = document.getElementById('visit-date');
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         dateInput.min = tomorrow.toISOString().split('T')[0];
 
-        // 2. LOAD DATA
+        // LOAD DATA
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const params = new URLSearchParams(window.location.search);
@@ -262,7 +287,6 @@
                 if (docSnap.exists) {
                     leadData = docSnap.data();
                     
-                    // Validação simples de segurança
                     const emailDono = leadData.perfil?.email || leadData.email;
                     if(emailDono !== email) { alert("Acesso negado."); return; }
 
@@ -282,7 +306,7 @@
             document.getElementById('system-desc').innerText = `${qtd}x Painéis ${modulo} • Potência Total ${kwp} kWp`;
             document.getElementById('install-address').innerText = data.perfil?.endereco_completo || data.endereco;
 
-            // Preço (Inteligência de Estado: À Vista ou Financiado?)
+            // Preço (Respeitando a escolha anterior)
             const isDiscount = data.status?.desconto_aplicado || false;
             const precoBruto = data.financeiro?.investimento_bruto;
             const precoLiq = data.financeiro?.valor_final;
@@ -294,18 +318,19 @@
             if(isDiscount) {
                 document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
                 document.getElementById('price-label').classList.add('text-green-500');
+            } else {
+                document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
             }
 
             // Cliente
             document.getElementById('client-email').innerText = data.perfil?.email || data.email;
             document.getElementById('client-phone').innerText = data.perfil?.whatsapp_formatted || "Via WhatsApp";
 
-            // Show
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // 3. CONFIRMAÇÃO
+        // CONFIRMAÇÃO DO AGENDAMENTO
         window.confirmarPedido = async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
@@ -314,32 +339,31 @@
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div> Processando...';
 
-            // Coleta dados do form
             const dataVisita = document.getElementById('visit-date').value;
             const periodo = document.querySelector('input[name="periodo"]:checked').value;
 
             try {
-                // Atualiza Firebase
                 await db.collection("leads").doc(currentLeadId).update({
-                    "status.fase": "visita_agendada", // Muda fase do lead
-                    "status.data_fechamento": firebase.firestore.FieldValue.serverTimestamp(),
+                    "status.fase": "visita_agendada", 
+                    "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
                     "agendamento": {
                         data_visita: dataVisita,
                         periodo: periodo,
-                        status: "pendente_confirmacao"
+                        status: "pendente_confirmacao",
+                        termo_aceite: true // Marcou o checkbox
                     },
                     "fechamento": {
-                        valor_final: document.getElementById('final-price').innerText,
-                        condicao: leadData.status?.desconto_aplicado ? "a_vista" : "padrao"
+                        valor_reservado: document.getElementById('final-price').innerText,
+                        condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado",
+                        obs: "Sujeito a validação técnica (Card de Transparência aceito)"
                     }
                 });
 
-                // Sucesso
                 document.getElementById('success-modal').classList.remove('hidden');
 
             } catch (error) {
                 console.error("Erro ao salvar:", error);
-                alert("Erro ao processar o agendamento. Tente novamente.");
+                alert("Erro ao processar. Tente novamente.");
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
             }
