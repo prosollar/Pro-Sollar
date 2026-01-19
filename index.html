@@ -232,6 +232,17 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // --- MÁSCARA DE MOEDA (VISUAL) ---
+        function mascaraMoeda(i) {
+            let v = i.value.replace(/\D/g, '');
+            v = (v / 100).toFixed(2) + '';
+            v = v.replace(".", ",");
+            v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+            i.value = v; 
+            // O "R$" já está no HTML via CSS/Span, ou se preferir dentro do value:
+            // i.value = "R$ " + v; (Mas a solução visual com span é mais limpa)
+        }
+
         // ---------------------------------------------------------
         // ALGORITMO DE ENGENHARIA FINANCEIRA (SAZONAL)
         // ---------------------------------------------------------
