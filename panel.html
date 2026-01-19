@@ -66,7 +66,7 @@
         
         .chart-container { position: relative; height: 320px; width: 100%; }
 
-        /* TOGGLE SWITCH STYLE (Main Mode) */
+        /* TOGGLE SWITCH STYLE */
         .chart-toggle {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
@@ -96,7 +96,7 @@
             box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
         }
 
-        /* TIME SELECTOR STYLE (5y, 15y, 25y) */
+        /* TIME SELECTOR STYLE */
         .time-selector {
             display: flex;
             justify-content: center;
@@ -121,6 +121,8 @@
             color: white;
             box-shadow: 0 0 10px rgba(255,255,255,0.05);
         }
+        /* Utilitário para esconder suavemente */
+        .hidden-important { display: none !important; }
 
     </style>
 </head>
@@ -213,6 +215,7 @@
                 </div>
 
                 <div class="time-selector">
+                    <div id="time-1" onclick="window.switchTimeRange(1)" class="time-btn hidden-important">1 ANO</div>
                     <div id="time-5" onclick="window.switchTimeRange(5)" class="time-btn">5 ANOS</div>
                     <div id="time-15" onclick="window.switchTimeRange(15)" class="time-btn">15 ANOS</div>
                     <div id="time-25" onclick="window.switchTimeRange(25)" class="time-btn active">25 ANOS</div>
@@ -283,7 +286,7 @@
         let leadData = null;
         let wealthChart = null;
         let currentChartMode = 'cash'; // 'cash' ou 'finan'
-        let currentTimeRange = 25; // Anos (Default)
+        let currentTimeRange = 25; // Anos
 
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
@@ -360,26 +363,34 @@
             updateChart();
         }
 
-        // --- SISTEMA DE GRÁFICOS ---
+        // --- SISTEMA DE GRÁFICOS E TEMPO ---
         window.switchChartMode = function(mode) {
             currentChartMode = mode;
             document.getElementById('mode-cash').className = mode === 'cash' ? 'toggle-btn active-green' : 'toggle-btn';
             document.getElementById('mode-finan').className = mode === 'finan' ? 'toggle-btn active' : 'toggle-btn';
             
             const desc = document.getElementById('chart-desc');
-            if(mode === 'cash') desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
-            else desc.innerText = "Fluxo de Caixa Mensal: Economia Gerada vs Parcela Fixa (60x)";
+            const btn1Year = document.getElementById('time-1');
+
+            if(mode === 'cash') {
+                desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
+                btn1Year.classList.add('hidden-important'); // Esconde 1 Ano
+                
+                // Se estava em 1 ano, força ir para 25 anos para não bugar o gráfico à vista
+                if(currentTimeRange === 1) window.switchTimeRange(25);
+
+            } else {
+                desc.innerText = "Fluxo de Caixa Mensal: Economia Gerada vs Parcela Fixa (60x)";
+                btn1Year.classList.remove('hidden-important'); // Mostra 1 Ano
+            }
             
             updateChart();
         }
 
         window.switchTimeRange = function(range) {
             currentTimeRange = range;
-            
-            // Atualiza botões
             document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`time-${range}`).classList.add('active');
-            
             updateChart();
         }
 
@@ -397,9 +408,9 @@
                 const labels = ["Início"];
                 const dataSolar = [-investimentoAtual];
                 const dataCDI = [0]; 
-                const taxaCdiLiq = 0.095; // 9.5% a.a.
+                const taxaCdiLiq = 0.095; 
 
-                // FILTRA POR TEMPO
+                // Filtra pelo tempo escolhido
                 const dadosAnuais = fluxo.filter(m => (m.mes % 12 === 0) && (m.ano <= currentTimeRange));
                 
                 dadosAnuais.forEach(d => {
@@ -420,13 +431,13 @@
                         labels: labels,
                         datasets: [
                             {
-                                label: 'Patrimônio Solar (Economia + Valorização)',
+                                label: 'Patrimônio Solar',
                                 data: dataSolar,
                                 borderColor: '#22c55e', backgroundColor: gradient,
                                 borderWidth: 3, pointBackgroundColor: '#fff', fill: true, tension: 0.3
                             },
                             {
-                                label: 'Rendimentos CDI (Lucro Bancário)',
+                                label: 'Renda Fixa (CDI)',
                                 data: dataCDI,
                                 borderColor: '#64748b', borderWidth: 2, borderDash: [5,5], pointRadius: 0, fill: false, tension: 0.3
                             }
@@ -447,8 +458,8 @@
             // --- MODO 2: FINANCIAMENTO (MENSAL) ---
             else {
                 const prazo = 60;
-                const carencia = 2; // 60 dias
-                const taxaAm = 0.015; // 1.5% a.m.
+                const carencia = 2; 
+                const taxaAm = 0.015; 
                 const parcela = (investimentoAtual * taxaAm * Math.pow(1+taxaAm, prazo)) / (Math.pow(1+taxaAm, prazo) - 1);
 
                 const labels = [];
@@ -462,11 +473,11 @@
                     labels.push(i);
                     
                     const dadoMes = fluxo[i-1];
-                    const economia = dadoMes ? dadoMes.receita_economia : 0; // Isso já contém sazonalidade do JSON
+                    const economia = dadoMes ? dadoMes.receita_economia : 0; 
                     dataEconomia.push(economia);
 
                     if (i <= carencia) {
-                        dataParcela.push(0); // Carência
+                        dataParcela.push(0); 
                     } else if (i <= (prazo + carencia)) { 
                         dataParcela.push(parcela);
                     } else {
@@ -513,7 +524,7 @@
                             },
                             x: { 
                                 grid: {display:false}, ticks: { color:'#64748b', maxTicksLimit: 12 },
-                                title: { display: true, text: 'Meses (Carência: 60 dias)', color: '#475569' }
+                                title: { display: true, text: 'Meses', color: '#475569' }
                             }
                         }
                     }
