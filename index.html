@@ -243,9 +243,7 @@
             // i.value = "R$ " + v; (Mas a solução visual com span é mais limpa)
         }
 
-        // ---------------------------------------------------------
-        // ALGORITMO DE ENGENHARIA FINANCEIRA (SAZONAL)
-        // ---------------------------------------------------------
+        // --- ALGORITMO DE ENGENHARIA FINANCEIRA (SAZONAL) ---
         function calcularEngenhariaFinanceira(consumoReais) {
             
             const INPUTS = {
@@ -278,9 +276,8 @@
             
             const geracaoMediaBase = potenciaInstaladaKwp * INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global;
 
-            // 2. CÁLCULO DO PREÇO (30x ECONOMIA ANO 1 - COM SAZONALIDADE)
+            // 2. CÁLCULO DO PREÇO
             let somaEconomiaAno1 = 0;
-
             for (let m = 1; m <= 12; m++) {
                 const indiceMes = (m - 1) % 12;
                 const fatorSazonal = SAZONALIDADE[indiceMes];
@@ -294,7 +291,7 @@
             const investimentoInicial = mediaEconomiaMensalAno1 * 30;
             const investimentoComDesconto = investimentoInicial * 0.95; 
 
-            // 3. FLUXO DE CAIXA COMPLETO (25 ANOS)
+            // 3. FLUXO DE CAIXA COMPLETO
             let fluxoCaixa = [];
             let saldoAcumulado = -investimentoComDesconto;
             let paybackMes = 0;
@@ -303,7 +300,6 @@
             for (let m = 1; m <= 300; m++) {
                 const anoAtual = Math.ceil(m / 12);
                 const indiceMes = (m - 1) % 12;
-                
                 const fatorSazonal = SAZONALIDADE[indiceMes];
                 const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
                 const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
@@ -319,7 +315,6 @@
                     const fatorIpca = Math.pow((1 + INPUTS.financeiro.inflacao_servicos_aa), (m-1)/12);
                     custoManutencao = (qtdModulos * INPUTS.financeiro.custo_limpeza_un) * fatorIpca;
                 }
-
                 if (m === 120 || m === 240) {
                     custoInversor = investimentoInicial * INPUTS.financeiro.perc_troca_inversor;
                 }
@@ -375,7 +370,7 @@
             };
         }
 
-        // LÓGICA DO BOTÃO E SALVAMENTO
+        // LÓGICA DO BOTÃO
         const btn = document.getElementById('btnGerar');
         if (btn) {
             const novoBtn = btn.cloneNode(true);
@@ -387,40 +382,47 @@
                 const originalHTML = btnAtual.innerHTML;
                 const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
                 
-                const email = getVal('email').toLowerCase().trim(); // E-mail Limpo
+                const email = getVal('email').toLowerCase().trim();
                 const whatsappInput = getVal('whatsapp');
                 const endereco = getVal('endereco');
-                const consumoInput = getVal('consumo');
+                const consumoRaw = getVal('consumo'); // Vem formatado: 1.500,00
                 const lat = getVal('lat');
                 const lng = getVal('lng');
 
-                if (!email || !whatsappInput || !endereco || !consumoInput) {
+                if (!email || !whatsappInput || !endereco || !consumoRaw) {
                     alert("Por favor, preencha todos os campos."); return;
                 }
                 if (!lat || !lng) {
                     alert("Por favor, selecione o endereço na lista do Google Maps."); return;
                 }
 
+                // LIMPEZA DA MOEDA (Transforma 1.500,00 em 1500.00)
+                // Remove pontos de milhar e troca vírgula por ponto
+                const consumoLimpo = parseFloat(consumoRaw.replace(/\./g, '').replace(',', '.'));
+
+                if (isNaN(consumoLimpo) || consumoLimpo <= 0) {
+                    alert("Valor de conta inválido."); return;
+                }
+
                 btnAtual.innerHTML = '<i class="fas fa-calculator fa-spin mr-2"></i> Processando Engenharia...';
                 btnAtual.disabled = true;
 
                 try {
-                    // MUDANÇA CRÍTICA: ID AGORA É O EMAIL
                     const idLead = email; 
-                    
                     const docRef = db.collection("leads").doc(idLead);
-                    const dadosCompletos = calcularEngenhariaFinanceira(parseFloat(consumoInput));
+                    
+                    // Passa o valor limpo (float) para o cálculo
+                    const dadosCompletos = calcularEngenhariaFinanceira(consumoLimpo);
 
                     const payload = {
                         status_geral: "novo_lead",
                         perfil: {
                             email: email,
-                            // Whatsapp vira apenas um campo de dado, não mais o ID
                             whatsapp: whatsappInput.replace(/\D/g, ""), 
                             whatsapp_formatted: whatsappInput,
                             endereco_completo: endereco,
                             coordenadas: { lat: parseFloat(lat), lng: parseFloat(lng) },
-                            consumo_mensal_reais: parseFloat(consumoInput),
+                            consumo_mensal_reais: consumoLimpo, // Salva numero puro
                             origem: { tipo: "organico", data_captura: new Date().toISOString() }
                         },
                         ...dadosCompletos,
@@ -430,7 +432,6 @@
                     await docRef.set(payload, { merge: true });
 
                     const actionCodeSettings = {
-                        // Passamos o email como ID na URL também para facilitar o login.html
                         url: window.location.origin + `/login.html?id=${encodeURIComponent(idLead)}&verifying=true`,
                         handleCodeInApp: true
                     };
@@ -439,7 +440,6 @@
                     await auth.sendSignInLinkToEmail(email, actionCodeSettings);
                     window.localStorage.setItem('emailForSignIn', email);
                     
-                    // Redireciona
                     window.location.href = `login.html?id=${encodeURIComponent(idLead)}&status=check_email&email=${email}`;
 
                 } catch (error) {
@@ -482,6 +482,8 @@
         window.addEventListener('scroll', handleReveal);
         window.addEventListener('load', handleReveal);
     </script>
+    
+    
     
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 
