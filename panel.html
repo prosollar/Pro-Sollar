@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro-Sollar | Portal da Independência Energética</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
 
@@ -37,29 +38,12 @@
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .step-container { position: relative; }
-        .step-line {
-            position: absolute;
-            left: 15px; top: 32px; bottom: -20px; width: 1px;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .step-active .step-line {
-            background: linear-gradient(to bottom, var(--accent-blue), rgba(59, 130, 246, 0.1));
-        }
-
-        .step-number {
-            width: 32px; height: 32px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 900; position: relative; z-index: 10;
-        }
-
         .btn-approve {
             background: var(--accent-green);
             color: #052e16;
             box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
             transition: all 0.3s ease;
         }
-
         .btn-approve:hover {
             transform: scale(1.02) translateY(-2px);
             box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
@@ -80,11 +64,35 @@
             background: rgba(34, 197, 94, 0.08);
         }
         
-        /* Chart Container Styling */
-        .chart-container {
-            position: relative; 
-            height: 300px; 
-            width: 100%;
+        .chart-container { position: relative; height: 320px; width: 100%; }
+
+        /* TOGGLE SWITCH STYLE */
+        .chart-toggle {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 4px;
+            display: inline-flex;
+            margin-bottom: 20px;
+        }
+        .toggle-btn {
+            padding: 8px 20px;
+            border-radius: 0.8rem;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            color: #64748b;
+        }
+        .toggle-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        .toggle-btn.active-green {
+            background: var(--accent-green);
+            color: #064e3b;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
         }
     </style>
 </head>
@@ -112,8 +120,7 @@
 
         <div id="loading-skeleton" class="animate-pulse glass-card p-12 mb-8 text-center">
             <i class="fas fa-satellite-dish fa-spin text-4xl text-blue-500 mb-4"></i>
-            <h2 class="text-xl font-bold">Processando dados de engenharia...</h2>
-            <p class="text-sm text-slate-400">Calculando fluxo de caixa e viabilidade.</p>
+            <h2 class="text-xl font-bold">Calculando viabilidade...</h2>
         </div>
 
         <div id="content-panel" class="hidden animate-in fade-in duration-700">
@@ -123,13 +130,13 @@
                     <div>
                         <div class="flex items-center gap-3 mb-3">
                             <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500">Projeto Viável</span>
+                            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500">Projeto Aprovado</span>
                         </div>
-                        <h3 id="display-address" class="text-2xl md:text-4xl font-black italic text-white mb-2">...</h3>
-                        <p id="display-specs" class="text-sm text-slate-400 font-bold uppercase tracking-widest">...</p>
+                        <h3 id="display-address" class="text-2xl md:text-3xl font-black italic text-white mb-2 leading-tight">...</h3>
+                        <p id="display-specs" class="text-xs text-slate-400 font-bold uppercase tracking-widest">...</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Aporte Inicial</p>
+                        <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Valor do Sistema</p>
                         <p id="display-price" class="text-3xl md:text-4xl font-black text-white italic">R$ --.--</p>
                         <p id="savings-badge" class="hidden text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">Desconto aplicado</p>
                     </div>
@@ -137,39 +144,45 @@
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="glass-card p-6 text-center border-green-500/10 hover:bg-green-500/5 transition-all">
-                    <i class="fas fa-bolt text-yellow-400 text-xl mb-2"></i>
-                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Geração Mês</p>
-                    <p id="kpi-generation" class="text-xl font-bold text-white">-- kWh</p>
+                <div class="glass-card p-6 text-center border-white/5">
+                    <i class="fas fa-bolt text-yellow-400 text-lg mb-2"></i>
+                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Geração Mês</p>
+                    <p id="kpi-generation" class="text-lg font-bold text-white">--</p>
                 </div>
-                <div class="glass-card p-6 text-center border-blue-500/10 hover:bg-blue-500/5 transition-all">
-                    <i class="fas fa-wallet text-blue-400 text-xl mb-2"></i>
-                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Economia Ano 1</p>
-                    <p id="kpi-economy" class="text-xl font-bold text-white">R$ --</p>
+                <div class="glass-card p-6 text-center border-white/5">
+                    <i class="fas fa-wallet text-blue-400 text-lg mb-2"></i>
+                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Economia 1º Ano</p>
+                    <p id="kpi-economy" class="text-lg font-bold text-white">--</p>
                 </div>
-                <div class="glass-card p-6 text-center border-purple-500/10 hover:bg-purple-500/5 transition-all">
-                    <i class="fas fa-hourglass-half text-purple-400 text-xl mb-2"></i>
-                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Payback</p>
-                    <p id="kpi-payback" class="text-xl font-bold text-white">-- Anos</p>
+                <div class="glass-card p-6 text-center border-white/5">
+                    <i class="fas fa-hourglass-half text-purple-400 text-lg mb-2"></i>
+                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Payback</p>
+                    <p id="kpi-payback" class="text-lg font-bold text-white">--</p>
                 </div>
-                <div class="glass-card p-6 text-center border-green-500/20 bg-green-500/5 transform hover:scale-105 transition-all">
-                    <i class="fas fa-piggy-bank text-green-400 text-xl mb-2"></i>
-                    <p class="text-[10px] text-green-300 font-black uppercase tracking-widest">Lucro 25 Anos</p>
-                    <p id="kpi-roi" class="text-xl font-black text-green-400">R$ --</p>
+                <div class="glass-card p-6 text-center border-green-500/20 bg-green-500/5">
+                    <i class="fas fa-piggy-bank text-green-400 text-lg mb-2"></i>
+                    <p class="text-[9px] text-green-300 font-black uppercase tracking-widest">Lucro 25 Anos</p>
+                    <p id="kpi-roi" class="text-lg font-black text-green-400">--</p>
                 </div>
             </div>
 
-            <div class="glass-card p-8 mb-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-bold text-white"><i class="fas fa-chart-line text-blue-500 mr-2"></i> Evolução Patrimonial</h3>
-                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Projeção 25 Anos</span>
+            <div class="glass-card p-8 mb-8 relative overflow-hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-2">
+                    <h3 class="text-lg font-bold text-white mb-4 md:mb-0"><i class="fas fa-chart-line text-blue-500 mr-2"></i> Análise Financeira</h3>
+                    
+                    <div class="chart-toggle">
+                        <button id="mode-cash" onclick="switchChartMode('cash')" class="toggle-btn active-green">À Vista</button>
+                        <button id="mode-finan" onclick="switchChartMode('finan')" class="toggle-btn">Financiado</button>
+                    </div>
                 </div>
+
+                <p id="chart-desc" class="text-center text-xs text-slate-400 mb-6 font-medium">
+                    Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)
+                </p>
+
                 <div class="chart-container">
                     <canvas id="wealthChart"></canvas>
                 </div>
-                <p class="text-[10px] text-center text-slate-500 mt-4 italic">
-                    *Considera inflação energética de 10% a.a. e custos de manutenção/reposição.
-                </p>
             </div>
 
             <div class="pt-8 border-t border-white/5">
@@ -196,7 +209,7 @@
                             <i class="fas fa-file-contract text-blue-500 text-xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-white italic">Confirmar projeto agora?</p>
+                            <p class="text-sm font-bold text-white italic">Tudo pronto para economizar?</p>
                             <p id="footer-text" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 italic">Condição padrão selecionada</p>
                         </div>
                     </div>
@@ -206,7 +219,6 @@
                     </button>
                 </div>
             </div>
-
         </div>
 
         <footer class="text-center py-10 opacity-30 border-t border-white/5 mt-12">
@@ -219,7 +231,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
     <script>
-        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -232,26 +243,21 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        
         let currentLeadId = null;
         let leadData = null;
         let wealthChart = null;
+        let currentChartMode = 'cash'; // 'cash' ou 'finan'
 
-        // AUTH CHECK
+        // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 document.getElementById('user-email-display').innerText = user.email;
                 const params = new URLSearchParams(window.location.search);
                 const urlId = params.get('id');
-
-                if(urlId) {
-                    currentLeadId = urlId;
-                    await carregarPainel(urlId, user.email);
-                } else {
-                    await buscarPorEmail(user.email);
-                }
-            } else {
-                window.location.href = "login.html";
-            }
+                if(urlId) { currentLeadId = urlId; await carregarPainel(urlId, user.email); }
+                else { await buscarPorEmail(user.email); }
+            } else { window.location.href = "login.html"; }
         });
 
         async function buscarPorEmail(email) {
@@ -266,10 +272,7 @@
                     const doc = oldSnap.docs[0];
                     currentLeadId = doc.id;
                     await carregarPainel(doc.id, email);
-                } else {
-                    alert("Proposta não encontrada.");
-                    window.location.href = "index.html";
-                }
+                } else { alert("Proposta não encontrada."); window.location.href="index.html"; }
             }
         }
 
@@ -277,233 +280,224 @@
             try {
                 const docRef = db.collection("leads").doc(id);
                 const docSnap = await docRef.get();
-
                 if (docSnap.exists) {
                     leadData = docSnap.data();
                     const emailDono = leadData.perfil?.email || leadData.email;
-                    if(emailDono !== userEmail) {
-                        alert("Acesso não autorizado."); window.location.href="index.html"; return;
-                    }
+                    if(emailDono !== userEmail) { alert("Acesso negado."); window.location.href="index.html"; return; }
                     renderizarDados(leadData);
                 }
             } catch(e) { console.error(e); }
         }
 
         function renderizarDados(data) {
-            // 1. HEADER & HERO
+            // TEXTOS GERAIS
             const endereco = data.perfil?.endereco_completo || data.endereco;
-            const cidade = endereco.split(',')[1] || "";
             document.getElementById('display-address').innerText = endereco;
             
             const qtdPaineis = data.engenharia?.projetado?.qtd_modulos || 0;
             const kwp = data.engenharia?.projetado?.potencia_instalada_kwp || 0;
-            const area = data.engenharia?.projetado?.area_ocupada_m2 || 0;
-            
-            document.getElementById('display-specs').innerText = 
-                `${cidade} • ${kwp} kWp • ${qtdPaineis} Painéis (${area}m²)`;
+            document.getElementById('display-specs').innerText = `${endereco.split(',')[1] || ""} • ${kwp} kWp • ${qtdPaineis} Painéis`;
 
-            // 2. FINANCEIRO & PREÇO
+            // PREÇO
             const aplicouDesconto = data.status?.desconto_aplicado || false;
             const precoBruto = data.financeiro?.investimento_bruto || 0;
             const precoLiq = data.financeiro?.valor_final || 0;
-
+            
             if(aplicouDesconto) applyDiscountUI(precoLiq);
             else removeDiscountUI(precoBruto);
 
-            // 3. KPIs
+            // KPIS
             const kpiGen = data.engenharia?.projetado?.geracao_mensal_media_inicial || 0;
-            
             let economiaAno1 = 0;
             if (data.financeiro?.fluxo_caixa_mensal) {
-                economiaAno1 = data.financeiro.fluxo_caixa_mensal
-                    .slice(0, 12)
-                    .reduce((acc, curr) => acc + curr.receita_economia, 0);
-            } else {
-                economiaAno1 = (data.financeiro?.economia_estimada_mensal || 0) * 12;
+                economiaAno1 = data.financeiro.fluxo_caixa_mensal.slice(0, 12).reduce((a, b) => a + b.receita_economia, 0);
             }
-
-            const kpiPayback = data.financeiro?.payback_anos || 0;
-            const kpiLucro = data.financeiro?.economia_total_acumulada || 0;
-
             document.getElementById('kpi-generation').innerText = kpiGen + " kWh";
-            document.getElementById('kpi-economy').innerText = economiaAno1.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0});
-            document.getElementById('kpi-payback').innerText = kpiPayback + " Anos";
-            document.getElementById('kpi-roi').innerText = kpiLucro.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0});
+            document.getElementById('kpi-economy').innerText = economiaAno1.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+            document.getElementById('kpi-payback').innerText = (data.financeiro?.payback_anos || 0) + " Anos";
+            document.getElementById('kpi-roi').innerText = (data.financeiro?.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 
-            // 4. GRÁFICO (COM FINANCIAMENTO)
-            renderizarGrafico(data.financeiro?.fluxo_caixa_mensal || [], precoLiq);
-
+            // MOSTRA O PAINEL
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('content-panel').classList.remove('hidden');
+
+            // PLOTA O GRÁFICO INICIAL (À VISTA)
+            updateChart();
         }
 
-        function renderizarGrafico(fluxoMensal, investimentoInicial) {
+        // --- SISTEMA DE GRÁFICOS INTELIGENTE ---
+        function switchChartMode(mode) {
+            currentChartMode = mode;
+            
+            // Atualiza botões
+            document.getElementById('mode-cash').className = mode === 'cash' ? 'toggle-btn active-green' : 'toggle-btn';
+            document.getElementById('mode-finan').className = mode === 'finan' ? 'toggle-btn active' : 'toggle-btn';
+
+            // Atualiza Texto Descritivo
+            const desc = document.getElementById('chart-desc');
+            if(mode === 'cash') {
+                desc.innerText = "Comparativo de Acúmulo de Patrimônio (Solar vs Renda Fixa)";
+            } else {
+                desc.innerText = "Comparativo Mensal: Economia Gerada vs Parcela Fixa (60x)";
+            }
+
+            updateChart();
+        }
+
+        function updateChart() {
+            if(!leadData) return;
+            const fluxo = leadData.financeiro.fluxo_caixa_mensal;
+            
+            // Pega o valor atual da tela (com ou sem desconto) para calcular
+            // Nota: Para financiamento, costuma-se usar o valor Bruto ou uma regra específica. 
+            // Aqui usaremos o valor que está sendo exibido na tela para consistência.
+            const precoString = document.getElementById('display-price').innerText;
+            // Limpa formatação R$ 1.234,00 -> 1234.00
+            const investimentoAtual = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
+
             const ctx = document.getElementById('wealthChart').getContext('2d');
-            
-            const labels = ["Start"];
-            
-            // --- A. CENÁRIO PAGAMENTO À VISTA (VERDE) ---
-            const dataSolar = [-investimentoInicial]; 
 
-            // --- B. CENÁRIO CDI (CINZA) ---
-            const dataCDI = [-investimentoInicial];
-            const taxaCdiLiquida = 0.095; // 9.5% a.a. líquido
-
-            // --- C. CENÁRIO FINANCIAMENTO (AZUL) ---
-            // Premissas: 60 meses, 1.5% a.m., Sem entrada.
-            // Atenção: Financiamento geralmente é sobre o valor BRUTO (sem desconto de à vista).
-            // Para sermos justos no gráfico, vamos simular financiar o valor que está na tela.
-            const dataFinam = [0]; // Começa no ZERO (Sem aporte inicial)
-            let saldoFinam = 0;
-            const taxaFinamAm = 0.015; // 1.5% a.m.
-            const mesesPrazo = 60; // 5 Anos
-            
-            // Cálculo da Parcela (Tabela Price)
-            // PMT = PV * i * (1+i)^n / ((1+i)^n - 1)
-            const parcela = (investimentoInicial * taxaFinamAm * Math.pow(1+taxaFinamAm, mesesPrazo)) / (Math.pow(1+taxaFinamAm, mesesPrazo) - 1);
-
-
-            // LOOP MENSAL PARA CONSTRUIR OS DADOS
-            // O chart mostra pontos anuais, mas precisamos calcular mês a mês para precisão
-            let acumuladoSolarMensal = -investimentoInicial;
-            let acumuladoFinamMensal = 0;
-
-            // Filtramos apenas os meses 12, 24, 36... para o gráfico
-            fluxoMensal.forEach(m => {
+            // --- MODO 1: À VISTA (ACUMULADO PATRIMÔNIO) ---
+            if (currentChartMode === 'cash') {
                 
-                // 1. Lógica Solar À Vista
-                acumuladoSolarMensal = m.fluxo_acumulado; // Já vem calculado do JSON
+                const labels = ["Início"];
+                const dataSolar = [-investimentoAtual];
+                const dataCDI = [-investimentoAtual];
+                const taxaCdiLiq = 0.095; // 9.5% a.a.
 
-                // 2. Lógica Financiamento (Recalculando fluxo)
-                // Receita (Economia) - Despesas (Manutenção) - Parcela (se houver)
-                let despesaMes = m.saidas.total; 
-                if (m.mes <= mesesPrazo) {
-                    despesaMes += parcela;
-                }
-                const liquidoMesFinam = m.receita_economia - despesaMes;
-                acumuladoFinamMensal += liquidoMesFinam;
-
-
-                // SÓ PLOTA SE FOR MÊS 12, 24, 36...
-                if (m.mes % 12 === 0) {
-                    labels.push("Ano " + m.ano);
+                const dadosAnuais = fluxo.filter(m => m.mes % 12 === 0);
+                dadosAnuais.forEach(d => {
+                    labels.push("Ano " + d.ano);
+                    dataSolar.push(d.fluxo_acumulado); // Já vem do banco calculado para valor à vista (aprox)
                     
-                    // Push Solar
-                    dataSolar.push(acumuladoSolarMensal);
-                    
-                    // Push Financiamento
-                    dataFinam.push(acumuladoFinamMensal);
+                    // Recalcula CDI baseado no valor atual da tela (para ser justo se trocar desconto)
+                    const valCDI = investimentoAtual * Math.pow((1+taxaCdiLiq), d.ano);
+                    dataCDI.push(valCDI - investimentoAtual - investimentoAtual);
+                });
 
-                    // Push CDI (Simulação Anual)
-                    const montanteCdi = investimentoInicial * Math.pow((1 + taxaCdiLiquida), m.ano);
-                    dataCDI.push(montanteCdi - investimentoInicial - investimentoInicial); 
-                    // Explicação CDI: (Montante Final - Aporte Inicial) = Lucro. 
-                    // Subtraímos investimentoInicial de novo para plotar na escala que começa em -20k.
-                }
-            });
+                // Gradiente Verde
+                let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(34, 197, 94, 0.5)'); gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
 
-            // GRADIENTES
-            let gradientSolar = ctx.createLinearGradient(0, 0, 0, 400);
-            gradientSolar.addColorStop(0, 'rgba(34, 197, 94, 0.5)'); 
-            gradientSolar.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+                if (wealthChart) wealthChart.destroy();
 
-            if (wealthChart) wealthChart.destroy();
-
-            wealthChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Pagamento à Vista (Máxima Performance)',
-                            data: dataSolar,
-                            borderColor: '#22c55e', // Verde
-                            backgroundColor: gradientSolar,
-                            borderWidth: 3,
-                            pointBackgroundColor: '#fff',
-                            pointRadius: 4,
-                            fill: true,
-                            tension: 0.3,
-                            order: 1
-                        },
-                        {
-                            label: 'Financiamento (Zero Entrada)',
-                            data: dataFinam,
-                            borderColor: '#3b82f6', // Azul Pro-Sollar
-                            borderWidth: 3,
-                            pointBackgroundColor: '#1e293b',
-                            pointRadius: 3,
-                            fill: false,
-                            tension: 0.3,
-                            order: 2
-                        },
-                        {
-                            label: 'Renda Fixa (CDI)',
-                            data: dataCDI,
-                            borderColor: '#64748b', // Cinza
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 0,
-                            fill: false,
-                            tension: 0.3,
-                            order: 3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { 
-                            display: true, 
-                            labels: { color: '#cbd5e1', font: {size: 10, family:'Plus Jakarta Sans'}, boxWidth: 12 } 
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                            titleColor: '#fff',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            borderWidth: 1,
-                            padding: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    // Simplifica o label no tooltip
-                                    if(label.includes('Vista')) label = "À Vista";
-                                    if(label.includes('Financiamento')) label = "Financiado";
-                                    if(label.includes('CDI')) label = "CDI";
-                                    
-                                    if (label) label += ': ';
-                                    if (context.parsed.y !== null) {
-                                        label += context.parsed.y.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-                                    }
-                                    return label;
-                                }
+                wealthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Patrimônio Solar',
+                                data: dataSolar,
+                                borderColor: '#22c55e', backgroundColor: gradient,
+                                borderWidth: 3, pointBackgroundColor: '#fff', fill: true, tension: 0.3
+                            },
+                            {
+                                label: 'Renda Fixa (CDI)',
+                                data: dataCDI,
+                                borderColor: '#64748b', borderWidth: 2, borderDash: [5,5], pointRadius: 0, fill: false, tension: 0.3
                             }
-                        }
+                        ]
                     },
-                    scales: {
-                        y: {
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { 
-                                color: '#64748b', font: { size: 10 },
-                                callback: function(value) {
-                                    if(value === 0) return '0';
-                                    return (value / 1000).toFixed(0) + 'k';
-                                }
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 8 }
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { display: true, labels: {color:'#94a3b8'} } },
+                        scales: {
+                            y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b', callback: v => 'R$ ' + v/1000 + 'k' } },
+                            x: { grid: {display:false}, ticks: { color:'#64748b' } }
                         }
                     }
+                });
+
+            } 
+            // --- MODO 2: FINANCIAMENTO (MENSAL: ECONOMIA vs PARCELA) ---
+            else {
+                // Configuração Financiamento
+                const prazo = 60;
+                const carencia = 2; // 2 meses (60 dias)
+                const taxaAm = 0.015; // 1.5% a.m.
+                
+                // Cálculo Parcela Price
+                const parcela = (investimentoAtual * taxaAm * Math.pow(1+taxaAm, prazo)) / (Math.pow(1+taxaAm, prazo) - 1);
+
+                const labels = [];
+                const dataEconomia = [];
+                const dataParcela = [];
+
+                // Mostraremos os primeiros 84 meses (7 anos) para ver o fim do financiamento e o lucro depois
+                const mesesVisualizacao = 84; 
+
+                for(let i=1; i <= mesesVisualizacao; i++) {
+                    labels.push(i); // Mês 1, 2, 3...
+                    
+                    // 1. Dados da Economia (Vem do fluxo do banco)
+                    // Se o array do banco for menor que nossa visualização, repete o último ou projeta
+                    const dadoMes = fluxo[i-1];
+                    const economia = dadoMes ? dadoMes.receita_economia : 0;
+                    dataEconomia.push(economia);
+
+                    // 2. Dados da Parcela (Com Carência)
+                    if (i <= carencia) {
+                        dataParcela.push(0); // Carência
+                    } else if (i <= (prazo + carencia)) { // Estende o prazo pela carência? Geralmente carência come o prazo ou adia. Vamos adiar.
+                        dataParcela.push(parcela);
+                    } else {
+                        dataParcela.push(0); // Acabou financiamento
+                    }
                 }
-            });
+
+                // Gradiente Azul (Parcela)
+                let gradientBlue = ctx.createLinearGradient(0, 0, 0, 300);
+                gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.4)'); gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+                if (wealthChart) wealthChart.destroy();
+
+                wealthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Economia Gerada (R$)',
+                                data: dataEconomia,
+                                borderColor: '#22c55e', // Verde
+                                borderWidth: 3, pointRadius: 0, tension: 0.4, fill: false, order: 1
+                            },
+                            {
+                                label: 'Valor da Parcela (R$)',
+                                data: dataParcela,
+                                borderColor: '#3b82f6', // Azul
+                                backgroundColor: gradientBlue,
+                                borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, order: 2,
+                                stepped: 'middle' // Linha quadrada para destacar que é fixa
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { 
+                            legend: { display: true, labels: {color:'#94a3b8'} },
+                            tooltip: { callbacks: { label: c => c.dataset.label + ": " + c.parsed.y.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) } }
+                        },
+                        scales: {
+                            y: { 
+                                grid: {color:'rgba(255,255,255,0.05)'}, 
+                                ticks: { color:'#64748b' },
+                                title: { display: true, text: 'Valor Mensal (R$)', color: '#475569' }
+                            },
+                            x: { 
+                                grid: {display:false}, ticks: { color:'#64748b', maxTicksLimit: 12 },
+                                title: { display: true, text: 'Meses (Carência: 60 dias)', color: '#475569' }
+                            }
+                        }
+                    }
+                });
+            }
         }
 
-        // UI ACTIONS
+        // --- UI ACTIONS ---
         window.toggleDiscount = async function() {
             if (!currentLeadId || !leadData) return;
             const btn = document.getElementById('btn-discount');
@@ -529,7 +523,7 @@
             const btn = document.getElementById('btn-discount');
             btn.classList.add('active');
             btn.innerHTML = '<i class="fas fa-check mr-2 text-green-500"></i> Desconto Ativado';
-            if(leadData) renderizarGrafico(leadData.financeiro.fluxo_caixa_mensal, val);
+            updateChart(); // Recalcula o gráfico
         }
 
         function removeDiscountUI(val) {
@@ -541,15 +535,14 @@
             const btn = document.getElementById('btn-discount');
             btn.classList.remove('active');
             btn.innerHTML = '<i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista';
-            if(leadData) renderizarGrafico(leadData.financeiro.fluxo_caixa_mensal, val);
+            updateChart(); // Recalcula o gráfico
         }
 
         window.toggleUpload = () => document.getElementById('comp-upload').classList.toggle('hidden');
         window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
-        
-        document.getElementById('btn-final-action').onclick = () => {
-             alert("Redirecionando para contrato...");
-        };
+        window.switchChartMode = (mode) => switchChartMode(mode); // Expose to HTML
+
+        document.getElementById('btn-final-action').onclick = () => alert("Redirecionando para contrato...");
     </script>
 </body>
 </html>
