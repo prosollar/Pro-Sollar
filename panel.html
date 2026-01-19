@@ -38,6 +38,7 @@
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Botão Verde (Aprovação) */
         .btn-approve {
             background: var(--accent-green);
             color: #052e16;
@@ -48,6 +49,19 @@
             transform: scale(1.02) translateY(-2px);
             box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
             background: #4ade80;
+        }
+
+        /* Botão Azul (Negociação/Análise) */
+        .btn-negotiate-action {
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-negotiate-action:hover {
+            transform: scale(1.02) translateY(-2px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
+            background: #60a5fa;
         }
 
         .negotiation-btn {
@@ -66,7 +80,6 @@
         
         .chart-container { position: relative; height: 320px; width: 100%; }
 
-        /* TOGGLE SWITCH STYLE */
         .chart-toggle {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
@@ -96,7 +109,6 @@
             box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
         }
 
-        /* TIME SELECTOR STYLE */
         .time-selector {
             display: flex;
             justify-content: center;
@@ -123,40 +135,23 @@
         }
         .hidden-important { display: none !important; }
 
-        /* SLIDER CUSTOMIZADO */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px; width: 16px;
-            border-radius: 50%;
-            background: var(--accent-blue);
-            cursor: pointer;
-            margin-top: -6px;
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: var(--accent-blue); cursor: pointer; margin-top: -6px;
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
         input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px;
-            cursor: pointer;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
+            width: 100%; height: 4px; cursor: pointer;
+            background: rgba(255,255,255,0.1); border-radius: 2px;
         }
         
-        .control-group label {
-             font-size: 10px; 
-             text-transform: uppercase; 
-             font-weight: 800; 
-             letter-spacing: 0.1em;
-             color: #93c5fd;
-        }
-        .control-value {
-            font-size: 14px;
-            font-weight: 900;
-            color: white;
-        }
+        .control-group label { font-size: 10px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em; color: #93c5fd; }
+        .control-value { font-size: 14px; font-weight: 900; color: white; }
+        
+        /* Upload Area Interativa */
+        .upload-area { cursor: pointer; transition: all 0.3s; }
+        .upload-area:hover { background: rgba(250, 204, 21, 0.1); border-color: var(--accent-yellow); }
     </style>
 </head>
 <body class="p-4 md:p-10 lg:p-16">
@@ -240,7 +235,6 @@
                 </div>
 
                 <div id="finan-controls" class="hidden mb-6 bg-blue-500/10 border border-blue-500/20 p-5 rounded-xl space-y-4">
-                    
                     <div class="control-group">
                         <div class="flex justify-between items-center mb-2">
                             <label><i class="fas fa-percentage mr-2"></i>Taxa de Juros (a.m.)</label>
@@ -248,7 +242,6 @@
                         </div>
                         <input type="range" id="rate-slider" min="0.50" max="3.50" step="0.01" value="1.50" oninput="window.updateInterestRate(this.value)">
                     </div>
-
                     <div class="control-group border-t border-blue-500/20 pt-4">
                         <div class="flex justify-between items-center mb-2">
                             <label><i class="fas fa-calendar-alt mr-2"></i>Prazo de Pagamento</label>
@@ -256,7 +249,6 @@
                         </div>
                         <input type="range" id="term-slider" min="12" max="84" step="12" value="60" oninput="window.updateLoanTerm(this.value)">
                     </div>
-
                 </div>
 
                 <p id="chart-desc" class="text-center text-xs text-slate-400 mb-6 font-medium">
@@ -273,7 +265,6 @@
                     <div id="time-15" onclick="window.switchTimeRange(15)" class="time-btn">15 ANOS</div>
                     <div id="time-25" onclick="window.switchTimeRange(25)" class="time-btn active">25 ANOS</div>
                 </div>
-
             </div>
 
             <div class="pt-8 border-t border-white/5">
@@ -281,26 +272,28 @@
                     <button id="btn-discount" onclick="window.toggleDiscount()" class="negotiation-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all w-full sm:w-auto">
                         <i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista
                     </button>
-                    <button onclick="window.toggleUpload()" class="negotiation-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest w-full sm:w-auto">
+                    <button id="btn-challenge" onclick="window.toggleUpload()" class="negotiation-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest w-full sm:w-auto">
                         <i class="fas fa-handshake mr-2 text-blue-500"></i> Cobrir Concorrente
                     </button>
                 </div>
 
-                <div id="comp-upload" class="hidden animate-in fade-in duration-500 mb-8 p-8 rounded-3xl bg-yellow-500/5 border border-yellow-500/10">
+                <div id="comp-upload" class="hidden animate-in fade-in duration-500 mb-8 p-8 rounded-3xl bg-yellow-500/5 border border-yellow-500/10 upload-area" onclick="document.getElementById('file-input').click()">
                     <div class="text-center">
-                        <i class="fas fa-file-pdf text-3xl text-slate-700 mb-4"></i>
-                        <p class="text-xs font-bold text-white mb-2">Anexe a proposta concorrente</p>
-                        <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Cobriremos o valor tecnicamente.</p>
+                        <i id="upload-icon" class="fas fa-cloud-upload-alt text-4xl text-yellow-500 mb-4"></i>
+                        <p id="upload-text" class="text-sm font-bold text-white mb-2">Clique para anexar a proposta (PDF)</p>
+                        <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Nossa engenharia fará a equiparação técnica.</p>
+                        
+                        <input type="file" id="file-input" accept="application/pdf" class="hidden" onchange="window.handleFileSelect(this)">
                     </div>
                 </div>
 
                 <div class="flex flex-col lg:flex-row items-center justify-between gap-8 mt-10">
                     <div class="flex items-center gap-6">
                         <div class="w-14 h-14 glass-card rounded-2xl flex items-center justify-center border-blue-500/20">
-                            <i class="fas fa-file-contract text-blue-500 text-xl"></i>
+                            <i id="status-icon" class="fas fa-file-contract text-blue-500 text-xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-white italic">Tudo pronto para economizar?</p>
+                            <p id="status-title" class="text-sm font-bold text-white italic">Tudo pronto para economizar?</p>
                             <p id="footer-text" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 italic">Condição padrão selecionada</p>
                         </div>
                     </div>
@@ -320,8 +313,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
-
-    <script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script> <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -334,16 +326,19 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        const storage = firebase.storage(); // Init Storage
         
         let currentLeadId = null;
         let leadData = null;
         let wealthChart = null;
         
-        // ESTADO GLOBAL DO SIMULADOR
-        let currentChartMode = 'cash'; // 'cash' ou 'finan'
-        let currentTimeRange = 25; // Anos
-        let currentInterestRate = 1.50; // Taxa % a.m.
-        let currentLoanTerm = 60; // Meses
+        // STATES
+        let currentChartMode = 'cash';
+        let currentTimeRange = 25;
+        let currentInterestRate = 1.50;
+        let currentLoanTerm = 60;
+        let isNegotiating = false; // Controle de fluxo
+        let selectedFile = null;
 
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
@@ -386,15 +381,12 @@
         }
 
         function renderizarDados(data) {
-            // TEXTOS
             const endereco = data.perfil?.endereco_completo || data.endereco;
             document.getElementById('display-address').innerText = endereco;
-            
             const qtdPaineis = data.engenharia?.projetado?.qtd_modulos || 0;
             const kwp = data.engenharia?.projetado?.potencia_instalada_kwp || 0;
             document.getElementById('display-specs').innerText = `${endereco.split(',')[1] || ""} • ${kwp} kWp • ${qtdPaineis} Painéis`;
 
-            // PREÇO
             const aplicouDesconto = data.status?.desconto_aplicado || false;
             const precoBruto = data.financeiro?.investimento_bruto || 0;
             const precoLiq = data.financeiro?.valor_final || 0;
@@ -402,7 +394,6 @@
             if(aplicouDesconto) applyDiscountUI(precoLiq);
             else removeDiscountUI(precoBruto);
 
-            // KPIS
             const kpiGen = data.engenharia?.projetado?.geracao_mensal_media_inicial || 0;
             let economiaAno1 = 0;
             if (data.financeiro?.fluxo_caixa_mensal) {
@@ -413,27 +404,20 @@
             document.getElementById('kpi-payback').innerText = (data.financeiro?.payback_anos || 0) + " Anos";
             document.getElementById('kpi-roi').innerText = (data.financeiro?.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 
+            // Verifica se já está em análise
+            if (data.status?.fase === "em_analise_concorrencia") {
+                showAnaliseEnviadaUI();
+            }
+
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('content-panel').classList.remove('hidden');
-
-            // PLOTA O GRÁFICO
-            updateChart();
-        }
-
-        // --- CONTROLES DE SIMULAÇÃO ---
-        window.updateInterestRate = function(val) {
-            currentInterestRate = parseFloat(val);
-            document.getElementById('rate-display').innerText = currentInterestRate.toFixed(2) + "%";
-            updateChart();
-        }
-
-        window.updateLoanTerm = function(val) {
-            currentLoanTerm = parseInt(val);
-            document.getElementById('term-display').innerText = currentLoanTerm + "x";
             updateChart();
         }
 
         // --- SISTEMA DE GRÁFICOS ---
+        window.updateInterestRate = function(val) { currentInterestRate = parseFloat(val); document.getElementById('rate-display').innerText = currentInterestRate.toFixed(2) + "%"; updateChart(); }
+        window.updateLoanTerm = function(val) { currentLoanTerm = parseInt(val); document.getElementById('term-display').innerText = currentLoanTerm + "x"; updateChart(); }
+
         window.switchChartMode = function(mode) {
             currentChartMode = mode;
             document.getElementById('mode-cash').className = mode === 'cash' ? 'toggle-btn active-green' : 'toggle-btn';
@@ -446,16 +430,13 @@
             if(mode === 'cash') {
                 desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
                 btn1Year.classList.add('hidden-important'); 
-                finanControls.classList.add('hidden'); // Esconde Sliders
-                
+                finanControls.classList.add('hidden');
                 if(currentTimeRange === 1) window.switchTimeRange(25);
-
             } else {
                 desc.innerText = "Simulador de Financiamento: Economia vs Parcela";
                 btn1Year.classList.remove('hidden-important');
-                finanControls.classList.remove('hidden'); // Mostra Sliders
+                finanControls.classList.remove('hidden');
             }
-            
             updateChart();
         }
 
@@ -469,19 +450,15 @@
         function updateChart() {
             if(!leadData) return;
             const fluxo = leadData.financeiro.fluxo_caixa_mensal;
-            
             const precoString = document.getElementById('display-price').innerText;
             const investimentoAtual = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
             const ctx = document.getElementById('wealthChart').getContext('2d');
 
-            // --- MODO 1: À VISTA ---
             if (currentChartMode === 'cash') {
-                
                 const labels = ["Início"];
                 const dataSolar = [-investimentoAtual];
                 const dataCDI = [0]; 
                 const taxaCdiLiq = 0.095; 
-
                 const dadosAnuais = fluxo.filter(m => (m.mes % 12 === 0) && (m.ano <= currentTimeRange));
                 
                 dadosAnuais.forEach(d => {
@@ -495,117 +472,168 @@
                 gradient.addColorStop(0, 'rgba(34, 197, 94, 0.5)'); gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
 
                 if (wealthChart) wealthChart.destroy();
-
                 wealthChart = new Chart(ctx, {
                     type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Patrimônio Solar (Economia + Valorização)',
-                                data: dataSolar,
-                                borderColor: '#22c55e', backgroundColor: gradient,
-                                borderWidth: 3, pointBackgroundColor: '#fff', fill: true, tension: 0.3
-                            },
-                            {
-                                label: 'Rendimentos CDI (Lucro Bancário)',
-                                data: dataCDI,
-                                borderColor: '#64748b', borderWidth: 2, borderDash: [5,5], pointRadius: 0, fill: false, tension: 0.3
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: { legend: { display: true, labels: {color:'#94a3b8'} } },
-                        scales: {
-                            y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b', callback: v => 'R$ ' + v/1000 + 'k' } },
-                            x: { grid: {display:false}, ticks: { color:'#64748b' } }
-                        }
-                    }
+                    data: { labels: labels, datasets: [
+                        { label: 'Patrimônio Solar', data: dataSolar, borderColor: '#22c55e', backgroundColor: gradient, borderWidth: 3, pointBackgroundColor: '#fff', fill: true, tension: 0.3 },
+                        { label: 'Rendimentos CDI', data: dataCDI, borderColor: '#64748b', borderWidth: 2, borderDash: [5,5], pointRadius: 0, fill: false, tension: 0.3 }
+                    ]},
+                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true, labels: {color:'#94a3b8'} } }, scales: { y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b', callback: v => 'R$ ' + v/1000 + 'k' } }, x: { grid: {display:false}, ticks: { color:'#64748b' } } } }
                 });
-
-            } 
-            // --- MODO 2: FINANCIAMENTO (SIMULADOR) ---
-            else {
-                // USA AS VARIÁVEIS GLOBAIS DO SLIDER
+            } else {
                 const prazo = currentLoanTerm;
                 const carencia = 2; 
                 const taxaAm = currentInterestRate / 100; 
-                
                 const parcela = (investimentoAtual * taxaAm * Math.pow(1+taxaAm, prazo)) / (Math.pow(1+taxaAm, prazo) - 1);
-
                 const labels = [];
                 const dataEconomia = [];
                 const dataParcela = [];
-                
                 const mesesVisualizacao = currentTimeRange * 12; 
 
                 for(let i=1; i <= mesesVisualizacao; i++) {
                     labels.push(i);
-                    
                     const dadoMes = fluxo[i-1];
                     const economia = dadoMes ? dadoMes.receita_economia : 0; 
                     dataEconomia.push(economia);
-
-                    if (i <= carencia) {
-                        dataParcela.push(0); 
-                    } else if (i <= (prazo + carencia)) { 
-                        dataParcela.push(parcela);
-                    } else {
-                        dataParcela.push(0); 
-                    }
+                    if (i <= carencia) { dataParcela.push(0); } else if (i <= (prazo + carencia)) { dataParcela.push(parcela); } else { dataParcela.push(0); }
                 }
 
                 let gradientBlue = ctx.createLinearGradient(0, 0, 0, 300);
                 gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.4)'); gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
 
                 if (wealthChart) wealthChart.destroy();
-
                 wealthChart = new Chart(ctx, {
                     type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Economia Mensal (R$)',
-                                data: dataEconomia,
-                                borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0.4, fill: false, order: 1
-                            },
-                            {
-                                label: `Parcela Fixa (${prazo}x)`,
-                                data: dataParcela,
-                                borderColor: '#3b82f6', backgroundColor: gradientBlue,
-                                borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, order: 2,
-                                stepped: 'middle' 
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: { 
-                            legend: { display: true, labels: {color:'#94a3b8'} },
-                            tooltip: { callbacks: { label: c => c.dataset.label + ": " + c.parsed.y.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) } }
-                        },
-                        scales: {
-                            y: { 
-                                grid: {color:'rgba(255,255,255,0.05)'}, 
-                                ticks: { color:'#64748b' },
-                                title: { display: true, text: 'Valor (R$)', color: '#475569' }
-                            },
-                            x: { 
-                                grid: {display:false}, ticks: { color:'#64748b', maxTicksLimit: 12 },
-                                title: { display: true, text: 'Meses', color: '#475569' }
-                            }
-                        }
-                    }
+                    data: { labels: labels, datasets: [
+                        { label: 'Economia Mensal (R$)', data: dataEconomia, borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0.4, fill: false, order: 1 },
+                        { label: `Parcela Fixa (${prazo}x)`, data: dataParcela, borderColor: '#3b82f6', backgroundColor: gradientBlue, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, order: 2, stepped: 'middle' }
+                    ]},
+                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true, labels: {color:'#94a3b8'} }, tooltip: { callbacks: { label: c => c.dataset.label + ": " + c.parsed.y.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) } } }, scales: { y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b' }, title: { display: true, text: 'Valor (R$)', color: '#475569' } }, x: { grid: {display:false}, ticks: { color:'#64748b', maxTicksLimit: 12 }, title: { display: true, text: 'Meses', color: '#475569' } } } }
                 });
             }
         }
 
+        // --- SISTEMA DE NEGOCIAÇÃO E UPLOAD ---
+        
+        // 1. Toggle do Box de Upload
+        window.toggleUpload = function() {
+            const uploadBox = document.getElementById('comp-upload');
+            const btnFinal = document.getElementById('btn-final-action');
+            const btnChallenge = document.getElementById('btn-challenge');
+            const statusTitle = document.getElementById('status-title');
+            const statusIcon = document.getElementById('status-icon');
+
+            uploadBox.classList.toggle('hidden');
+            
+            // Verifica estado atual
+            if (!uploadBox.classList.contains('hidden')) {
+                // MODO NEGOCIAÇÃO ATIVO
+                isNegotiating = true;
+                btnChallenge.classList.add('active'); // Botão challenge fica "ligado"
+                
+                // Muda o Botão Principal
+                btnFinal.className = "btn-negotiate-action w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
+                btnFinal.innerHTML = 'Solicitar Avaliação Comparativa <i class="fas fa-file-signature text-sm"></i>';
+                
+                // Muda Texto de Status
+                statusTitle.innerText = "Análise de Concorrência";
+                statusIcon.className = "fas fa-search-dollar text-blue-500 text-xl";
+                
+                // Remove comportamento de aprovar, adiciona envio
+                btnFinal.onclick = enviarAnaliseComparativa;
+
+            } else {
+                // VOLTA AO MODO PADRÃO (Aprovação)
+                isNegotiating = false;
+                btnChallenge.classList.remove('active');
+                
+                // Restaura Botão Principal
+                btnFinal.className = "btn-approve w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
+                btnFinal.innerHTML = 'Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>';
+                
+                statusTitle.innerText = "Tudo pronto para economizar?";
+                statusIcon.className = "fas fa-file-contract text-blue-500 text-xl";
+                
+                btnFinal.onclick = () => alert("Redirecionando para contrato...");
+            }
+        }
+
+        // 2. Manipulação do Arquivo
+        window.handleFileSelect = function(input) {
+            if (input.files && input.files[0]) {
+                selectedFile = input.files[0];
+                
+                // Visual Update
+                document.getElementById('upload-text').innerText = "Arquivo selecionado: " + selectedFile.name;
+                document.getElementById('upload-text').classList.add('text-green-400');
+                document.getElementById('upload-icon').className = "fas fa-file-pdf text-4xl text-green-500 mb-4";
+            }
+        }
+
+        // 3. Envio para o Firebase (Ação Principal)
+        async function enviarAnaliseComparativa() {
+            if (!selectedFile) {
+                alert("Por favor, selecione o arquivo PDF da proposta concorrente antes de enviar.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-final-action');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+            try {
+                // A. Upload para Storage
+                const storageRef = storage.ref();
+                const fileRef = storageRef.child(`competitors/${currentLeadId}/${selectedFile.name}`);
+                
+                await fileRef.put(selectedFile);
+                const fileUrl = await fileRef.getDownloadURL();
+
+                // B. Atualiza Firestore
+                await db.collection("leads").doc(currentLeadId).update({
+                    "status.fase": "em_analise_concorrencia",
+                    "status.data_solicitacao_analise": firebase.firestore.FieldValue.serverTimestamp(),
+                    "concorrencia": {
+                        arquivo_url: fileUrl,
+                        nome_arquivo: selectedFile.name
+                    }
+                });
+
+                // C. Feedback Visual
+                showAnaliseEnviadaUI();
+
+            } catch (error) {
+                console.error("Erro upload:", error);
+                alert("Erro ao enviar arquivo. Verifique se o Storage está ativado no console.");
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function showAnaliseEnviadaUI() {
+            // Esconde controles e mostra mensagem de sucesso travada
+            document.getElementById('comp-upload').innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-check-circle text-5xl text-green-500 mb-4"></i>
+                    <h3 class="text-xl font-bold text-white">Solicitação Enviada!</h3>
+                    <p class="text-sm text-slate-400 mt-2">Nossa engenharia está analisando o documento.</p>
+                    <p class="text-xs text-slate-500 mt-1">Retornaremos em breve pelo WhatsApp.</p>
+                </div>
+            `;
+            document.getElementById('comp-upload').classList.remove('hidden', 'upload-area');
+            document.getElementById('comp-upload').onclick = null; // Remove clique
+            
+            // Esconde botões de ação
+            document.getElementById('btn-final-action').style.display = 'none';
+            document.getElementById('btn-challenge').style.display = 'none';
+            document.getElementById('btn-discount').style.display = 'none';
+        }
+
         // --- GLOBAL ACTIONS ---
         window.toggleDiscount = async function() {
+            if(isNegotiating) return; // Bloqueia se estiver negociando
+            
             if (!currentLeadId || !leadData) return;
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
@@ -645,8 +673,10 @@
             updateChart();
         }
 
-        window.toggleUpload = () => document.getElementById('comp-upload').classList.toggle('hidden');
+        window.toggleUpload = toggleUpload; // Expose
         window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
+        
+        // Default action (Overwritten when negotiating)
         document.getElementById('btn-final-action').onclick = () => alert("Redirecionando para contrato...");
     </script>
 </body>
