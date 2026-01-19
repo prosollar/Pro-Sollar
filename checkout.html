@@ -310,6 +310,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
     <script>
+        // CONFIGURAÇÃO
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -326,6 +327,7 @@
         let currentLeadId = null;
         let leadData = null;
 
+        // DATA MÍNIMA
         const dateInput = document.getElementById('visit-date');
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -348,6 +350,7 @@
             }
         }
 
+        // AUTH CHECK
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const params = new URLSearchParams(window.location.search);
@@ -394,14 +397,67 @@
             document.getElementById('client-email').innerText = data.perfil?.email || data.email;
             document.getElementById('client-phone').innerText = data.perfil?.whatsapp_formatted || "Via WhatsApp";
 
-            if(data.perfil?.nome) {
-                document.getElementById('titular-nome').value = data.perfil.nome;
-            }
+            if(data.perfil?.nome) document.getElementById('titular-nome').value = data.perfil.nome;
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
+        // --- FUNÇÃO DE ENVIO DO E-MAIL (TRIGGER) ---
+        async function enviarEmailConfirmacao(dadosPedido) {
+            // HTML DO E-MAIL (TEMPLATE PROFISSIONAL)
+            const htmlEmail = `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;padding:0;background-color:#0f172a;font-family:Arial,sans-serif;">
+                <div style="background-color:#0f172a;padding:40px 10px;">
+                    <table style="border-spacing:0;width:100%;max-width:600px;margin:0 auto;background-color:#1e293b;border-radius:16px;overflow:hidden;border:1px solid #334155;">
+                        <tr>
+                            <td style="padding:30px;text-align:center;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-bottom:1px solid #334155;">
+                                <h1 style="margin:0;color:#fff;font-size:24px;">Pro-<span style="color:#3b82f6">Sollar</span></h1>
+                                <p style="margin:5px 0 0;color:#22c55e;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;">Engenharia de Alta Performance</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:40px 30px;color:#e2e8f0;">
+                                <h2 style="margin:0 0 15px;color:#fff;">Olá, ${dadosPedido.nome}!</h2>
+                                <p style="line-height:1.6;color:#cbd5e1;">Recebemos sua solicitação de agendamento em <strong>${dadosPedido.endereco}</strong>.</p>
+                                
+                                <div style="background-color:#0f172a;border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid #3b82f6;">
+                                    <p style="margin:0 0 10px;color:#94a3b8;font-size:11px;font-weight:bold;text-transform:uppercase;">Data Solicitada</p>
+                                    <p style="margin:0 0 20px;color:#fff;font-size:16px;font-weight:bold;">${dadosPedido.dataVisita} (${dadosPedido.periodo})</p>
+                                    
+                                    <p style="margin:0 0 10px;color:#94a3b8;font-size:11px;font-weight:bold;text-transform:uppercase;">Valor Reservado (${dadosPedido.condicao})</p>
+                                    <p style="margin:0;color:#22c55e;font-size:20px;font-weight:bold;">${dadosPedido.valor}</p>
+                                </div>
+
+                                <p style="font-size:14px;line-height:1.6;color:#94a3b8;background:rgba(250,204,21,0.05);padding:15px;border-radius:8px;border:1px dashed rgba(250,204,21,0.3);">
+                                    <strong>🛡️ Compromisso de Transparência:</strong><br>
+                                    Este valor está <strong>travado</strong> para você. Ele só sofrerá alteração caso nossa visita técnica identifique divergências estruturais.
+                                </p>
+
+                                <div style="text-align:center;margin-top:40px;">
+                                    <a href="https://pro-sollar-performance.web.app/" style="background-color:#22c55e;color:#064e3b;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:bold;display:inline-block;">Acessar Meu Painel</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </body>
+            </html>
+            `;
+
+            // GRAVA NA COLEÇÃO 'MAIL' PARA A EXTENSÃO DISPARAR
+            await db.collection("mail").add({
+                to: [dadosPedido.email],
+                message: {
+                    subject: "✅ Visita Confirmada: Pro-Sollar",
+                    html: htmlEmail,
+                }
+            });
+        }
+
+        // --- AÇÃO PRINCIPAL ---
         window.confirmarPedido = async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
@@ -410,33 +466,48 @@
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div> Processando...';
 
-            // Captura de Dados Inteligente
             const nomeTitular = document.getElementById('titular-nome').value;
             const isMesmoNome = document.getElementById('check-mesmo-nome').checked;
-            
-            // Se marcou "Eu mesmo", o recebedor é o titular. Se não, é o campo extra.
             const nomeRecebedor = isMesmoNome ? nomeTitular : document.getElementById('recebedor-nome').value;
-
             const dataVisita = document.getElementById('visit-date').value;
             const periodo = document.querySelector('input[name="periodo"]:checked').value;
+            
+            // Formatando Data para o E-mail (DD/MM/AAAA)
+            const dataObj = new Date(dataVisita);
+            const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+
+            const valorFinal = document.getElementById('final-price').innerText;
+            const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
 
             try {
+                // 1. Atualiza Lead no Firestore
                 await db.collection("leads").doc(currentLeadId).update({
-                    "perfil.nome": nomeTitular, // Salva o nome oficial no perfil
+                    "perfil.nome": nomeTitular, 
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
                     "agendamento": {
-                        responsavel_local: nomeRecebedor, // Quem vai abrir a porta
+                        responsavel_local: nomeRecebedor,
                         data_visita: dataVisita,
                         periodo: periodo,
                         status: "pendente_confirmacao",
                         termo_aceite: true
                     },
                     "fechamento": {
-                        valor_reservado: document.getElementById('final-price').innerText,
+                        valor_reservado: valorFinal,
                         condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado",
-                        obs: "Sujeito a validação técnica (Card de Transparência aceito)"
+                        obs: "Sujeito a validação técnica"
                     }
+                });
+
+                // 2. Dispara o E-mail Profissional
+                await enviarEmailConfirmacao({
+                    nome: nomeTitular,
+                    email: leadData.perfil?.email || leadData.email,
+                    endereco: document.getElementById('install-address').innerText,
+                    dataVisita: dataFormatada,
+                    periodo: periodo,
+                    valor: valorFinal,
+                    condicao: condicaoTexto
                 });
 
                 document.getElementById('success-modal').classList.remove('hidden');
