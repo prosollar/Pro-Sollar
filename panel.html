@@ -330,7 +330,7 @@
             document.getElementById('kpi-payback').innerText = kpiPayback + " Anos";
             document.getElementById('kpi-roi').innerText = kpiLucro.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', maximumFractionDigits: 0});
 
-            // 4. GRÁFICO (AGORA COM CDI)
+            // 4. GRÁFICO (COM FINANCIAMENTO)
             renderizarGrafico(data.financeiro?.fluxo_caixa_mensal || [], precoLiq);
 
             document.getElementById('loading-skeleton').classList.add('hidden');
@@ -340,53 +340,69 @@
         function renderizarGrafico(fluxoMensal, investimentoInicial) {
             const ctx = document.getElementById('wealthChart').getContext('2d');
             
-            // --- DADOS DA ENERGIA SOLAR ---
             const labels = ["Start"];
+            
+            // --- A. CENÁRIO PAGAMENTO À VISTA (VERDE) ---
             const dataSolar = [-investimentoInicial]; 
 
-            const dadosAnuais = fluxoMensal.filter(m => m.mes % 12 === 0);
-            dadosAnuais.forEach(d => {
-                labels.push("Ano " + d.ano);
-                dataSolar.push(d.fluxo_acumulado);
+            // --- B. CENÁRIO CDI (CINZA) ---
+            const dataCDI = [-investimentoInicial];
+            const taxaCdiLiquida = 0.095; // 9.5% a.a. líquido
+
+            // --- C. CENÁRIO FINANCIAMENTO (AZUL) ---
+            // Premissas: 60 meses, 1.5% a.m., Sem entrada.
+            // Atenção: Financiamento geralmente é sobre o valor BRUTO (sem desconto de à vista).
+            // Para sermos justos no gráfico, vamos simular financiar o valor que está na tela.
+            const dataFinam = [0]; // Começa no ZERO (Sem aporte inicial)
+            let saldoFinam = 0;
+            const taxaFinamAm = 0.015; // 1.5% a.m.
+            const mesesPrazo = 60; // 5 Anos
+            
+            // Cálculo da Parcela (Tabela Price)
+            // PMT = PV * i * (1+i)^n / ((1+i)^n - 1)
+            const parcela = (investimentoInicial * taxaFinamAm * Math.pow(1+taxaFinamAm, mesesPrazo)) / (Math.pow(1+taxaFinamAm, mesesPrazo) - 1);
+
+
+            // LOOP MENSAL PARA CONSTRUIR OS DADOS
+            // O chart mostra pontos anuais, mas precisamos calcular mês a mês para precisão
+            let acumuladoSolarMensal = -investimentoInicial;
+            let acumuladoFinamMensal = 0;
+
+            // Filtramos apenas os meses 12, 24, 36... para o gráfico
+            fluxoMensal.forEach(m => {
+                
+                // 1. Lógica Solar À Vista
+                acumuladoSolarMensal = m.fluxo_acumulado; // Já vem calculado do JSON
+
+                // 2. Lógica Financiamento (Recalculando fluxo)
+                // Receita (Economia) - Despesas (Manutenção) - Parcela (se houver)
+                let despesaMes = m.saidas.total; 
+                if (m.mes <= mesesPrazo) {
+                    despesaMes += parcela;
+                }
+                const liquidoMesFinam = m.receita_economia - despesaMes;
+                acumuladoFinamMensal += liquidoMesFinam;
+
+
+                // SÓ PLOTA SE FOR MÊS 12, 24, 36...
+                if (m.mes % 12 === 0) {
+                    labels.push("Ano " + m.ano);
+                    
+                    // Push Solar
+                    dataSolar.push(acumuladoSolarMensal);
+                    
+                    // Push Financiamento
+                    dataFinam.push(acumuladoFinamMensal);
+
+                    // Push CDI (Simulação Anual)
+                    const montanteCdi = investimentoInicial * Math.pow((1 + taxaCdiLiquida), m.ano);
+                    dataCDI.push(montanteCdi - investimentoInicial - investimentoInicial); 
+                    // Explicação CDI: (Montante Final - Aporte Inicial) = Lucro. 
+                    // Subtraímos investimentoInicial de novo para plotar na escala que começa em -20k.
+                }
             });
 
-            // --- SIMULAÇÃO CDI (O CONCORRENTE) ---
-            // Taxa SELIC Hoje: ~11.25% -> CDI ~11.15%
-            // IR Médio (Longo Prazo): 15%
-            // Taxa Líquida: ~9.5% a.a.
-            const taxaCdiLiquida = 0.095; 
-            
-            const dataCDI = [-investimentoInicial]; // Começa igual (Alocação de Capital)
-            let saldoCDI = -investimentoInicial;
-
-            // Simula o crescimento do CDI ano a ano para comparar
-            for(let i=1; i<=dadosAnuais.length; i++) {
-                // Aqui simulamos: Se eu tivesse INVESTIDO o valor, quanto ele renderia?
-                // Atenção: O gráfico Solar mostra Lucro Líquido (Economia - Custo).
-                // O CDI mostra Lucro Líquido (Juros compostos).
-                // Para ficar comparável, calculamos o ganho sobre o valor inicial positivo e invertemos o sinal para plotar
-                // Mas a melhor visualização é: O quanto eu GANHEI acima do investimento.
-                
-                // Lógica de Ativo:
-                // Ano 0: Tenho um ativo de 20k (Solar) ou 20k (CDI).
-                // Vamos plotar o RETORNO ACUMULADO.
-                
-                // Correção visual: CDI começa negativo (investido) e recupera com juros.
-                // Saldo Anterior + (Saldo Anterior * Taxa) -> Isso é juros sobre juros.
-                // Mas espere, o saldo é negativo visualmente. Vamos calcular o valor absoluto do montante.
-                
-                const montanteSemJuros = investimentoInicial;
-                const montanteComJuros = montanteSemJuros * Math.pow((1 + taxaCdiLiquida), i);
-                const lucroCdi = montanteComJuros - investimentoInicial;
-                
-                // O gráfico solar plota: (Economia Acumulada - Investimento).
-                // O gráfico CDI deve plotar: (Juros Acumulados - Investimento).
-                // Assim ambos começam em -20k e sobem.
-                
-                dataCDI.push(lucroCdi - investimentoInicial);
-            }
-
-            // Gradiente Solar
+            // GRADIENTES
             let gradientSolar = ctx.createLinearGradient(0, 0, 0, 400);
             gradientSolar.addColorStop(0, 'rgba(34, 197, 94, 0.5)'); 
             gradientSolar.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
@@ -399,27 +415,38 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Pro-Sollar (Performance)',
+                            label: 'Pagamento à Vista (Máxima Performance)',
                             data: dataSolar,
-                            borderColor: '#22c55e', // Verde Pro-Sollar
+                            borderColor: '#22c55e', // Verde
                             backgroundColor: gradientSolar,
                             borderWidth: 3,
                             pointBackgroundColor: '#fff',
                             pointRadius: 4,
                             fill: true,
                             tension: 0.3,
-                            order: 1 // Fica por cima
+                            order: 1
                         },
                         {
-                            label: 'Investimento Bancário (CDI)',
-                            data: dataCDI,
-                            borderColor: '#94a3b8', // Cinza Slate (Chato/Comum)
-                            borderWidth: 2,
-                            borderDash: [5, 5], // Linha tracejada
-                            pointRadius: 0, // Sem bolinhas
+                            label: 'Financiamento (Zero Entrada)',
+                            data: dataFinam,
+                            borderColor: '#3b82f6', // Azul Pro-Sollar
+                            borderWidth: 3,
+                            pointBackgroundColor: '#1e293b',
+                            pointRadius: 3,
                             fill: false,
                             tension: 0.3,
                             order: 2
+                        },
+                        {
+                            label: 'Renda Fixa (CDI)',
+                            data: dataCDI,
+                            borderColor: '#64748b', // Cinza
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.3,
+                            order: 3
                         }
                     ]
                 },
@@ -430,17 +457,23 @@
                     plugins: {
                         legend: { 
                             display: true, 
-                            labels: { color: '#cbd5e1', font: {size: 10, family:'Plus Jakarta Sans'} } 
+                            labels: { color: '#cbd5e1', font: {size: 10, family:'Plus Jakarta Sans'}, boxWidth: 12 } 
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
                             titleColor: '#fff',
                             bodyColor: '#cbd5e1',
                             borderColor: 'rgba(255,255,255,0.1)',
                             borderWidth: 1,
+                            padding: 12,
                             callbacks: {
                                 label: function(context) {
                                     let label = context.dataset.label || '';
+                                    // Simplifica o label no tooltip
+                                    if(label.includes('Vista')) label = "À Vista";
+                                    if(label.includes('Financiamento')) label = "Financiado";
+                                    if(label.includes('CDI')) label = "CDI";
+                                    
                                     if (label) label += ': ';
                                     if (context.parsed.y !== null) {
                                         label += context.parsed.y.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
@@ -496,8 +529,6 @@
             const btn = document.getElementById('btn-discount');
             btn.classList.add('active');
             btn.innerHTML = '<i class="fas fa-check mr-2 text-green-500"></i> Desconto Ativado';
-            
-            // Re-renderiza gráfico com novo valor de investimento
             if(leadData) renderizarGrafico(leadData.financeiro.fluxo_caixa_mensal, val);
         }
 
@@ -510,9 +541,7 @@
             const btn = document.getElementById('btn-discount');
             btn.classList.remove('active');
             btn.innerHTML = '<i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista';
-            
-             // Re-renderiza gráfico com valor original
-             if(leadData) renderizarGrafico(leadData.financeiro.fluxo_caixa_mensal, val);
+            if(leadData) renderizarGrafico(leadData.financeiro.fluxo_caixa_mensal, val);
         }
 
         window.toggleUpload = () => document.getElementById('comp-upload').classList.toggle('hidden');
