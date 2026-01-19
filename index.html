@@ -211,7 +211,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
     <script>
-        // CONFIGURAÇÃO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -226,27 +225,42 @@
         const auth = firebase.auth();
 
         // ---------------------------------------------------------
-        // ALGORITMO DE ENGENHARIA FINANCEIRA (25 ANOS)
+        // ALGORITMO DE ENGENHARIA FINANCEIRA (SAZONAL)
         // ---------------------------------------------------------
         function calcularEngenhariaFinanceira(consumoReais) {
             
-            // INPUTS TÉCNICOS & PREMISSAS
             const INPUTS = {
                 tarifa_atual: 0.92,       
                 irradiacao_media: 4.8,    
                 eficiencia_global: 0.75, 
                 modulo: { modelo: "N-Type 600W", potencia_w: 600, area_m2: 2.69 },
                 financeiro: {
-                    // Preço de venda agora é calculado dinamicamente
-                    inflacao_energetica_aa: 0.10, // 10% a.a.
-                    inflacao_servicos_aa: 0.045,  // 4.5% a.a.
-                    degradacao_mensal: 0.0007,    // 0.07% a.m
+                    inflacao_energetica_aa: 0.10,
+                    inflacao_servicos_aa: 0.045, 
+                    degradacao_mensal: 0.0007,
                     custo_limpeza_un: 20.00,      
                     frequencia_limpeza_meses: 6,
                     perc_troca_inversor: 0.0815,  
                     frequencia_inversor_anos: 10
                 }
             };
+
+            // CURVA DE SAZONALIDADE (Brasil - Hemisfério Sul)
+            // Janeiro gera +15% da média, Junho gera -20% da média.
+            const SAZONALIDADE = [
+                1.15, // Jan (Verão)
+                1.10, // Fev
+                1.05, // Mar
+                0.95, // Abr
+                0.85, // Mai
+                0.80, // Jun (Inverno - Baixa)
+                0.85, // Jul
+                0.95, // Ago
+                1.00, // Set
+                1.05, // Out
+                1.10, // Nov
+                1.15  // Dez (Verão)
+            ];
 
             // 1. DIMENSIONAMENTO TÉCNICO
             const consumoKwh = consumoReais / INPUTS.tarifa_atual;
@@ -257,28 +271,31 @@
 
             const potenciaInstaladaKwp = (qtdModulos * INPUTS.modulo.potencia_w) / 1000;
             const areaTelhado = qtdModulos * INPUTS.modulo.area_m2;
-            const geracaoMediaMensal = potenciaInstaladaKwp * INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global;
+            
+            // Geração Média Base (Sem Sazonalidade)
+            const geracaoMediaBase = potenciaInstaladaKwp * INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global;
 
-            // 2. CÁLCULO DO PREÇO (NOVA LÓGICA: 30x ECONOMIA DO ANO 1)
+            // 2. CÁLCULO DO PREÇO (30x ECONOMIA ANO 1 - COM SAZONALIDADE)
             let somaEconomiaAno1 = 0;
 
-            // Simula apenas o primeiro ano para pegar a média exata da economia
             for (let m = 1; m <= 12; m++) {
+                const indiceMes = (m - 1) % 12; // 0 a 11
+                const fatorSazonal = SAZONALIDADE[indiceMes];
                 const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
-                const geracaoMes = geracaoMediaMensal * fatorDegradacao;
+                
+                // Aplica Sazonalidade aqui
+                const geracaoMes = geracaoMediaBase * fatorDegradacao * fatorSazonal;
+                
                 const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
                 const tarifaMes = INPUTS.tarifa_atual * fatorInflacaoEnergia;
                 
                 somaEconomiaAno1 += (geracaoMes * tarifaMes);
             }
-
             const mediaEconomiaMensalAno1 = somaEconomiaAno1 / 12;
-            
-            // PREÇO = 30 VEZES A ECONOMIA MENSAL MÉDIA DO ANO 1
             const investimentoInicial = mediaEconomiaMensalAno1 * 30;
-            const investimentoComDesconto = investimentoInicial * 0.95; // 5% de desconto à vista
+            const investimentoComDesconto = investimentoInicial * 0.95; 
 
-            // 3. FLUXO DE CAIXA COMPLETO (25 ANOS)
+            // 3. FLUXO DE CAIXA COMPLETO (25 ANOS - MÊS A MÊS COM CURVA)
             let fluxoCaixa = [];
             let saldoAcumulado = -investimentoComDesconto;
             let paybackMes = 0;
@@ -286,9 +303,15 @@
 
             for (let m = 1; m <= 300; m++) {
                 const anoAtual = Math.ceil(m / 12);
+                const indiceMes = (m - 1) % 12;
+                
+                // Fatores Multiplicadores
+                const fatorSazonal = SAZONALIDADE[indiceMes];
                 const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
-                const geracaoMes = geracaoMediaMensal * fatorDegradacao;
                 const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
+                
+                // Geração REAL do mês (Curva Senoidal)
+                const geracaoMes = geracaoMediaBase * fatorDegradacao * fatorSazonal;
                 const tarifaMes = INPUTS.tarifa_atual * fatorInflacaoEnergia;
                 const receitaBruta = geracaoMes * tarifaMes;
 
@@ -340,7 +363,7 @@
                         potencia_instalada_kwp: parseFloat(potenciaInstaladaKwp.toFixed(2)),
                         qtd_modulos: qtdModulos,
                         area_ocupada_m2: parseFloat(areaTelhado.toFixed(2)),
-                        geracao_mensal_media_inicial: parseFloat(geracaoMediaMensal.toFixed(0))
+                        geracao_mensal_media_inicial: parseFloat(geracaoMediaBase.toFixed(0))
                     },
                     realizado: { status_monitoramento: "aguardando_instalacao", historico_diario_recente: [], historico_mensal: [] }
                 },
@@ -427,7 +450,7 @@
             });
         }
     </script>
-
+    
     <script>
         window.initAutocomplete = function() {
             const input = document.getElementById('endereco');
@@ -458,6 +481,8 @@
         window.addEventListener('scroll', handleReveal);
         window.addEventListener('load', handleReveal);
     </script>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
     
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 
