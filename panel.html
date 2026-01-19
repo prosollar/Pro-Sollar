@@ -656,5 +656,16 @@
 
         window.toggleUpload = toggleUpload; 
         window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
-        document.getElementById('btn-final-action').onclick = () => alert("Redirecionando para contrato...");
+        // COMO DEVE FICAR (CONECTADO AO CHECKOUT):
+        document.getElementById('btn-final-action').onclick = () => {
+            // Verifica se temos o ID do cliente
+            if (currentLeadId) {
+                // Leva para o checkout enviando o ID na URL
+                window.location.href = `checkout.html?id=${currentLeadId}`;
+            } else {
+                // Segurança caso a página tenha perdido a conexão
+                alert("Erro de identificação. Por favor, recarregue a página.");
+                window.location.reload();
+            }
+        };
     </script>
