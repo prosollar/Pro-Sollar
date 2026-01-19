@@ -63,7 +63,6 @@
             border-radius: 1.5rem;
         }
 
-        /* Estilo da Lista de Equipamentos */
         .equip-item {
             display: flex;
             align-items: center;
@@ -115,16 +114,15 @@
                     </div>
                     
                     <div class="space-y-3 mb-8">
-                        
                         <div class="equip-item">
                             <div class="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center text-yellow-500">
                                 <i class="fas fa-solar-panel text-lg"></i>
                             </div>
                             <div>
                                 <p id="panel-model" class="text-sm font-bold text-white">Carregando Módulos...</p>
-                                <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5">
+                                <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5 flex-wrap">
                                     <span class="text-green-400"><i class="fas fa-chart-line mr-1"></i>25 Anos Performance</span>
-                                    <span>•</span>
+                                    <span class="text-slate-600">•</span>
                                     <span><i class="fas fa-box mr-1"></i>8 Anos Produto</span>
                                 </div>
                             </div>
@@ -157,7 +155,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                     <div class="pt-6 border-t border-white/5 flex justify-between items-end">
@@ -173,7 +170,7 @@
                 </div>
 
                 <div class="glass-card p-8">
-                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Titular do Contrato</h2>
+                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Canais de Contato</h2>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] text-slate-400 uppercase font-bold">E-mail</label>
@@ -214,17 +211,26 @@
                 <div class="glass-card p-8 relative overflow-hidden">
                     <form id="booking-form" onsubmit="confirmarPedido(event)">
                         <div>
-                            <h2 class="text-xl font-bold text-white mb-2">Agendar Vistoria</h2>
-                            <p class="text-xs text-slate-400 mb-6">Escolha a data para o engenheiro validar o projeto.</p>
+                            <h2 class="text-xl font-bold text-white mb-2">Dados da Visita</h2>
+                            <p class="text-xs text-slate-400 mb-6">Informe quem irá receber nossa equipe técnica.</p>
 
                             <div class="space-y-4">
+                                
+                                <div>
+                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Nome Completo (Responsável)</label>
+                                    <div class="relative">
+                                        <i class="fas fa-user absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                                        <input type="text" id="responsavel-nome" required placeholder="Ex: João da Silva" class="input-dark w-full pl-10 pr-4 py-3 rounded-xl text-sm placeholder-slate-500">
+                                    </div>
+                                </div>
+
                                 <div>
                                     <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Data da Visita</label>
                                     <input type="date" id="visit-date" required class="input-dark w-full px-4 py-3 rounded-xl text-sm">
                                 </div>
                                 
                                 <div>
-                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Período</label>
+                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Período Preferencial</label>
                                     <div class="grid grid-cols-2 gap-3">
                                         <label class="cursor-pointer">
                                             <input type="radio" name="periodo" value="manha" class="peer hidden" checked>
@@ -330,10 +336,8 @@
                 const docSnap = await db.collection("leads").doc(id).get();
                 if (docSnap.exists) {
                     leadData = docSnap.data();
-                    
                     const emailDono = leadData.perfil?.email || leadData.email;
                     if(emailDono !== email) { alert("Acesso negado."); return; }
-
                     renderizar(leadData);
                 }
             } catch (error) {
@@ -342,23 +346,18 @@
         }
 
         function renderizar(data) {
-            // Engenharia e Equipamentos
             const qtd = data.engenharia?.projetado?.qtd_modulos || 0;
             const kwp = data.engenharia?.projetado?.potencia_instalada_kwp || 0;
             const modulo = data.configuracao_sistema?.modulo?.modelo || "Painel Monocristalino N-Type";
             
-            // Atualiza o card de Painéis com a quantidade e modelo real
             document.getElementById('panel-model').innerText = `${qtd}x ${modulo} (${kwp} kWp)`;
-            
             document.getElementById('install-address').innerText = data.perfil?.endereco_completo || data.endereco;
 
-            // Preço (Respeitando a escolha anterior)
             const isDiscount = data.status?.desconto_aplicado || false;
             const precoBruto = data.financeiro?.investimento_bruto;
             const precoLiq = data.financeiro?.valor_final;
             
             const valorFinal = isDiscount ? precoLiq : precoBruto;
-            
             document.getElementById('final-price').innerText = valorFinal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
             
             if(isDiscount) {
@@ -368,9 +367,13 @@
                 document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
             }
 
-            // Cliente
             document.getElementById('client-email').innerText = data.perfil?.email || data.email;
             document.getElementById('client-phone').innerText = data.perfil?.whatsapp_formatted || "Via WhatsApp";
+
+            // Se já tiver nome salvo, preenche
+            if(data.perfil?.nome) {
+                document.getElementById('responsavel-nome').value = data.perfil.nome;
+            }
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
@@ -385,18 +388,22 @@
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div> Processando...';
 
+            const nomeResponsavel = document.getElementById('responsavel-nome').value;
             const dataVisita = document.getElementById('visit-date').value;
             const periodo = document.querySelector('input[name="periodo"]:checked').value;
 
             try {
+                // Salva o Nome no Perfil e os dados do Agendamento
                 await db.collection("leads").doc(currentLeadId).update({
+                    "perfil.nome": nomeResponsavel, // Atualiza identidade
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
                     "agendamento": {
+                        responsavel_local: nomeResponsavel,
                         data_visita: dataVisita,
                         periodo: periodo,
                         status: "pendente_confirmacao",
-                        termo_aceite: true // Marcou o checkbox
+                        termo_aceite: true
                     },
                     "fechamento": {
                         valor_reservado: document.getElementById('final-price').innerText,
