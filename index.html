@@ -145,7 +145,15 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-yellow-500/70 group-focus-within:text-yellow-400 transition-colors">
                                 <i class="fas fa-coins text-sm"></i>
                             </div>
-                            <input type="number" id="consumo" placeholder="Ex: R$ 450.00" 
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">R$</span>
+                                </div>
+                                <input type="tel" name="consumo" id="consumo" 
+                                    class="block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 py-3" 
+                                    placeholder="0,00" 
+                                    oninput="mascaraMoeda(this)">
+                            </div> 
                             class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
                         </div>
                     </div>
