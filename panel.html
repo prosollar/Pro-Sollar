@@ -38,7 +38,6 @@
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Botão Verde (Aprovação) */
         .btn-approve {
             background: var(--accent-green);
             color: #052e16;
@@ -148,8 +147,6 @@
         
         .control-group label { font-size: 10px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em; color: #93c5fd; }
         .control-value { font-size: 14px; font-weight: 900; color: white; }
-        
-        /* Upload Area Interativa */
         .upload-area { cursor: pointer; transition: all 0.3s; }
         .upload-area:hover { background: rgba(250, 204, 21, 0.1); border-color: var(--accent-yellow); }
     </style>
@@ -282,7 +279,6 @@
                         <i id="upload-icon" class="fas fa-cloud-upload-alt text-4xl text-yellow-500 mb-4"></i>
                         <p id="upload-text" class="text-sm font-bold text-white mb-2">Clique para anexar a proposta (PDF)</p>
                         <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Nossa engenharia fará a equiparação técnica.</p>
-                        
                         <input type="file" id="file-input" accept="application/pdf" class="hidden" onchange="window.handleFileSelect(this)">
                     </div>
                 </div>
@@ -522,6 +518,12 @@
             const btnChallenge = document.getElementById('btn-challenge');
             const statusTitle = document.getElementById('status-title');
             const statusIcon = document.getElementById('status-icon');
+            const btnDiscount = document.getElementById('btn-discount'); // Referência ao botão de desconto
+
+            // LÓGICA DE EXCLUSIVIDADE: Se Desconto estiver ativo, desativa antes de abrir
+            if (btnDiscount.classList.contains('active')) {
+                window.toggleDiscount(); 
+            }
 
             uploadBox.classList.toggle('hidden');
             
@@ -603,12 +605,16 @@
 
         // --- GLOBAL ACTIONS ---
         window.toggleDiscount = async function() {
-            // DESTRAVADO: Agora o cliente pode alternar mesmo com a caixa aberta
             if (!currentLeadId || !leadData) return;
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
             const bruto = leadData.financeiro.investimento_bruto;
             const liquido = leadData.financeiro.valor_final;
+
+            // LÓGICA DE EXCLUSIVIDADE: Se Desafio estiver ativo, fecha ele antes
+            if (isNegotiating) {
+                window.toggleUpload(); // Fecha a caixa e reseta o modo
+            }
 
             if (!isActive) {
                 applyDiscountUI(liquido);
@@ -645,8 +651,5 @@
 
         window.toggleUpload = toggleUpload; 
         window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
-        
         document.getElementById('btn-final-action').onclick = () => alert("Redirecionando para contrato...");
     </script>
-</body>
-</html>
