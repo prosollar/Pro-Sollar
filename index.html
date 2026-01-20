@@ -8,14 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
-
-        :root {
-            --bg-deep: #0a1120;
-            --accent-blue: #3b82f6;
-            --accent-yellow: #facc15;
-            --accent-green: #22c55e;
-        }
-
+        :root { --bg-deep: #0a1120; --accent-blue: #3b82f6; --accent-yellow: #facc15; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-deep);
@@ -26,8 +19,6 @@
                 radial-gradient(circle at 10% 80%, rgba(250, 204, 21, 0.05) 0%, transparent 30%);
             background-attachment: fixed;
         }
-
-        /* Glassmorphism Effect */
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
@@ -35,191 +26,77 @@
             border-radius: 2.5rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-
-        /* Card Glow Border */
         .card-glow { position: relative; }
         .card-glow::before {
             content: ""; position: absolute; inset: -1px;
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), transparent, rgba(250, 204, 21, 0.5));
             border-radius: 2.5rem; z-index: -1; opacity: 0.4;
         }
-
-        /* Inputs Premium UI */
         .input-dark {
             background: rgba(0, 0, 0, 0.4) !important;
             border: 1px solid rgba(255, 255, 255, 0.05) !important;
-            box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.5);
             color: #fff !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
         }
-        .input-dark:focus {
-            border-color: rgba(255, 255, 255, 0.2) !important;
-            background: rgba(0, 0, 0, 0.6) !important;
-            outline: none;
-        }
-
         .btn-yellow {
             background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
-            color: #000;
-            font-weight: 800;
+            color: #000; font-weight: 800;
             box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
             transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .btn-yellow:hover { 
-            transform: scale(1.02); 
-            box-shadow: 0 0 35px rgba(250, 204, 21, 0.6); 
-        }
-
-        /* Google Autocomplete Styles */
-        .pac-container {
-            background-color: #1e293b !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: white !important;
-            border-radius: 1.25rem !important;
-            margin-top: 10px !important;
-            font-family: inherit !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
-        }
-        .pac-item { color: #cbd5e1 !important; border-top: 1px solid rgba(255, 255, 255, 0.05) !important; padding: 12px !important; cursor: pointer; }
-        .pac-item-query { color: white !important; font-weight: bold !important; }
-        .pac-item:hover { background-color: #334155 !important; }
-
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
-        .reveal.active { opacity: 1; transform: translateY(0); }
+        .btn-yellow:hover { transform: scale(1.02); box-shadow: 0 0 35px rgba(250, 204, 21, 0.6); }
+        .pac-container { background-color: #1e293b !important; border-radius: 1.25rem !important; border: none !important; font-family: inherit !important; }
+        .pac-item { color: #cbd5e1 !important; padding: 12px !important; }
+        .pac-item-query { color: white !important; }
     </style>
 </head>
 <body class="overflow-x-hidden">
 
     <nav class="container mx-auto p-8 flex justify-between items-center relative z-10">
         <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center">
                 <i class="fas fa-solar-panel text-white text-2xl"></i>
             </div>
             <span class="text-2xl font-black tracking-tighter uppercase">Pro-<span class="text-blue-500">Sollar</span></span>
         </div>
-        <a href="login.html" class="bg-blue-600/20 border border-blue-500/30 px-6 py-2 rounded-full text-sm font-bold hover:bg-blue-600 transition text-white decoration-0">
+        <a href="login.html" class="bg-blue-600/20 border border-blue-500/30 px-6 py-2 rounded-full text-sm font-bold hover:bg-blue-600 transition text-white">
             <i class="fas fa-user-circle mr-2"></i> Área do Cliente
         </a>
     </nav>
 
-    <main class="container mx-auto px-6 py-12 lg:py-16 grid lg:grid-cols-2 gap-16 items-center">
+    <main class="container mx-auto px-6 py-12 grid lg:grid-cols-2 gap-16 items-center">
         <div class="space-y-8">
-            <div class="inline-block px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-[0.3em] uppercase">
-                Satellite Intelligence
-            </div>
             <h1 class="text-6xl lg:text-7xl font-extrabold leading-[1.1]">
                 Economia que vem do <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Céu.</span>
             </h1>
-            <p class="text-slate-400 text-xl leading-relaxed max-w-lg">
-                Usamos visão computacional para analisar seu telhado e entregar sua independência energética em 30 segundos.
-            </p>
-            <div class="flex gap-8 text-xs font-bold uppercase tracking-widest text-slate-500">
-                <div class="flex items-center space-x-2"><i class="fas fa-microchip text-blue-500"></i> <span>AI Solar</span></div>
-                <div class="flex items-center space-x-2"><i class="fas fa-globe-americas text-blue-500"></i> <span>GeoData</span></div>
-            </div>
+            <p class="text-slate-400 text-xl max-w-lg">Análise inteligente via satélite para entregar sua independência energética em segundos.</p>
         </div>
 
         <div class="card-glow">
-            <div class="glass-card p-10 space-y-8">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold tracking-tight text-white">Simule Seu Potencial</h2>
-                    <i class="fas fa-bolt text-yellow-400 animate-pulse"></i>
-                </div>
-
-                <form id="simuladorForm" class="space-y-5">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Local da Instalação</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-500/70 group-focus-within:text-blue-400 transition-colors">
-                                <i class="fas fa-satellite-dish"></i>
-                            </div>
-                            <input type="text" id="endereco" placeholder="Digite seu endereço..." 
-                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Gasto Mensal Médio</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-yellow-500/70 group-focus-within:text-yellow-400 transition-colors z-10">
-                                <i class="fas fa-coins text-sm"></i>
-                            </div>
-                            
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-10 pl-1 flex items-center pointer-events-none">
-                                    <span class="text-gray-400 text-sm font-bold">R$</span>
-                                </div>
-                                <input type="tel" id="consumo" 
-                                    class="input-dark w-full pl-16 pr-4 py-4 rounded-2xl text-sm" 
-                                    placeholder="0,00" 
-                                    oninput="mascaraMoeda(this)">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Seu E-mail</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-purple-500/70 group-focus-within:text-purple-400 transition-colors">
-                                <i class="fas fa-envelope text-lg"></i>
-                            </div>
-                            <input type="email" id="email" placeholder="nome@email.com" 
-                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm">
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Seu WhatsApp</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-green-500/70 group-focus-within:text-green-400 transition-colors">
-                                <i class="fab fa-whatsapp text-lg"></i>
-                            </div>
-                            <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" maxlength="15"
-                            class="input-dark w-full pl-11 pr-4 py-4 rounded-2xl text-sm"
-                            oninput="mascaraTelefone(this)">
-                        </div>
-                    </div>
-
+            <div class="glass-card p-10 space-y-6">
+                <h2 class="text-2xl font-bold">Simule Seu Potencial</h2>
+                <form id="simuladorForm" class="space-y-4">
+                    <input type="text" id="endereco" placeholder="Endereço da Instalação" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
+                    <input type="tel" id="consumo" placeholder="Gasto Mensal (R$)" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" oninput="mascaraMoeda(this)">
+                    <input type="email" id="email" placeholder="Seu E-mail" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
+                    <input type="tel" id="whatsapp" placeholder="WhatsApp" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" oninput="mascaraTelefone(this)">
+                    
                     <input type="hidden" id="lat"> <input type="hidden" id="lng">
 
-                    <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.3em] text-[11px] font-black flex items-center justify-center mt-2">
-                        Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
+                    <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase text-[11px] font-black">
+                        Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2"></i>
                     </button>
                 </form>
             </div>
         </div>
     </main>
 
-    <section class="container mx-auto px-6 py-20 reveal">
-        <div class="grid md:grid-cols-3 gap-8 text-center">
-            <div class="glass-card p-10 border-blue-500/10">
-                <i class="fas fa-satellite text-3xl text-blue-500 mb-6"></i>
-                <h3 class="text-lg font-bold mb-3">Análise Geoespacial</h3>
-                <p class="text-slate-400 text-sm">Mapeamento milimétrico via satélite para maior eficiência.</p>
-            </div>
-            <div class="glass-card p-10 border-yellow-500/10">
-                <i class="fas fa-sun text-3xl text-yellow-500 mb-6"></i>
-                <h3 class="text-lg font-bold mb-3">Energia Limpa</h3>
-                <p class="text-slate-400 text-sm">Aproveitamento total da incidência solar da sua região.</p>
-            </div>
-            <div class="glass-card p-10 border-green-500/10">
-                <i class="fas fa-wallet text-3xl text-green-500 mb-6"></i>
-                <h3 class="text-lg font-bold mb-3">Economia Imediata</h3>
-                <p class="text-slate-400 text-sm">Redução de até 95% no custo da sua energia elétrica.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="container mx-auto px-6 py-12 text-center text-slate-600 border-t border-white/5">
-        <p class="text-[10px] font-bold tracking-[0.4em] uppercase">© 2026 Pro-Sollar • Powered by Google Solar API</p>
-    </footer>
-
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
     <script>
+        // CONFIGURAÇÃO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -228,41 +105,11 @@
             messagingSenderId: "484051034820",
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
-
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        async function enviarDadosPorEmail() {
-        const dados = {
-            investimento: document.getElementById('investimento').value,
-            economia: document.getElementById('economia').value,
-            parcela: document.getElementById('parcela').value,
-            email_destino: "contato.prosollar@vmcprojetos.com"
-        };
-
-        // Usando a API do SendGrid (Requer um Backend simples ou Serverless Function)
-        const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer SUA_API_KEY_AQUI',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                personalizations: [{ to: [{ email: dados.email_destino }] }],
-                from: { email: "contato.prosollar@vmcprojetos.com" }, // Seu novo e-mail
-                subject: "Nova Simulação Solar - Projeto R$ 140k",
-                content: [{
-                    type: "text/plain",
-                    value: `Nova simulação realizada:\nInvestimento: R$ ${dados.investimento}\nEconomia: R$ ${dados.economia}\nParcela: R$ ${dados.parcela}`
-                }]
-            })
-        });
-    
-        if (response.ok) alert("Simulação enviada com sucesso para ProSolar!");
-    }
-    
-        // --- MÁSCARA MOEDA ---
+        // MÁSCARAS
         function mascaraMoeda(i) {
             let v = i.value.replace(/\D/g, '');
             v = (v / 100).toFixed(2) + '';
@@ -270,254 +117,121 @@
             v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
             i.value = v; 
         }
-
-        // --- MÁSCARA TELEFONE (WhatsApp) ---
         function mascaraTelefone(i) {
-            let v = i.value.replace(/\D/g, ""); // Remove tudo o que não é dígito
-            v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); // Coloca parênteses em volta dos dois primeiros dígitos
-            v = v.replace(/(\d)(\d{4})$/, "$1-$2");    // Coloca hífen entre o quarto e o quinto dígitos
+            let v = i.value.replace(/\D/g, "");
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d)(\d{4})$/, "$1-$2");
             i.value = v;
         }
 
-        // --- ALGORITMO DE ENGENHARIA FINANCEIRA (SAZONAL) ---
+        // ENGENHARIA FINANCEIRA
         function calcularEngenhariaFinanceira(consumoReais) {
-            
-            const INPUTS = {
-                tarifa_atual: 0.92,       
-                irradiacao_media: 4.8,    
-                eficiencia_global: 0.75, 
-                modulo: { modelo: "N-Type 600W", potencia_w: 600, area_m2: 2.69 },
-                financeiro: {
-                    inflacao_energetica_aa: 0.10,
-                    inflacao_servicos_aa: 0.045, 
-                    degradacao_mensal: 0.0007,
-                    custo_limpeza_un: 20.00,      
-                    frequencia_limpeza_meses: 6,
-                    perc_troca_inversor: 0.0815,  
-                    frequencia_inversor_anos: 10
-                }
-            };
-
-            const SAZONALIDADE = [1.15, 1.10, 1.05, 0.95, 0.85, 0.80, 0.85, 0.95, 1.00, 1.05, 1.10, 1.15];
-
-            // 1. DIMENSIONAMENTO TÉCNICO
-            const consumoKwh = consumoReais / INPUTS.tarifa_atual;
-            let kwpNecessario = consumoKwh / (INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global);
-            
-            let qtdModulos = Math.ceil((kwpNecessario * 1000) / INPUTS.modulo.potencia_w);
-            if (qtdModulos < 4) qtdModulos = 4;
-
-            const potenciaInstaladaKwp = (qtdModulos * INPUTS.modulo.potencia_w) / 1000;
-            const areaTelhado = qtdModulos * INPUTS.modulo.area_m2;
-            
-            const geracaoMediaBase = potenciaInstaladaKwp * INPUTS.irradiacao_media * 30.4 * INPUTS.eficiencia_global;
-
-            // 2. CÁLCULO DO PREÇO
-            let somaEconomiaAno1 = 0;
-            for (let m = 1; m <= 12; m++) {
-                const indiceMes = (m - 1) % 12;
-                const fatorSazonal = SAZONALIDADE[indiceMes];
-                const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
-                const geracaoMes = geracaoMediaBase * fatorDegradacao * fatorSazonal;
-                const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
-                const tarifaMes = INPUTS.tarifa_atual * fatorInflacaoEnergia;
-                somaEconomiaAno1 += (geracaoMes * tarifaMes);
-            }
-            const mediaEconomiaMensalAno1 = somaEconomiaAno1 / 12;
-            const investimentoInicial = mediaEconomiaMensalAno1 * 30;
-            const investimentoComDesconto = investimentoInicial * 0.95; 
-
-            // 3. FLUXO DE CAIXA COMPLETO
-            let fluxoCaixa = [];
-            let saldoAcumulado = -investimentoComDesconto;
-            let paybackMes = 0;
-            let paybackEncontrado = false;
-
-            for (let m = 1; m <= 300; m++) {
-                const anoAtual = Math.ceil(m / 12);
-                const indiceMes = (m - 1) % 12;
-                const fatorSazonal = SAZONALIDADE[indiceMes];
-                const fatorDegradacao = 1 - (INPUTS.financeiro.degradacao_mensal * (m - 1));
-                const fatorInflacaoEnergia = Math.pow((1 + INPUTS.financeiro.inflacao_energetica_aa), (m-1)/12);
-                
-                const geracaoMes = geracaoMediaBase * fatorDegradacao * fatorSazonal;
-                const tarifaMes = INPUTS.tarifa_atual * fatorInflacaoEnergia;
-                const receitaBruta = geracaoMes * tarifaMes;
-
-                let custoManutencao = 0;
-                let custoInversor = 0;
-
-                if (m % INPUTS.financeiro.frequencia_limpeza_meses === 0) {
-                    const fatorIpca = Math.pow((1 + INPUTS.financeiro.inflacao_servicos_aa), (m-1)/12);
-                    custoManutencao = (qtdModulos * INPUTS.financeiro.custo_limpeza_un) * fatorIpca;
-                }
-                if (m === 120 || m === 240) {
-                    custoInversor = investimentoInicial * INPUTS.financeiro.perc_troca_inversor;
-                }
-
-                const totalDespesas = custoManutencao + custoInversor;
-                const fluxoLiquido = receitaBruta - totalDespesas;
-                saldoAcumulado += fluxoLiquido;
-
-                if (!paybackEncontrado && saldoAcumulado >= 0) {
-                    paybackMes = m;
-                    paybackEncontrado = true;
-                }
-
-                fluxoCaixa.push({
-                    mes: m,
-                    ano: anoAtual,
-                    geracao_kwh: parseFloat(geracaoMes.toFixed(1)),
-                    tarifa_vigente: parseFloat(tarifaMes.toFixed(3)),
-                    receita_economia: parseFloat(receitaBruta.toFixed(2)),
-                    saidas: {
-                        limpeza: parseFloat(custoManutencao.toFixed(2)),
-                        inversor: parseFloat(custoInversor.toFixed(2)),
-                        total: parseFloat(totalDespesas.toFixed(2))
-                    },
-                    fluxo_liquido: parseFloat(fluxoLiquido.toFixed(2)),
-                    fluxo_acumulado: parseFloat(saldoAcumulado.toFixed(2))
-                });
-            }
+            const tarifa = 0.92;
+            const irradiacao = 4.8;
+            const consumoKwh = consumoReais / tarifa;
+            const potenciaKwp = consumoKwh / (irradiacao * 30.4 * 0.75);
+            const investimento = (consumoReais * 30) * 0.95; 
 
             return {
-                configuracao_sistema: {
-                    modulo: { ...INPUTS.modulo },
-                    inversor: { fator_overload: 1.4, potencia_calculada_kw: parseFloat((potenciaInstaladaKwp/1.4).toFixed(2)) },
-                    premissas: { ...INPUTS.financeiro, eficiencia_global: INPUTS.eficiencia_global }
-                },
-                engenharia: {
-                    projetado: {
-                        potencia_instalada_kwp: parseFloat(potenciaInstaladaKwp.toFixed(2)),
-                        qtd_modulos: qtdModulos,
-                        area_ocupada_m2: parseFloat(areaTelhado.toFixed(2)),
-                        geracao_mensal_media_inicial: parseFloat(geracaoMediaBase.toFixed(0))
-                    },
-                    realizado: { status_monitoramento: "aguardando_instalacao", historico_diario_recente: [], historico_mensal: [] }
-                },
-                financeiro: {
-                    investimento_bruto: parseFloat(investimentoInicial.toFixed(2)),
-                    valor_final: parseFloat(investimentoComDesconto.toFixed(2)),
-                    payback_anos: parseFloat((paybackMes / 12).toFixed(1)),
-                    economia_total_acumulada: parseFloat(saldoAcumulado.toFixed(2)),
-                    roi_percentual: parseFloat(((saldoAcumulado / investimentoComDesconto) * 100).toFixed(0)),
-                    fluxo_caixa_mensal: fluxoCaixa
-                }
+                kwp: potenciaKwp.toFixed(2),
+                investimento: investimento.toFixed(2),
+                payback: (investimento / (consumoReais * 12)).toFixed(1)
             };
         }
 
-        // LÓGICA DO BOTÃO
-        const btn = document.getElementById('btnGerar');
-        if (btn) {
-            const novoBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(novoBtn, btn);
+        // ENVIO SENDGRID
+        async function dispararEmailSendGrid(dados, emailCliente, zapCliente) {
+            const apiKey = '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'; // <--- INSIRA SUA CHAVE AQUI
+            
+            const corpo = {
+                personalizations: [{ to: [{ email: 'contato.prosollar@vmcprojetos.com' }] }],
+                from: { email: 'contato.prosollar@vmcprojetos.com' },
+                subject: `🚀 Novo Lead: ${emailCliente}`,
+                content: [{
+                    type: 'text/html',
+                    value: `
+                        <h2>Nova Simulação Pro-Sollar</h2>
+                        <p><b>Cliente:</b> ${emailCliente} | <b>Zap:</b> ${zapCliente}</p>
+                        <p><b>Potência:</b> ${dados.kwp} kWp</p>
+                        <p><b>Investimento Est.:</b> R$ ${parseFloat(dados.investimento).toLocaleString('pt-BR')}</p>
+                        <p><b>Payback:</b> ${dados.payback} anos</p>
+                    `
+                }]
+            };
 
-            novoBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
-                const btnAtual = e.target.closest('button');
-                const originalHTML = btnAtual.innerHTML;
-                const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : "";
-                
-                const email = getVal('email').toLowerCase().trim();
-                const whatsappInput = getVal('whatsapp');
-                const endereco = getVal('endereco');
-                const consumoRaw = getVal('consumo'); 
-                const lat = getVal('lat');
-                const lng = getVal('lng');
-
-                if (!email || !whatsappInput || !endereco || !consumoRaw) {
-                    alert("Por favor, preencha todos os campos."); return;
-                }
-                if (!lat || !lng) {
-                    alert("Por favor, selecione o endereço na lista do Google Maps."); return;
-                }
-
-                // LIMPEZA DA MOEDA (Transforma 1.500,00 em 1500.00)
-                const consumoLimpo = parseFloat(consumoRaw.replace(/\./g, '').replace(',', '.'));
-
-                if (isNaN(consumoLimpo) || consumoLimpo <= 0) {
-                    alert("Valor de conta inválido."); return;
-                }
-
-                btnAtual.innerHTML = '<i class="fas fa-calculator fa-spin mr-2"></i> Processando Engenharia...';
-                btnAtual.disabled = true;
-
-                try {
-                    const idLead = email; 
-                    const docRef = db.collection("leads").doc(idLead);
-                    
-                    const dadosCompletos = calcularEngenhariaFinanceira(consumoLimpo);
-
-                    const payload = {
-                        status_geral: "novo_lead",
-                        perfil: {
-                            email: email,
-                            whatsapp: whatsappInput.replace(/\D/g, ""), 
-                            whatsapp_formatted: whatsappInput,
-                            endereco_completo: endereco,
-                            coordenadas: { lat: parseFloat(lat), lng: parseFloat(lng) },
-                            consumo_mensal_reais: consumoLimpo, // Salva numero puro
-                            origem: { tipo: "organico", data_captura: new Date().toISOString() }
-                        },
-                        ...dadosCompletos,
-                        status: { fase: "novo_lead", criado_em: firebase.firestore.FieldValue.serverTimestamp() }
-                    };
-
-                    await docRef.set(payload, { merge: true });
-
-                    const actionCodeSettings = {
-                        url: window.location.origin + `/login.html?id=${encodeURIComponent(idLead)}&verifying=true`,
-                        handleCodeInApp: true
-                    };
-
-                    btnAtual.innerHTML = '<i class="fas fa-paper-plane animate-pulse mr-2"></i> Enviando Proposta...';
-                    await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-                    window.localStorage.setItem('emailForSignIn', email);
-                    
-                    window.location.href = `login.html?id=${encodeURIComponent(idLead)}&status=check_email&email=${email}`;
-
-                } catch (error) {
-                    console.error("Erro:", error);
-                    btnAtual.innerHTML = originalHTML;
-                    btnAtual.disabled = false;
-                    alert("Erro ao processar: " + error.message);
-                }
-            });
+            try {
+                await fetch('https://api.sendgrid.com/v3/mail/send', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(corpo)
+                });
+            } catch (e) { console.error("Erro e-mail:", e); }
         }
-    </script>
-    
-    <script>
-        window.initAutocomplete = function() {
-            const input = document.getElementById('endereco');
-            if (!input) return;
 
-            const autocomplete = new google.maps.places.Autocomplete(input, {
+        // AÇÃO PRINCIPAL
+        document.getElementById('btnGerar').addEventListener('click', async function() {
+            const email = document.getElementById('email').value;
+            const zap = document.getElementById('whatsapp').value;
+            const endereco = document.getElementById('endereco').value;
+            const consumoRaw = document.getElementById('consumo').value;
+            const lat = document.getElementById('lat').value;
+            const lng = document.getElementById('lng').value;
+
+            if (!email || !zap || !consumoRaw || !lat) {
+                alert("Preencha todos os campos e selecione o endereço sugerido.");
+                return;
+            }
+
+            this.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processando...';
+            this.disabled = true;
+
+            const consumoLimpo = parseFloat(consumoRaw.replace(/\./g, '').replace(',', '.'));
+            const calculo = calcularEngenhariaFinanceira(consumoLimpo);
+
+            try {
+                // 1. Salva no Firebase
+                await db.collection("leads").doc(email).set({
+                    email, whatsapp: zap, endereco, consumo: consumoLimpo,
+                    coordenadas: { lat, lng },
+                    projeto: calculo,
+                    criado_em: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                // 2. Dispara e-mail via SendGrid
+                await dispararEmailSendGrid(calculo, email, zap);
+
+                // 3. Envia link de acesso (Firebase Auth)
+                await auth.sendSignInLinkToEmail(email, {
+                    url: window.location.origin + `/login.html?id=${encodeURIComponent(email)}`,
+                    handleCodeInApp: true
+                });
+
+                alert("Proposta gerada! Verifique seu e-mail.");
+                window.location.href = `login.html?email=${email}`;
+
+            } catch (error) {
+                alert("Erro: " + error.message);
+                this.innerHTML = 'Gerar Proposta Instantânea';
+                this.disabled = false;
+            }
+        });
+
+        // GOOGLE PLACES AUTOCOMPLETE
+        window.initAutocomplete = function() {
+            const autocomplete = new google.maps.places.Autocomplete(document.getElementById('endereco'), {
                 componentRestrictions: { country: "br" },
                 fields: ["geometry", "formatted_address"],
                 types: ["address"]
             });
-
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
                 if (place.geometry) {
                     document.getElementById('lat').value = place.geometry.location.lat();
                     document.getElementById('lng').value = place.geometry.location.lng();
-                    input.style.borderColor = "#22c55e"; 
-                    input.style.borderWidth = "2px";
                 }
             });
         };
-
-        const handleReveal = () => {
-            document.querySelectorAll('.reveal').forEach(el => {
-                if(el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
-            });
-        };
-        window.addEventListener('scroll', handleReveal);
-        window.addEventListener('load', handleReveal);
     </script>
-    
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
-
 </body>
 </html>
