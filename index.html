@@ -139,33 +139,46 @@
             };
         }
 
-        // ENVIO SENDGRID
+        // --- VERSÃO ATUALIZADA PARA USAR O TEMPLATE DINÂMICO ---
         async function dispararEmailSendGrid(dados, emailCliente, zapCliente) {
-            const apiKey = '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'; // <--- INSIRA SUA CHAVE AQUI
-            
+            const apiKey = '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'; 
+        
+            // 1. Cole aqui o ID (d-...) que você gerou no painel do SendGrid
+            const templateId = 'COLE_AQUI_O_ID_DO_TEMPLATE'; 
+    
             const corpo = {
-                personalizations: [{ to: [{ email: 'contato.prosollar@vmcprojetos.com' }] }],
-                from: { email: 'contato.prosollar@vmcprojetos.com' },
-                subject: `🚀 Novo Lead: ${emailCliente}`,
-                content: [{
-                    type: 'text/html',
-                    value: `
-                        <h2>Nova Simulação Pro-Sollar</h2>
-                        <p><b>Cliente:</b> ${emailCliente} | <b>Zap:</b> ${zapCliente}</p>
-                        <p><b>Potência:</b> ${dados.kwp} kWp</p>
-                        <p><b>Investimento Est.:</b> R$ ${parseFloat(dados.investimento).toLocaleString('pt-BR')}</p>
-                        <p><b>Payback:</b> ${dados.payback} anos</p>
-                    `
-                }]
+                personalizations: [{ 
+                    to: [{ email: emailCliente }],
+                    // 2. Estes nomes devem ser IGUAIS aos que estão entre {{ }} no HTML do SendGrid
+                    dynamic_template_data: {
+                        "Nome do Cliente": emailCliente.split('@')[0],
+                        "Endereço": document.getElementById('endereco').value,
+                        "Data da Visita": "A confirmar",
+                        "Periodo": "Comercial",
+                        "Condição": "Simulação Online",
+                        "Valor Final": "R$ " + parseFloat(dados.investimento).toLocaleString('pt-BR'),
+                        "Telefone": zapCliente
+                    }
+                }],
+                from: { 
+                    email: 'contato.prosollar@vmcprojetos.com',
+                    name: 'Pro-Sollar Engenharia' 
+                },
+                template_id: templateId // <--- Esta linha avisa o SendGrid para usar o seu design
             };
-
+    
             try {
                 await fetch('https://api.sendgrid.com/v3/mail/send', {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Authorization': `Bearer ${apiKey}`, 
+                        'Content-Type': 'application/json' 
+                    },
                     body: JSON.stringify(corpo)
                 });
-            } catch (e) { console.error("Erro e-mail:", e); }
+            } catch (e) { 
+                console.error("Erro ao disparar e-mail:", e); 
+            }
         }
 
         // AÇÃO PRINCIPAL
