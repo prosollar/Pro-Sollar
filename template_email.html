@@ -1,99 +1,255 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmação Pro-Sollar</title>
+    <title>Pro-Sollar | Inteligência Energética</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Reset básico para clientes de e-mail antigos */
-        body { margin: 0; padding: 0; background-color: #0f172a; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-        table { border-spacing: 0; width: 100%; max-width: 600px; margin: 0 auto; }
-        td { padding: 0; }
-        img { border: 0; }
-        
-        /* Estilos */
-        .wrapper { background-color: #0f172a; padding: 40px 10px; }
-        .card { background-color: #1e293b; border-radius: 16px; overflow: hidden; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 30px; text-align: center; border-bottom: 1px solid #334155; }
-        .content { padding: 40px 30px; color: #e2e8f0; }
-        .highlight { color: #22c55e; font-weight: bold; }
-        .info-box { background-color: #0f172a; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #3b82f6; }
-        .label { color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; display: block; margin-bottom: 4px; }
-        .value { color: #ffffff; font-size: 16px; font-weight: bold; display: block; margin-bottom: 12px; }
-        .footer { padding: 30px; text-align: center; color: #64748b; font-size: 12px; }
-        .btn { background-color: #22c55e; color: #064e3b; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; display: inline-block; margin-top: 10px; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
+
+        :root {
+            --bg-deep: #0a1120;
+            --accent-blue: #3b82f6;
+            --accent-yellow: #facc15;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            color: white;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 10% 80%, rgba(250, 204, 21, 0.05) 0%, transparent 30%);
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-glow { position: relative; }
+        .card-glow::before {
+            content: ""; position: absolute; inset: -1px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), transparent, rgba(250, 204, 21, 0.5));
+            border-radius: 2.5rem; z-index: -1; opacity: 0.4;
+        }
+
+        .input-dark {
+            background: rgba(0, 0, 0, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            color: #fff !important;
+            transition: all 0.3s ease;
+        }
+
+        .btn-yellow {
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+            color: #000;
+            font-weight: 800;
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .pac-container {
+            background-color: #1e293b !important;
+            border-radius: 1.25rem !important;
+            border: none !important;
+            font-family: inherit !important;
+        }
     </style>
 </head>
-<body>
+<body class="overflow-x-hidden">
 
-    <div class="wrapper">
-        <table class="card">
-            
-            <tr>
-                <td class="header">
-                    <h1 style="margin:0; color:#fff; font-size:24px; text-transform:uppercase; letter-spacing:-1px;">
-                        Pro-<span style="color:#3b82f6">Sollar</span>
-                    </h1>
-                    <p style="margin:5px 0 0; color:#22c55e; font-size:12px; letter-spacing:2px; font-weight:bold; text-transform:uppercase;">
-                        Engenharia de Alta Performance
-                    </p>
-                </td>
-            </tr>
+    <nav class="container mx-auto p-8 flex justify-between items-center relative z-10">
+        <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center">
+                <i class="fas fa-solar-panel text-white text-2xl"></i>
+            </div>
+            <span class="text-2xl font-black tracking-tighter uppercase">Pro-<span class="text-blue-500">Sollar</span></span>
+        </div>
+        <a href="login.html" class="bg-blue-600/20 border border-blue-500/30 px-6 py-2 rounded-full text-sm font-bold hover:bg-blue-600 transition text-white">
+            <i class="fas fa-user-circle mr-2"></i> Área do Cliente
+        </a>
+    </nav>
 
-            <tr>
-                <td class="content">
-                    <h2 style="margin:0 0 15px; color:#fff; font-size:22px;">Olá, {{Nome do Cliente}}!</h2>
+    <main class="container mx-auto px-6 py-12 lg:py-16 grid lg:grid-cols-2 gap-16 items-center">
+        <div class="space-y-8">
+            <h1 class="text-6xl lg:text-7xl font-extrabold leading-[1.1]">
+                Economia que vem do <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Céu.</span>
+            </h1>
+            <p class="text-slate-400 text-xl max-w-lg">
+                Análise geoespacial inteligente para entregar sua independência energética em segundos.
+            </p>
+        </div>
+
+        <div class="card-glow">
+            <div class="glass-card p-10 space-y-8">
+                <h2 class="text-2xl font-bold">Simule Seu Potencial</h2>
+                <form id="simuladorForm" class="space-y-5">
+                    <input type="text" id="endereco" placeholder="Digite seu endereço..." class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
+                    <input type="tel" id="consumo" placeholder="Gasto Mensal (R$ 0,00)" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" oninput="mascaraMoeda(this)">
+                    <input type="email" id="email" placeholder="Seu melhor e-mail" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
+                    <input type="tel" id="whatsapp" placeholder="Seu WhatsApp" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" oninput="mascaraTelefone(this)">
                     
-                    <p style="line-height: 1.6; color: #cbd5e1; margin-bottom: 25px;">
-                        Recebemos sua solicitação de agendamento. 
-                        Nossa equipe de engenharia já está analisando as imagens de satélite do seu imóvel em <strong>{{Endereço}}</strong>.
-                    </p>
+                    <input type="hidden" id="lat"> <input type="hidden" id="lng">
 
-                    <div class="info-box">
-                        <table width="100%">
-                            <tr>
-                                <td width="50%" valign="top">
-                                    <span class="label">Data Solicitada</span>
-                                    <span class="value">{{Data da Visita}}</span>
-                                </td>
-                                <td width="50%" valign="top">
-                                    <span class="label">Período</span>
-                                    <span class="value" style="text-transform: capitalize;">{{Periodo}}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" style="padding-top: 10px;">
-                                    <span class="label">Valor Reservado ({{Condição}})</span>
-                                    <span class="value" style="color: #22c55e; font-size: 20px;">{{Valor Final}}</span>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                    <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase tracking-[0.2em] text-[11px] font-black flex items-center justify-center">
+                        Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
 
-                    <p style="font-size: 14px; line-height: 1.6; color: #94a3b8; background: rgba(250, 204, 21, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed rgba(250, 204, 21, 0.3);">
-                        <strong>🛡️ Compromisso de Transparência:</strong><br>
-                        Lembramos que o valor acima está <strong>travado</strong> para você. Ele só sofrerá alteração caso nossa visita técnica identifique divergências estruturais no telhado ou na rede elétrica que impeçam a instalação segura.
-                    </p>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
-                    <p style="margin-top: 30px; line-height: 1.6; color: #cbd5e1;">
-                        <strong>O que acontece agora?</strong><br>
-                        Em até 24h úteis, um de nossos especialistas entrará em contato via WhatsApp ({{Telefone}}) para confirmar os detalhes do acesso ao imóvel.
-                    </p>
+    <script>
+        // 1. CONFIGURAÇÃO FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
+            authDomain: "pro-sollar-performance.firebaseapp.com",
+            projectId: "pro-sollar-performance",
+            storageBucket: "pro-sollar-performance.firebasestorage.app",
+            messagingSenderId: "484051034820",
+            appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-                    <div style="text-align: center; margin-top: 40px;">
-                        <a href="https://seu-site-pro-sollar.com/login.html" class="btn">Acessar Meu Painel</a>
-                    </div>
-                </td>
-            </tr>
+        // 2. MÁSCARAS UI
+        function mascaraMoeda(i) {
+            let v = i.value.replace(/\D/g, '');
+            v = (v / 100).toFixed(2) + '';
+            v = v.replace(".", ",");
+            v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+            i.value = v; 
+        }
+        function mascaraTelefone(i) {
+            let v = i.value.replace(/\D/g, "");
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+            i.value = v;
+        }
 
-            <tr>
-                <td class="footer">
-                    <p style="margin: 0;">© 2026 Pro-Sollar Engenharia.</p>
-                    <p style="margin: 5px 0;">Inteligência Energética levada a sério.</p>
-                </td>
-            </tr>
-        </table>
-    </div>
+        // 3. ENGENHARIA FINANCEIRA
+        function calcularEngenharia(consumoReais) {
+            const tarifa = 0.92;
+            const irradiacao = 4.8;
+            const consumoKwh = consumoReais / tarifa;
+            const kwp = consumoKwh / (irradiacao * 30.4 * 0.75);
+            const investimento = (consumoReais * 30) * 0.95; 
 
+            return {
+                kwp: kwp.toFixed(2),
+                valorFinal: investimento.toFixed(2),
+                payback: (investimento / (consumoReais * 12)).toFixed(1)
+            };
+        }
+
+        // 4. DISPARO SENDGRID (Template de Confirmação)
+        async function dispararConfirmacaoSendGrid(dadosLead) {
+            const apiKey = 'SUA_API_KEY_AQUI'; // <--- INSIRA SUA CHAVE AQUI
+            const templateId = 'SEU_TEMPLATE_ID_AQUI'; // <--- ID DO TEMPLATE QUE VOCÊ CRIOU
+
+            const corpo = {
+                personalizations: [{
+                    to: [{ email: dadosLead.email }],
+                    dynamic_template_data: {
+                        "Nome do Cliente": dadosLead.email.split('@')[0], // Nome extraído do e-mail
+                        "Endereço": dadosLead.endereco,
+                        "Data da Visita": "A confirmar em 24h",
+                        "Periodo": "Comercial",
+                        "Condição": "Simulação Online",
+                        "Valor Final": "R$ " + parseFloat(dadosLead.valor).toLocaleString('pt-BR'),
+                        "Telefone": dadosLead.whatsapp
+                    }
+                }],
+                from: { email: 'contato.prosollar@vmcprojetos.com', name: 'Pro-Sollar Engenharia' },
+                template_id: templateId
+            };
+
+            try {
+                await fetch('https://api.sendgrid.com/v3/mail/send', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(corpo)
+                });
+            } catch (e) { console.error("Erro no envio do e-mail:", e); }
+        }
+
+        // 5. AÇÃO DO BOTÃO GERAR
+        document.getElementById('btnGerar').addEventListener('click', async function() {
+            const email = document.getElementById('email').value;
+            const zap = document.getElementById('whatsapp').value;
+            const endereco = document.getElementById('endereco').value;
+            const consumoRaw = document.getElementById('consumo').value;
+            const lat = document.getElementById('lat').value;
+
+            if (!email || !zap || !consumoRaw || !lat) {
+                alert("Por favor, preencha todos os campos e selecione o endereço sugerido.");
+                return;
+            }
+
+            this.innerHTML = '<i class="fas fa-satellite fa-spin mr-2"></i> Calculando Engenharia...';
+            this.disabled = true;
+
+            const consumoLimpo = parseFloat(consumoRaw.replace(/\./g, '').replace(',', '.'));
+            const calculo = calcularEngenharia(consumoLimpo);
+
+            try {
+                // Salvar no Firebase
+                await db.collection("leads").doc(email).set({
+                    email, whatsapp: zap, endereco,
+                    projeto: calculo,
+                    criado_em: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                // Disparar E-mail de Confirmação
+                await dispararConfirmacaoSendGrid({
+                    email, endereco, whatsapp: zap, valor: calculo.valorFinal
+                });
+
+                // Enviar link de acesso via Firebase Auth
+                await auth.sendSignInLinkToEmail(email, {
+                    url: window.location.origin + `/login.html?email=${email}`,
+                    handleCodeInApp: true
+                });
+
+                alert("Simulação concluída! Verifique o e-mail enviado pela Pro-Sollar.");
+                window.location.href = `login.html?email=${email}`;
+
+            } catch (error) {
+                alert("Erro ao processar: " + error.message);
+                this.innerHTML = 'Gerar Proposta Instantânea';
+                this.disabled = false;
+            }
+        });
+
+        // 6. GOOGLE PLACES
+        window.initAutocomplete = function() {
+            const autocomplete = new google.maps.places.Autocomplete(document.getElementById('endereco'), {
+                componentRestrictions: { country: "br" },
+                fields: ["geometry", "formatted_address"],
+                types: ["address"]
+            });
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (place.geometry) {
+                    document.getElementById('lat').value = place.geometry.location.lat();
+                    document.getElementById('lng').value = place.geometry.location.lng();
+                }
+            });
+        };
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 </body>
 </html>
