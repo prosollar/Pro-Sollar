@@ -48,7 +48,7 @@
             background: rgba(0, 0, 0, 0.4) !important;
             border: 1px solid rgba(255, 255, 255, 0.05) !important;
             color: #fff !important;
-            padding-left: 50px !important; /* Espaço para o ícone */
+            padding-left: 50px !important;
             transition: all 0.3s ease;
         }
         .input-dark:focus {
@@ -97,36 +97,54 @@
         </div>
 
         <div class="card-glow">
-            <div class="glass-card p-10 space-y-6">
-                <h2 class="text-2xl font-bold">Simule Seu Potencial</h2>
-                <form id="simuladorForm" class="space-y-4">
-                    
-                    <div class="input-wrapper">
-                        <input type="text" id="endereco" placeholder="Endereço da Instalação" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
-                        <i class="fas fa-map-marker-alt input-icon"></i>
-                    </div>
+            <div class="glass-card p-10 space-y-6 min-h-[500px] flex flex-col justify-center">
+                
+                <div id="form-container">
+                    <h2 class="text-2xl font-bold mb-6">Simule Seu Potencial</h2>
+                    <form id="simuladorForm" class="space-y-4">
+                        
+                        <div class="input-wrapper">
+                            <input type="text" id="endereco" placeholder="Endereço da Instalação" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
+                            <i class="fas fa-map-marker-alt input-icon"></i>
+                        </div>
 
-                    <div class="input-wrapper">
-                        <input type="tel" id="consumo" placeholder="Gasto Mensal (R$)" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" onkeyup="formatarMoeda(this)">
-                        <i class="fas fa-dollar-sign input-icon"></i>
-                    </div>
+                        <div class="input-wrapper">
+                            <input type="tel" id="consumo" placeholder="Gasto Mensal (R$)" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" onkeyup="formatarMoeda(this)">
+                            <i class="fas fa-dollar-sign input-icon"></i>
+                        </div>
 
-                    <div class="input-wrapper">
-                        <input type="email" id="email" placeholder="Seu E-mail" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
-                        <i class="fas fa-envelope input-icon"></i>
-                    </div>
+                        <div class="input-wrapper">
+                            <input type="email" id="email" placeholder="Seu E-mail" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
+                            <i class="fas fa-envelope input-icon"></i>
+                        </div>
 
-                    <div class="input-wrapper">
-                        <input type="tel" id="whatsapp" placeholder="WhatsApp" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" oninput="mascaraTelefone(this)">
-                        <i class="fab fa-whatsapp input-icon"></i>
-                    </div>
-                    
-                    <input type="hidden" id="lat"> <input type="hidden" id="lng">
+                        <div class="input-wrapper">
+                            <input type="tel" id="whatsapp" placeholder="WhatsApp" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" oninput="mascaraTelefone(this)">
+                            <i class="fab fa-whatsapp input-icon"></i>
+                        </div>
+                        
+                        <input type="hidden" id="lat"> <input type="hidden" id="lng">
 
-                    <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase text-[11px] font-black tracking-widest">
-                        Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2"></i>
-                    </button>
-                </form>
+                        <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase text-[11px] font-black tracking-widest">
+                            Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="msg-sucesso" class="hidden text-center animate-in fade-in zoom-in duration-500">
+                    <div class="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-400 border border-blue-500/30">
+                        <i class="fas fa-envelope-open-text text-4xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Quase lá!</h2>
+                    <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                        Geramos sua proposta de alta precisão. Por segurança, enviamos um <strong>Link de Acesso</strong> para o seu e-mail.
+                    </p>
+                    <div class="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl text-xs text-yellow-200 mb-6">
+                        <i class="fas fa-exclamation-triangle mr-2"></i> Verifique também a caixa de Spam.
+                    </div>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Aguardando confirmação...</p>
+                </div>
+
             </div>
         </div>
     </main>
@@ -165,7 +183,7 @@
             i.value = v;
         }
 
-        // --- 3. MOTOR DE ENGENHARIA V4.0 (Mantido o Cálculo de Precisão) ---
+        // --- 3. MOTOR DE ENGENHARIA V4.0 ---
         function calcularEngenhariaPrecisao(contaMensalReais, lat = -23.5) {
             const TARIFA_ATUAL = 0.96; 
             const PERDA_SISTEMA = 0.25; 
@@ -255,7 +273,7 @@
             };
         }
 
-        // --- 4. AÇÃO PRINCIPAL (AGORA COM AUTH) ---
+        // --- 4. AÇÃO PRINCIPAL ---
         document.getElementById('btnGerar').addEventListener('click', async function() {
             const email = document.getElementById('email').value;
             const zap = document.getElementById('whatsapp').value;
@@ -285,47 +303,36 @@
                     whatsapp: zap,
                     endereco: endereco,
                     consumo_mensal_reais: consumoLimpo,
-                    
                     engenharia: dadosCompletos.engenharia,
                     configuracao_sistema: dadosCompletos.configuracao_sistema,
                     financeiro: dadosCompletos.financeiro,
-                    
                     perfil: {
                         email: email,
                         whatsapp_formatted: zap,
                         endereco_completo: endereco
                     },
-                    
                     data_cadastro: firebase.firestore.FieldValue.serverTimestamp(),
                     status: { fase: 'lead_novo', desconto_aplicado: false }
                 };
 
                 await db.collection("leads").doc(email).set(leadObject, { merge: true });
 
-                // 3. ENVIAR LINK DE AUTENTICAÇÃO (AQUI ESTÁ A CORREÇÃO!) 🔑
+                // 3. ENVIAR LINK MÁGICO (LOGIN)
                 const actionCodeSettings = {
-                    // O cliente clica no e-mail e cai no login.html para validar
                     url: window.location.origin + `/login.html?email=${encodeURIComponent(email)}`,
                     handleCodeInApp: true
                 };
 
-                // Envia o e-mail do Firebase Auth
                 await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-                
-                // Salva o e-mail no navegador para não precisar digitar de novo ao clicar no link
                 window.localStorage.setItem('emailForSignIn', email);
 
-                // 4. FEEDBACK E REDIRECIONAMENTO
-                alert("Sucesso! Enviamos um link de acesso seguro para o seu e-mail.\n\nVocê será redirecionado para uma visualização prévia da proposta.");
-                
-                // Redireciona para o painel (Acesso Prévia)
-                setTimeout(() => {
-                    window.location.href = `panel.html?email=${encodeURIComponent(email)}`;
-                }, 500);
+                // 4. MUDAR O ESTADO DA TELA (SEM REDIRECIONAR)
+                document.getElementById('form-container').classList.add('hidden');
+                document.getElementById('msg-sucesso').classList.remove('hidden');
 
             } catch (error) {
                 console.error("Erro:", error);
-                alert("Erro ao processar solicitação: " + error.message);
+                alert("Erro ao processar: " + error.message);
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
@@ -347,8 +354,6 @@
             });
         };
     </script>
-    
-    
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 </body>
 </html>
