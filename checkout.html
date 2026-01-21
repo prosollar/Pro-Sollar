@@ -41,7 +41,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             transition: all 0.3s;
-            color-scheme: dark; /* Corrige o calendário branco */
+            color-scheme: dark; /* Garante ícone do calendário visível */
         }
         .input-dark:focus {
             border-color: var(--accent-blue);
@@ -49,7 +49,14 @@
             background: rgba(0, 0, 0, 0.5);
         }
         
-        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; cursor: pointer; }
+        /* Ajuste Fino do Calendário */
+        ::-webkit-calendar-picker-indicator { 
+            filter: invert(1); 
+            opacity: 0.6; 
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        ::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
         .btn-confirm {
             background: linear-gradient(135deg, var(--accent-green) 0%, #15803d 100%);
@@ -466,8 +473,8 @@
                     }
                 });
 
-                // 2. DISPARA O ROBÔ (NOSSO SISTEMA V3) 
-                // Usamos a coleção 'fila_email' em vez de 'mail' para usar o Cloud Functions gratuito
+                // 2. DISPARA O ROBÔ (NOSSO SISTEMA V3 GRATUITO)
+                // O site apenas avisa: "Robô, envie o e-mail para este cliente com estes dados."
                 await db.collection("fila_email").add({
                     to: leadData.email,
                     message: {
