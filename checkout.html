@@ -122,4 +122,389 @@
                     
                     <div class="space-y-3 mb-8">
                         <div class="equip-item">
-                            <div class="w-10 h-10 bg-yellow-500/10 rounded-
+                            <div class="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center text-yellow-500">
+                                <i class="fas fa-solar-panel text-lg"></i>
+                            </div>
+                            <div>
+                                <p id="panel-model" class="text-sm font-bold text-white">Carregando Módulos...</p>
+                                <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5 flex-wrap">
+                                    <span class="text-green-400"><i class="fas fa-chart-line mr-1"></i>25 Anos Performance</span>
+                                    <span class="text-slate-600">•</span>
+                                    <span><i class="fas fa-box mr-1"></i>12 Anos Produto</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="equip-item">
+                            <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400">
+                                <i class="fas fa-microchip text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">Inversor Inteligente (String)</p>
+                                <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5">
+                                    <span class="text-blue-300"><i class="fas fa-shield-alt mr-1"></i>5 Anos Garantia</span>
+                                    <span>•</span>
+                                    <span>Monitoramento Wi-Fi</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="equip-item">
+                            <div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-400">
+                                <i class="fas fa-file-contract text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">Seguro Risco Engenharia</p>
+                                <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5">
+                                    <span class="text-purple-300"><i class="fas fa-check-circle mr-1"></i>1 Ano Incluso</span>
+                                    <span>•</span>
+                                    <span>Instalação Segura</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-white/5 flex justify-between items-end">
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Local de Instalação</p>
+                            <p id="install-address" class="text-sm font-medium text-white max-w-xs">...</p>
+                        </div>
+                        <div class="text-right">
+                            <p id="price-label" class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Investimento Total</p>
+                            <p id="final-price" class="text-3xl font-black text-green-400">R$ --</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8">
+                    <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Canais de Contato</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] text-slate-400 uppercase font-bold">E-mail</label>
+                            <p id="client-email" class="text-white font-medium">...</p>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 uppercase font-bold">WhatsApp</label>
+                            <p id="client-phone" class="text-white font-medium">...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="transparency-card p-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-shield-alt text-blue-400 text-xl"></i>
+                        <h3 class="text-sm font-bold text-white">Transparência Total</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed text-justify">
+                        Este valor é baseado em dados de satélite. Após o agendamento, nossa engenharia fará uma 
+                        <strong class="text-white">Validação Técnica Presencial</strong> no seu imóvel.
+                    </p>
+                    <ul class="mt-3 space-y-2">
+                        <li class="flex items-start gap-2 text-[10px] text-slate-300">
+                            <i class="fas fa-check text-green-500 mt-0.5"></i>
+                            <span>Se tudo estiver ok, o valor está travado e garantido.</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-[10px] text-slate-300">
+                            <i class="fas fa-info-circle text-yellow-500 mt-0.5"></i>
+                            <span>Se houver divergência técnica, renegociamos ou cancelamos sem custo.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-8 relative overflow-hidden">
+                    <form id="booking-form" onsubmit="confirmarPedido(event)">
+                        <div>
+                            <h2 class="text-xl font-bold text-white mb-2">Dados da Visita</h2>
+                            <p class="text-xs text-slate-400 mb-6">Informe quem irá receber nossa equipe técnica.</p>
+
+                            <div class="space-y-4">
+                                
+                                <div>
+                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Nome Completo (Titular do Projeto)</label>
+                                    <div class="relative">
+                                        <i class="fas fa-user absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                                        <input type="text" id="titular-nome" required placeholder="Ex: João da Silva" class="input-dark w-full pl-10 pr-4 py-3 rounded-xl text-sm placeholder-slate-500">
+                                    </div>
+                                </div>
+
+                                <div class="pl-1">
+                                    <label class="flex items-center gap-3 cursor-pointer group">
+                                        <div class="relative flex items-center">
+                                            <input type="checkbox" id="check-mesmo-nome" checked onchange="toggleRecebedor()" class="peer h-4 w-4 cursor-pointer appearance-none rounded border border-slate-600 bg-slate-900/50 checked:border-blue-500 checked:bg-blue-500 transition-all">
+                                            <i class="fas fa-check text-white text-[10px] absolute left-0.5 top-0.5 opacity-0 peer-checked:opacity-100"></i>
+                                        </div>
+                                        <span class="text-xs text-slate-400 group-hover:text-white transition">Eu mesmo receberei a visita</span>
+                                    </label>
+                                </div>
+
+                                <div id="campo-recebedor" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label class="text-xs font-bold text-yellow-500 ml-1 block mb-2">Quem receberá a equipe?</label>
+                                    <div class="relative">
+                                        <i class="fas fa-user-friends absolute left-4 top-3.5 text-slate-500 text-sm"></i>
+                                        <input type="text" id="recebedor-nome" placeholder="Ex: Maria (Esposa) ou Portaria" class="input-dark w-full pl-10 pr-4 py-3 rounded-xl text-sm placeholder-slate-500 border-yellow-500/50 focus:border-yellow-500">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Data da Visita</label>
+                                    <input type="date" id="visit-date" required class="input-dark w-full px-4 py-3 rounded-xl text-sm">
+                                </div>
+                                
+                                <div>
+                                    <label class="text-xs font-bold text-slate-300 ml-1 block mb-2">Período Preferencial</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="periodo" value="manha" class="peer hidden" checked>
+                                            <div class="bg-black/20 border border-white/10 peer-checked:border-green-500 peer-checked:bg-green-500/20 rounded-xl py-3 text-center text-xs font-bold text-slate-400 peer-checked:text-green-400 transition-all">
+                                                <i class="fas fa-sun mr-2"></i>Manhã
+                                            </div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="periodo" value="tarde" class="peer hidden">
+                                            <div class="bg-black/20 border border-white/10 peer-checked:border-green-500 peer-checked:bg-green-500/20 rounded-xl py-3 text-center text-xs font-bold text-slate-400 peer-checked:text-green-400 transition-all">
+                                                <i class="fas fa-cloud-sun mr-2"></i>Tarde
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 space-y-4">
+                            <label class="flex items-start gap-3 cursor-pointer group">
+                                <div class="relative flex items-center mt-1">
+                                    <input type="checkbox" id="terms" required class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-600 bg-slate-900/50 checked:border-green-500 checked:bg-green-500 transition-all">
+                                    <i class="fas fa-check text-black text-[10px] absolute left-1 top-1 opacity-0 peer-checked:opacity-100"></i>
+                                </div>
+                                <span class="text-xs text-slate-400 leading-tight group-hover:text-slate-300 transition text-justify">
+                                    Autorizo a visita técnica e estou ciente de que a <strong>Proposta Comercial Definitiva</strong> dependerá da validação das condições do telhado e rede elétrica pelo engenheiro responsável.
+                                </span>
+                            </label>
+
+                            <button type="submit" id="btn-submit" class="btn-confirm w-full py-4 rounded-xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 text-white">
+                                Reservar e Agendar <i class="fas fa-calendar-check"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div class="glass-card p-10 max-w-md text-center mx-4 animate-bounce-in border border-green-500/30">
+                <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.4)]">
+                    <i class="fas fa-check text-4xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Visita Agendada!</h2>
+                <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+                    Sua reserva de preço foi realizada com sucesso. Enviamos a proposta detalhada para seu e-mail.
+                </p>
+                <button onclick="voltarParaPainel()" class="bg-white/10 border border-white/20 hover:bg-white/20 text-white w-full py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition">
+                    Voltar ao Painel
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // CONFIGURAÇÃO
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
+            authDomain: "pro-sollar-performance.firebaseapp.com",
+            projectId: "pro-sollar-performance",
+            storageBucket: "pro-sollar-performance.firebasestorage.app",
+            messagingSenderId: "484051034820",
+            appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        let currentLeadId = null;
+        let leadData = null;
+
+        // DATA MÍNIMA
+        const dateInput = document.getElementById('visit-date');
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.min = tomorrow.toISOString().split('T')[0];
+
+        // LOGICA DE TOGGLE DO NOME
+        window.toggleRecebedor = function() {
+            const check = document.getElementById('check-mesmo-nome');
+            const campo = document.getElementById('campo-recebedor');
+            const input = document.getElementById('recebedor-nome');
+            
+            if(check.checked) {
+                campo.classList.add('hidden');
+                input.required = false;
+                input.value = ""; 
+            } else {
+                campo.classList.remove('hidden');
+                input.required = true;
+                input.focus();
+            }
+        }
+
+        window.voltarParaPainel = function() {
+            if(currentLeadId) window.location.href = `panel.html?email=${encodeURIComponent(currentLeadId)}`;
+            else window.history.back();
+        }
+
+        // AUTH CHECK
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const params = new URLSearchParams(window.location.search);
+                currentLeadId = params.get('id');
+                if(currentLeadId) await carregarDados(currentLeadId, user.email);
+                else { alert("ID inválido."); window.location.href = "panel.html"; }
+            } else { window.location.href = "login.html"; }
+        });
+
+        async function carregarDados(id, email) {
+            try {
+                const docSnap = await db.collection("leads").doc(id).get();
+                if (docSnap.exists) {
+                    leadData = docSnap.data();
+                    renderizar(leadData);
+                } else {
+                    alert("Cliente não encontrado.");
+                    window.location.href = "index.html";
+                }
+            } catch (error) { 
+                console.error("Erro:", error); 
+                alert("Erro de conexão.");
+            }
+        }
+
+        function renderizar(data) {
+            try {
+                // UNIVERSAL ADAPTER (Lê V4 e V1)
+                const engenharia = data.engenharia?.projetado || {};
+                const config = data.configuracao_sistema || {};
+                const financeiro = data.financeiro || {};
+                const projetoAntigo = data.projeto || {};
+
+                // Prioriza V4, se não tiver, usa V1
+                const kwp = engenharia.potencia_instalada_kwp || projetoAntigo.kwp || "0";
+                
+                // Cálculo seguro de painéis
+                let qtdPaineis = engenharia.qtd_modulos;
+                if (!qtdPaineis) {
+                    // Tenta calcular baseado no kwp se for antigo
+                    qtdPaineis = Math.ceil(parseFloat(kwp) / 0.57); // 570W estimado
+                }
+                
+                const modeloPainel = config.modulo?.modelo || "Módulo Solar Alta Performance";
+                
+                // Preenche Equipamentos
+                document.getElementById('panel-model').innerText = `${qtdPaineis}x ${modeloPainel} (${kwp} kWp)`;
+                
+                // Preenche Endereço
+                const enderecoFull = data.perfil?.endereco_completo || data.endereco || "Local não informado";
+                document.getElementById('install-address').innerText = enderecoFull;
+
+                // Preenche Preços
+                const isDiscount = data.status?.desconto_aplicado || false;
+                const valorPadrao = parseFloat(financeiro.investimento_bruto || projetoAntigo.investimento || 0);
+                const valorComDesconto = valorPadrao * 0.95; 
+
+                let valorExibir = valorPadrao;
+                if (isDiscount) {
+                    valorExibir = valorComDesconto;
+                    document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
+                    document.getElementById('price-label').classList.add('text-green-500');
+                } else {
+                    document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
+                    document.getElementById('price-label').classList.remove('text-green-500');
+                }
+                
+                document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+
+                // Contatos
+                document.getElementById('client-email').innerText = data.perfil?.email || data.email;
+                document.getElementById('client-phone').innerText = data.perfil?.whatsapp_formatted || data.whatsapp;
+
+                if(data.perfil?.nome) document.getElementById('titular-nome').value = data.perfil.nome;
+
+                document.getElementById('loading-skeleton').classList.add('hidden');
+                document.getElementById('checkout-content').classList.remove('hidden');
+            } catch(e) {
+                console.error("Erro Render:", e);
+                alert("Erro ao exibir dados. Tente atualizar.");
+            }
+        }
+
+        // --- AÇÃO PRINCIPAL ---
+        window.confirmarPedido = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            const originalHTML = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loader"></div> Processando...';
+
+            const nomeTitular = document.getElementById('titular-nome').value;
+            const isMesmoNome = document.getElementById('check-mesmo-nome').checked;
+            const nomeRecebedor = isMesmoNome ? nomeTitular : document.getElementById('recebedor-nome').value;
+            const dataVisita = document.getElementById('visit-date').value;
+            const periodo = document.querySelector('input[name="periodo"]:checked').value;
+            
+            // Formatando Data
+            const dataObj = new Date(dataVisita);
+            const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+
+            const valorFinalTexto = document.getElementById('final-price').innerText;
+            const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
+
+            try {
+                // 1. Atualiza Lead no Firestore
+                await db.collection("leads").doc(currentLeadId).update({
+                    "perfil.nome": nomeTitular, 
+                    "status.fase": "visita_agendada", 
+                    "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
+                    "agendamento": {
+                        responsavel_local: nomeRecebedor,
+                        data_visita: dataVisita,
+                        periodo: periodo,
+                        status: "pendente_confirmacao",
+                        termo_aceite: true
+                    },
+                    "fechamento": {
+                        valor_reservado: valorFinalTexto,
+                        condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado"
+                    }
+                });
+
+                // 2. DISPARA O ROBÔ (FILA_EMAIL)
+                await db.collection("fila_email").add({
+                    to: leadData.email,
+                    message: {
+                        subject: `Visita Confirmada: ${dataFormatada} - Pro-Sollar`,
+                        text: `Olá ${nomeTitular}, sua visita técnica foi agendada com sucesso para o dia ${dataFormatada} (${periodo}).\n\nResumo do Pedido:\n- Sistema: ${document.getElementById('panel-model').innerText}\n- Valor Reservado: ${valorFinalTexto} (${condicaoTexto})\n\nUm engenheiro entrará em contato em breve para confirmar os detalhes.`
+                    }
+                });
+
+                document.getElementById('success-modal').classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Erro:", error);
+                alert("Erro ao processar. Tente novamente.");
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        };
+    </script>
+</body>
+</html>
