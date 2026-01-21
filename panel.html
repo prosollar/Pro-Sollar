@@ -382,7 +382,6 @@
                 btn.innerHTML = html;
                 btn.onclick = () => carregarProjetoNaTela(proj);
                 
-                // MUDANÇA: O botão agora é um container flex para o ícone de deletar ficar dentro visualmente
                 btn.style.display = "flex";
                 btn.style.alignItems = "center";
                 btn.style.gap = "8px";
@@ -561,7 +560,7 @@
             const dados = fluxo.slice(0, currentTimeRange * 12);
             const labels = dados.map(d => d.mes_absoluto); 
 
-            // GRADIENTE (Opcional, se quiser o visual premium)
+            // GRADIENTE
             let gradient = ctx.createLinearGradient(0, 0, 0, 400);
             gradient.addColorStop(0, 'rgba(34, 197, 94, 0.5)'); 
             gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
@@ -587,10 +586,10 @@
                                 label: 'Patrimônio Solar', 
                                 data: dataSolar, 
                                 borderColor: '#22c55e', 
-                                backgroundColor: gradient, // Gradiente restaurado
+                                backgroundColor: gradient, 
                                 borderWidth: 3, 
-                                pointRadius: 0, // MARCADORES ESCONDIDOS
-                                pointHoverRadius: 6, // APARECEM NO HOVER
+                                pointRadius: 0, 
+                                pointHoverRadius: 6, 
                                 fill: true,
                                 tension: 0.4 
                             }, 
@@ -599,7 +598,7 @@
                                 data: dataCDI, 
                                 borderColor: '#64748b', 
                                 borderDash: [5,5],
-                                pointRadius: 0, // MARCADORES ESCONDIDOS
+                                pointRadius: 0, 
                                 borderWidth: 2,
                                 tension: 0.4 
                             } 
@@ -608,7 +607,7 @@
                     options: { 
                         responsive: true, 
                         maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false }, // Melhora o tooltip
+                        interaction: { mode: 'index', intersect: false }, 
                         plugins: { legend: { display: true, labels: {color:'#94a3b8'} } },
                         scales: { 
                             y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b' } }, 
@@ -632,8 +631,10 @@
                                 label: 'Economia', 
                                 data: dataEco, 
                                 borderColor: '#22c55e',
+                                backgroundColor: gradient, // APLICADO AQUI TAMBÉM
                                 borderWidth: 2,
-                                pointRadius: 0, // MARCADORES ESCONDIDOS
+                                pointRadius: 0, 
+                                fill: true, // HABILITADO
                                 tension: 0.4
                             }, 
                             { 
@@ -641,7 +642,7 @@
                                 data: dataParc, 
                                 borderColor: '#3b82f6', 
                                 borderWidth: 2,
-                                pointRadius: 0, // MARCADORES ESCONDIDOS
+                                pointRadius: 0, 
                                 fill: true,
                                 tension: 0.1
                             } 
