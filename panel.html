@@ -38,7 +38,6 @@
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Botões de Ação */
         .btn-approve {
             background: var(--accent-green);
             color: #052e16;
@@ -81,7 +80,6 @@
         
         .chart-container { position: relative; height: 320px; width: 100%; }
 
-        /* Chart Controls */
         .chart-toggle {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
@@ -137,7 +135,6 @@
         }
         .hidden-important { display: none !important; }
 
-        /* Sliders */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
@@ -205,7 +202,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="glass-card p-6 text-center border-white/5">
                     <i class="fas fa-bolt text-yellow-400 text-lg mb-2"></i>
-                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Geração Mês</p>
+                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Geração Ano 1</p>
                     <p id="kpi-generation" class="text-lg font-bold text-white">--</p>
                 </div>
                 <div class="glass-card p-6 text-center border-white/5">
@@ -230,8 +227,8 @@
                     <h3 class="text-lg font-bold text-white mb-4 md:mb-0"><i class="fas fa-chart-line text-blue-500 mr-2"></i> Análise Financeira</h3>
                     
                     <div class="chart-toggle">
-                        <div id="mode-cash" onclick="window.switchChartMode('cash')" class="toggle-btn active-green">À Vista</div>
-                        <div id="mode-finan" onclick="window.switchChartMode('finan')" class="toggle-btn">Financiado</div>
+                        <div id="mode-cash" onclick="window.switchChartMode('cash')" class="toggle-btn active-green">Patrimônio</div>
+                        <div id="mode-finan" onclick="window.switchChartMode('finan')" class="toggle-btn">Fluxo Mensal</div>
                     </div>
                 </div>
 
@@ -334,15 +331,12 @@
         let leadData = null;
         let wealthChart = null;
         
-        // STATES
         let currentChartMode = 'cash';
         let currentTimeRange = 25;
         let currentInterestRate = 1.50;
         let currentLoanTerm = 60;
         let isNegotiating = false; 
         let selectedFile = null;
-        // Variável calculada dinamicamente para o gráfico
-        let calculatedFlow = [];
 
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
@@ -350,115 +344,68 @@
                 document.getElementById('user-email-display').innerText = user.email;
                 const params = new URLSearchParams(window.location.search);
                 const urlEmail = params.get('email');
-                
-                // Prioriza buscar pelo email, pois nossa landing page usa email como ID ou chave
-                if(urlEmail) { 
-                    await buscarPorEmail(urlEmail); 
-                } else {
-                    await buscarPorEmail(user.email); 
-                }
+                if(urlEmail) await buscarPorEmail(urlEmail); 
+                else await buscarPorEmail(user.email); 
             } else { 
-                // Permite testar o layout se estiver com ?email= na URL mesmo sem login, ou manda pro login
                 const params = new URLSearchParams(window.location.search);
-                if (params.get('email')) {
-                   // Modo "visualização pública" limitada ou teste
-                   await buscarPorEmail(params.get('email'));
-                } else {
-                   window.location.href = "login.html"; 
-                }
+                if (params.get('email')) await buscarPorEmail(params.get('email'));
+                else window.location.href = "login.html"; 
             }
         });
 
         async function buscarPorEmail(email) {
-            // Tenta achar o doc onde o ID é o email (padrão da landing page)
             try {
                 const docRef = db.collection("leads").doc(email);
                 const docSnap = await docRef.get();
-                
                 if (docSnap.exists) {
                     currentLeadId = docSnap.id;
-                    await carregarPainel(docSnap);
+                    leadData = docSnap.data();
+                    renderizarDados(leadData);
                 } else {
-                    alert("Proposta não encontrada para este e-mail.");
-                    // window.location.href="index.html"; 
+                    alert("Proposta não encontrada.");
                 }
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        async function carregarPainel(docSnap) {
-            try {
-                leadData = docSnap.data();
-                renderizarDados(leadData);
-            } catch(e) { console.error(e); }
+            } catch (e) { console.error(e); }
         }
 
         function renderizarDados(data) {
-            // 1. DADOS PRINCIPAIS
+            // LÊ OS DADOS CALCULADOS NA LANDING PAGE
+            const engenharia = data.engenharia?.projetado || {};
+            const financeiro = data.financeiro || {};
+            const config = data.configuracao_sistema || {};
+
             const endereco = data.endereco || "Endereço não informado";
-            document.getElementById('display-address').innerText = endereco.split('-')[0]; // Pega a primeira parte antes do traço se houver
+            document.getElementById('display-address').innerText = endereco.split('-')[0];
 
-            // Mapeia os dados salvos pela Landing Page (index.html)
-            // Lá salvamos: projeto: { kwp, investimento, payback, paineis }
-            const projeto = data.projeto || {};
-            const kwp = projeto.kwp || 0;
-            const paineis = projeto.paineis || Math.ceil(kwp / 0.55);
+            const kwp = engenharia.potencia_instalada_kwp || 0;
+            const qtdModulos = engenharia.qtd_modulos || 0;
+            const modelo = config.modulo?.modelo || "Módulo Solar";
 
-            document.getElementById('display-specs').innerText = `${endereco} • ${kwp} kWp • ~${paineis} Painéis`;
+            document.getElementById('display-specs').innerText = `${kwp} kWp • ${qtdModulos}x ${modelo}`;
 
-            const aplicouDesconto = data.status?.desconto_aplicado || false;
+            // Tratamento de Preço
+            const bruto = financeiro.investimento_bruto || 0;
+            const isDiscount = data.status?.desconto_aplicado || false;
             
-            // Tratamento de valores (string '95000.00' ou number)
-            let precoBruto = parseFloat(projeto.investimento);
-            
-            // Simulação de desconto (ex: 5% a vista)
-            let precoLiq = precoBruto * 0.95; 
-            
-            if(aplicouDesconto) applyDiscountUI(precoLiq);
-            else removeDiscountUI(precoBruto);
+            if(isDiscount) applyDiscountUI(bruto * 0.95);
+            else removeDiscountUI(bruto);
 
-            // 2. KPIS E CÁLCULOS MATEMÁTICOS PARA O GRÁFICO
-            // Como a landing page só salva o básico, vamos calcular o fluxo aqui
-            
-            // Geração média mensal (Estimativa: kWp * 125 kWh/mês por kWp no Brasil)
-            const geracaoMensal = kwp * 125; 
-            const tarifaMedia = 0.92; // R$/kWh
-            const economiaMensalInicial = geracaoMensal * tarifaMedia;
+            // KPIs (Lê direto do objeto Financeiro/Engenharia)
+            const geracaoAno1 = (engenharia.geracao_mensal_media_ano1 || 0) * 12;
+            const economiaAno1 = financeiro.fluxo_caixa_mensal.slice(0, 12).reduce((a,b)=>a+b.economia_reais, 0);
 
-            document.getElementById('kpi-generation').innerText = Math.round(geracaoMensal) + " kWh";
-            document.getElementById('kpi-economy').innerText = (economiaMensalInicial * 12).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
-            document.getElementById('kpi-payback').innerText = projeto.payback + " Anos";
-            
-            // Projeção simples de 25 anos (com inflação energética de 6% a.a.)
-            let economiaTotal = 0;
-            calculatedFlow = [];
-            let economiaAtual = economiaMensalInicial;
-            let inflacaoEnergetica = 0.06 / 12; // mensal
-            
-            for (let i = 1; i <= 300; i++) { // 25 anos * 12 meses
-                economiaTotal += economiaAtual;
-                calculatedFlow.push({
-                    mes: i,
-                    ano: Math.ceil(i/12),
-                    receita_economia: economiaAtual,
-                    fluxo_acumulado: economiaTotal - precoBruto // Simplificado
-                });
-                economiaAtual = economiaAtual * (1 + inflacaoEnergetica);
-            }
+            document.getElementById('kpi-generation').innerText = Math.round(geracaoAno1) + " kWh";
+            document.getElementById('kpi-economy').innerText = economiaAno1.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+            document.getElementById('kpi-payback').innerText = (financeiro.payback_anos || 0) + " Anos";
+            document.getElementById('kpi-roi').innerText = (financeiro.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 
-            document.getElementById('kpi-roi').innerText = economiaTotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
-
-            if (data.status?.fase === "em_analise_concorrencia") {
-                showAnaliseEnviadaUI();
-            }
+            if (data.status?.fase === "em_analise_concorrencia") showAnaliseEnviadaUI();
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('content-panel').classList.remove('hidden');
             updateChart();
         }
 
-        // --- SISTEMA DE GRÁFICOS ---
+        // --- SISTEMA DE GRÁFICOS (FIXO - LÊ O FLUXO GRAVADO) ---
         window.updateInterestRate = function(val) { currentInterestRate = parseFloat(val); document.getElementById('rate-display').innerText = currentInterestRate.toFixed(2) + "%"; updateChart(); }
         window.updateLoanTerm = function(val) { currentLoanTerm = parseInt(val); document.getElementById('term-display').innerText = currentLoanTerm + "x"; updateChart(); }
 
@@ -471,16 +418,13 @@
             const btn1Year = document.getElementById('time-1');
             const finanControls = document.getElementById('finan-controls');
 
-            // Lógica de Visibilidade dos Controles
             if(mode === 'cash') {
                 desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
                 btn1Year.classList.add('hidden-important'); 
                 finanControls.classList.add('hidden'); 
-                
                 if(currentTimeRange === 1) window.switchTimeRange(25);
-
             } else {
-                desc.innerText = "Simulador de Financiamento: Economia vs Parcela";
+                desc.innerText = "Simulador de Financiamento: Economia Mensal (Oscilação Sazonal)";
                 btn1Year.classList.remove('hidden-important');
                 finanControls.classList.remove('hidden'); 
             }
@@ -495,30 +439,44 @@
         }
 
         function updateChart() {
-            if(!leadData) return;
-            // Usa o fluxo calculado dinamicamente
-            const fluxo = calculatedFlow; 
+            if(!leadData || !leadData.financeiro.fluxo_caixa_mensal) return;
+            
+            // PEGA O ARRAY GRAVADO NO BANCO (COM OSCILAÇÕES REAIS)
+            const fluxoCompleto = leadData.financeiro.fluxo_caixa_mensal; 
             const precoString = document.getElementById('display-price').innerText;
             const investimentoAtual = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
+            
             const ctx = document.getElementById('wealthChart').getContext('2d');
+            const mesesLimite = currentTimeRange * 12;
+            const dadosRecortados = fluxoCompleto.slice(0, mesesLimite);
+
+            const labels = dadosRecortados.map(d => d.mes_absoluto); 
 
             if (currentChartMode === 'cash') {
-                const labels = ["Início"];
-                const dataSolar = [-investimentoAtual];
-                const dataCDI = [0]; 
-                const taxaCdiLiq = 0.095; 
-                const dadosAnuais = fluxo.filter(m => (m.mes % 12 === 0) && (m.ano <= currentTimeRange));
-                
-                dadosAnuais.forEach(d => {
-                    labels.push("Ano " + d.ano);
-                    // Recalcula o acumulado baseado no preço atual (que pode ter desconto)
-                    // Fluxo Acumulado = Economia Acumulada - Investimento Inicial
-                    const economiaAcumuladaNoAno = fluxo.slice(0, d.mes).reduce((acc, curr) => acc + curr.receita_economia, 0);
-                    
-                    dataSolar.push(economiaAcumuladaNoAno - investimentoAtual); 
-                    
-                    const montanteCdi = investimentoAtual * Math.pow((1+taxaCdiLiq), d.ano);
-                    dataCDI.push(montanteCdi - investimentoAtual);
+                // MODO PATRIMÔNIO (CURVA EXPONENCIAL ACUMULADA)
+                // Usamos labels anuais para não poluir
+                const labelsAnuais = [];
+                const dataSolar = [];
+                const dataCDI = [];
+                const taxaCdiLiq = 0.095; // 9.5% a.a
+
+                // Ponto Zero
+                labelsAnuais.push("Início");
+                dataSolar.push(-investimentoAtual);
+                dataCDI.push(0);
+
+                // Pontos Anuais
+                dadosRecortados.forEach(d => {
+                    if (d.mes_absoluto % 12 === 0) {
+                        labelsAnuais.push("Ano " + d.ano);
+                        
+                        // Recalcula o acumulado baseado no valor atual (com/sem desconto)
+                        const ecoAcumuladaAteAgora = fluxoCompleto.slice(0, d.mes_absoluto).reduce((acc, curr) => acc + curr.economia_reais, 0);
+                        dataSolar.push(ecoAcumuladaAteAgora - investimentoAtual);
+
+                        const montanteCdi = investimentoAtual * Math.pow((1+taxaCdiLiq), d.ano);
+                        dataCDI.push(montanteCdi - investimentoAtual);
+                    }
                 });
 
                 let gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -527,29 +485,26 @@
                 if (wealthChart) wealthChart.destroy();
                 wealthChart = new Chart(ctx, {
                     type: 'line',
-                    data: { labels: labels, datasets: [
+                    data: { labels: labelsAnuais, datasets: [
                         { label: 'Patrimônio Solar', data: dataSolar, borderColor: '#22c55e', backgroundColor: gradient, borderWidth: 3, pointBackgroundColor: '#fff', fill: true, tension: 0.3 },
                         { label: 'Rendimentos CDI', data: dataCDI, borderColor: '#64748b', borderWidth: 2, borderDash: [5,5], pointRadius: 0, fill: false, tension: 0.3 }
                     ]},
                     options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true, labels: {color:'#94a3b8'} } }, scales: { y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b', callback: v => 'R$ ' + v/1000 + 'k' } }, x: { grid: {display:false}, ticks: { color:'#64748b' } } } }
                 });
+
             } else {
+                // MODO MENSAL (AQUI APARECE A OSCILAÇÃO)
                 const prazo = currentLoanTerm;
                 const carencia = 2; 
                 const taxaAm = currentInterestRate / 100; 
                 const parcela = (investimentoAtual * taxaAm * Math.pow(1+taxaAm, prazo)) / (Math.pow(1+taxaAm, prazo) - 1);
-                const labels = [];
-                const dataEconomia = [];
-                const dataParcela = [];
-                const mesesVisualizacao = currentTimeRange * 12; 
-
-                for(let i=1; i <= mesesVisualizacao; i++) {
-                    labels.push(i);
-                    const dadoMes = fluxo[i-1];
-                    const economia = dadoMes ? dadoMes.receita_economia : 0; 
-                    dataEconomia.push(economia);
-                    if (i <= carencia) { dataParcela.push(0); } else if (i <= (prazo + carencia)) { dataParcela.push(parcela); } else { dataParcela.push(0); }
-                }
+                
+                const dataEconomia = dadosRecortados.map(d => d.economia_reais); // AQUI ESTÁ A ONDA
+                const dataParcela = dadosRecortados.map((d, i) => {
+                    if (i < carencia) return 0;
+                    if (i < (prazo + carencia)) return parcela;
+                    return 0;
+                });
 
                 let gradientBlue = ctx.createLinearGradient(0, 0, 0, 300);
                 gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.4)'); gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
@@ -558,113 +513,24 @@
                 wealthChart = new Chart(ctx, {
                     type: 'line',
                     data: { labels: labels, datasets: [
-                        { label: 'Economia Mensal (R$)', data: dataEconomia, borderColor: '#22c55e', borderWidth: 3, pointRadius: 0, tension: 0.4, fill: false, order: 1 },
+                        { label: 'Economia Mensal (R$)', data: dataEconomia, borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: false, order: 1 }, // Linha verde oscilando
                         { label: `Parcela Fixa (${prazo}x)`, data: dataParcela, borderColor: '#3b82f6', backgroundColor: gradientBlue, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, order: 2, stepped: 'middle' }
                     ]},
-                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true, labels: {color:'#94a3b8'} }, tooltip: { callbacks: { label: c => c.dataset.label + ": " + c.parsed.y.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) } } }, scales: { y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b' }, title: { display: true, text: 'Valor (R$)', color: '#475569' } }, x: { grid: {display:false}, ticks: { color:'#64748b', maxTicksLimit: 12 }, title: { display: true, text: 'Meses', color: '#475569' } } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        interaction: { mode: 'index', intersect: false }, 
+                        plugins: { 
+                            legend: { display: true, labels: {color:'#94a3b8'} }, 
+                            tooltip: { callbacks: { label: c => c.dataset.label + ": " + c.parsed.y.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) } } 
+                        }, 
+                        scales: { 
+                            y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b' }, title: { display: true, text: 'Valor (R$)', color: '#475569' } }, 
+                            x: { grid: {display:false}, ticks: { display: false }, title: { display: true, text: 'Meses (Sazonalidade)', color: '#475569' } } 
+                        } 
+                    }
                 });
             }
-        }
-
-        // --- SISTEMA DE NEGOCIAÇÃO E UPLOAD ---
-        
-        window.toggleUpload = function() {
-            const uploadBox = document.getElementById('comp-upload');
-            const btnFinal = document.getElementById('btn-final-action');
-            const btnChallenge = document.getElementById('btn-challenge');
-            const statusTitle = document.getElementById('status-title');
-            const statusIcon = document.getElementById('status-icon');
-            const btnDiscount = document.getElementById('btn-discount');
-
-            // 1. Lógica de Exclusividade: Se Desconto estiver ativo, desliga ele.
-            if (btnDiscount.classList.contains('active')) {
-                window.toggleDiscount(); 
-            }
-
-            uploadBox.classList.toggle('hidden');
-            
-            if (!uploadBox.classList.contains('hidden')) {
-                // MODO NEGOCIAÇÃO ATIVO
-                isNegotiating = true;
-                btnChallenge.classList.add('active'); 
-                btnFinal.className = "btn-negotiate-action w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
-                btnFinal.innerHTML = 'Solicitar Avaliação Comparativa <i class="fas fa-file-signature text-sm"></i>';
-                statusTitle.innerText = "Análise de Concorrência";
-                statusIcon.className = "fas fa-search-dollar text-blue-500 text-xl";
-                btnFinal.onclick = enviarAnaliseComparativa;
-            } else {
-                // VOLTA AO MODO PADRÃO
-                isNegotiating = false;
-                btnChallenge.classList.remove('active');
-                btnFinal.className = "btn-approve w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
-                btnFinal.innerHTML = 'Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>';
-                statusTitle.innerText = "Tudo pronto para economizar?";
-                statusIcon.className = "fas fa-file-contract text-blue-500 text-xl";
-                
-                // LÓGICA DO CHECKOUT AQUI
-                btnFinal.onclick = () => {
-                   if (currentLeadId) {
-                       window.location.href = `checkout.html?id=${currentLeadId}`;
-                   } else {
-                       alert("ID do cliente não encontrado.");
-                   }
-                };
-            }
-        }
-
-        window.handleFileSelect = function(input) {
-            if (input.files && input.files[0]) {
-                selectedFile = input.files[0];
-                document.getElementById('upload-text').innerText = "Arquivo selecionado: " + selectedFile.name;
-                document.getElementById('upload-text').classList.add('text-green-400');
-                document.getElementById('upload-icon').className = "fas fa-file-pdf text-4xl text-green-500 mb-4";
-            }
-        }
-
-        async function enviarAnaliseComparativa() {
-            if (!selectedFile) {
-                alert("Por favor, selecione o arquivo PDF da proposta concorrente antes de enviar.");
-                return;
-            }
-            const btn = document.getElementById('btn-final-action');
-            const originalHTML = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-
-            try {
-                const storageRef = storage.ref();
-                const fileRef = storageRef.child(`competitors/${currentLeadId}/${selectedFile.name}`);
-                await fileRef.put(selectedFile);
-                const fileUrl = await fileRef.getDownloadURL();
-
-                await db.collection("leads").doc(currentLeadId).update({
-                    "status.fase": "em_analise_concorrencia",
-                    "status.data_solicitacao_analise": firebase.firestore.FieldValue.serverTimestamp(),
-                    "concorrencia": { arquivo_url: fileUrl, nome_arquivo: selectedFile.name }
-                });
-                showAnaliseEnviadaUI();
-            } catch (error) {
-                console.error("Erro upload:", error);
-                alert("Erro ao enviar arquivo.");
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-            }
-        }
-
-        function showAnaliseEnviadaUI() {
-            document.getElementById('comp-upload').innerHTML = `
-                <div class="text-center py-4">
-                    <i class="fas fa-check-circle text-5xl text-green-500 mb-4"></i>
-                    <h3 class="text-xl font-bold text-white">Solicitação Enviada!</h3>
-                    <p class="text-sm text-slate-400 mt-2">Nossa engenharia está analisando o documento.</p>
-                    <p class="text-xs text-slate-500 mt-1">Retornaremos em breve pelo WhatsApp.</p>
-                </div>
-            `;
-            document.getElementById('comp-upload').classList.remove('hidden', 'upload-area');
-            document.getElementById('comp-upload').onclick = null; 
-            document.getElementById('btn-final-action').style.display = 'none';
-            document.getElementById('btn-challenge').style.display = 'none';
-            document.getElementById('btn-discount').style.display = 'none';
         }
 
         // --- GLOBAL ACTIONS ---
@@ -674,12 +540,9 @@
             const isActive = btn.classList.contains('active');
             
             // Recalcula o bruto baseado no que carregou
-            const bruto = parseFloat(leadData.projeto.investimento);
+            const bruto = parseFloat(leadData.financeiro.investimento_bruto);
             
-            // 2. Lógica de Exclusividade: Se Negociação estiver ativa, fecha ela.
-            if (isNegotiating) {
-                window.toggleUpload(); // Reseta o modo negociação
-            }
+            if (isNegotiating) window.toggleUpload();
 
             if (!isActive) {
                 const liquido = bruto * 0.95;
@@ -694,8 +557,6 @@
         function applyDiscountUI(val) {
             document.getElementById('display-price').innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('display-price').classList.add('text-green-500');
-            document.getElementById('footer-text').innerText = "Condição à Vista Aplicada";
-            document.getElementById('footer-text').classList.add('text-green-500');
             document.getElementById('savings-badge').classList.remove('hidden');
             const btn = document.getElementById('btn-discount');
             btn.classList.add('active');
@@ -706,8 +567,6 @@
         function removeDiscountUI(val) {
             document.getElementById('display-price').innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('display-price').classList.remove('text-green-500');
-            document.getElementById('footer-text').innerText = "Condição padrão selecionada";
-            document.getElementById('footer-text').classList.remove('text-green-500');
             document.getElementById('savings-badge').classList.add('hidden');
             const btn = document.getElementById('btn-discount');
             btn.classList.remove('active');
@@ -715,18 +574,64 @@
             updateChart();
         }
 
-        window.toggleUpload = toggleUpload; 
+        window.toggleUpload = function() {
+            const uploadBox = document.getElementById('comp-upload');
+            const btnFinal = document.getElementById('btn-final-action');
+            const btnChallenge = document.getElementById('btn-challenge');
+            
+            if (document.getElementById('btn-discount').classList.contains('active')) window.toggleDiscount();
+
+            uploadBox.classList.toggle('hidden');
+            
+            if (!uploadBox.classList.contains('hidden')) {
+                isNegotiating = true;
+                btnChallenge.classList.add('active'); 
+                btnFinal.className = "btn-negotiate-action w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
+                btnFinal.innerHTML = 'Solicitar Avaliação <i class="fas fa-file-signature text-sm"></i>';
+                btnFinal.onclick = enviarAnaliseComparativa;
+            } else {
+                isNegotiating = false;
+                btnChallenge.classList.remove('active');
+                btnFinal.className = "btn-approve w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
+                btnFinal.innerHTML = 'Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>';
+                btnFinal.onclick = () => {
+                   if (currentLeadId) window.location.href = `checkout.html?id=${currentLeadId}`;
+                };
+            }
+        }
+
+        window.handleFileSelect = function(input) {
+            if (input.files && input.files[0]) {
+                selectedFile = input.files[0];
+                document.getElementById('upload-text').innerText = "Arquivo: " + selectedFile.name;
+                document.getElementById('upload-text').classList.add('text-green-400');
+            }
+        }
+
+        async function enviarAnaliseComparativa() {
+            if (!selectedFile) { alert("Selecione o PDF."); return; }
+            const btn = document.getElementById('btn-final-action');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            try {
+                const fileRef = storage.ref().child(`competitors/${currentLeadId}/${selectedFile.name}`);
+                await fileRef.put(selectedFile);
+                await db.collection("leads").doc(currentLeadId).update({
+                    "status.fase": "em_analise_concorrencia",
+                    "concorrencia": { nome_arquivo: selectedFile.name }
+                });
+                showAnaliseEnviadaUI();
+            } catch (error) { alert("Erro ao enviar."); btn.disabled = false; }
+        }
+
+        function showAnaliseEnviadaUI() {
+            document.getElementById('comp-upload').innerHTML = `<div class="text-center py-4"><h3 class="text-xl font-bold text-white">Solicitação Enviada!</h3></div>`;
+            document.getElementById('comp-upload').classList.remove('hidden');
+            document.getElementById('btn-final-action').style.display = 'none';
+        }
+
         window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
-
-        // Inicializa o botão de ação final com o evento correto
-        document.getElementById('btn-final-action').onclick = () => {
-             if (currentLeadId) {
-                 window.location.href = `checkout.html?id=${currentLeadId}`;
-             } else {
-                 alert("Aguarde o carregamento da proposta...");
-             }
-        };
-
+        document.getElementById('btn-final-action').onclick = () => { if (currentLeadId) window.location.href = `checkout.html?id=${currentLeadId}`; };
     </script>
 </body>
 </html>
