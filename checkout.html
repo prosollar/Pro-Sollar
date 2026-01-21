@@ -49,16 +49,18 @@
             background: rgba(0, 0, 0, 0.5);
         }
         
-        /* --- CORREÇÃO DO ÍCONE DE CALENDÁRIO --- */
+        /* --- CORREÇÃO DO ÍCONE DE CALENDÁRIO (TOM CINZA) --- */
         ::-webkit-calendar-picker-indicator { 
-            filter: invert(1) brightness(100%); /* Inverte a cor para Branco */
+            /* Inverte parcialmente o preto para um tom de cinza médio */
+            filter: invert(0.6); 
             opacity: 0.8; 
             cursor: pointer;
             transition: 0.3s;
         }
         ::-webkit-calendar-picker-indicator:hover { 
             opacity: 1; 
-            filter: invert(1) drop-shadow(0 0 5px rgba(255,255,255,0.5));
+            /* Fica um cinza um pouco mais claro no hover, sem brilho */
+            filter: invert(0.8); 
         }
 
         .btn-confirm {
