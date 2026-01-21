@@ -191,6 +191,7 @@
                 document.getElementById('price-label').classList.add('text-green-500');
             } else {
                 document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
+                document.getElementById('price-label').classList.remove('text-green-500');
             }
             document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
             document.getElementById('client-email').innerText = currentEmail || data.email;
@@ -199,6 +200,29 @@
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
+        }
+
+        // --- FUNÇÃO DE E-MAIL LIMPO (OVERRIDE NO TEMPLATE) ---
+        function gerarEmailTextoPuro(dados) {
+            // Este HTML super simples força o Firebase a não usar o template padrão
+            return `
+            <div style="background-color:#0a1120; color:#ffffff; padding:40px; font-family:sans-serif;">
+                <h2 style="margin-bottom:20px;">CONFIRMAÇÃO PRO-SOLLAR</h2>
+                <p>Olá <strong>${dados.nome}</strong>,</p>
+                <p>Sua visita técnica foi confirmada com sucesso.</p>
+                <br>
+                <p><strong>DATA:</strong> ${dados.data} (${dados.periodo})</p>
+                <p><strong>LOCAL:</strong> ${dados.endereco}</p>
+                <p><strong>SISTEMA:</strong> ${dados.sistema}</p>
+                <p><strong>VALOR RESERVADO:</strong> ${dados.valor}</p>
+                <br>
+                <hr style="border:1px solid #333;">
+                <br>
+                <p style="font-style:italic; color:#999;">"Seja bem-vindo à independência energética.<br>A partir de agora, nós cuidamos de tudo."</p>
+                <br>
+                <p style="font-size:12px; color:#666;">© 2026 Pro-Sollar Engineering</p>
+            </div>
+            `;
         }
 
         // --- AÇÃO PRINCIPAL ---
@@ -217,7 +241,6 @@
             const dataObj = new Date(dataVisita);
             const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
             const valorFinalTexto = document.getElementById('final-price').innerText;
-            const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
             const sistemaTexto = document.getElementById('panel-model').innerText;
             const enderecoTexto = document.getElementById('install-address').innerText;
 
@@ -233,35 +256,20 @@
                     "fechamento": { valor_reservado: valorFinalTexto, condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado" }
                 });
 
-                // TEXTO PURO (SEM HTML, SEM BOTÃO, SEM LAYOUT AZUL)
-                const mensagemTexto = `
-Olá ${nomeTitular},
-
-Sua reserva de visita técnica foi confirmada com sucesso!
-
-RESUMO DO AGENDAMENTO
----------------------------------------------
-Data: ${dataFormatada} (${periodo === 'manha' ? 'Manhã' : 'Tarde'})
-Local: ${enderecoTexto}
-Sistema: ${sistemaTexto}
-
-VALOR RESERVADO:
-${valorFinalTexto} (${condicaoTexto})
----------------------------------------------
-
-"Seja bem-vindo à independência energética.
-A partir de agora, nós cuidamos de tudo."
-
-Att,
-Equipe Pro-Sollar
-`;
-
-                // ENVIO LIMPO (Removemos o campo 'html' e 'template')
+                // ENVIA O E-MAIL COM O TRUQUE DE HTML
+                // O segredo aqui é enviar 'html' e NÃO enviar 'text'. Isso desativa o template automático do Trigger Email.
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
                         subject: `Confirmação de Agendamento - Pro-Sollar`,
-                        text: mensagemTexto
+                        html: gerarEmailTextoPuro({
+                            nome: nomeTitular,
+                            data: dataFormatada,
+                            periodo: periodo === 'manha' ? 'Manhã' : 'Tarde',
+                            endereco: enderecoTexto,
+                            sistema: sistemaTexto,
+                            valor: valorFinalTexto
+                        })
                     }
                 });
 
