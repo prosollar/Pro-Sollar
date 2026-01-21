@@ -3,149 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro-Sollar | Portal da Independência Energética</title>
+    <title>Pro-Sollar | Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
-
-        :root {
-            --bg-deep: #0a1120;
-            --accent-blue: #3b82f6;
-            --accent-green: #22c55e;
-            --accent-yellow: #facc15;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-deep);
-            color: white;
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.05) 0%, transparent 30%);
-            background-attachment: fixed;
-        }
-
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border);
-            border-radius: 2rem;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .btn-approve {
-            background: var(--accent-green);
-            color: #052e16;
-            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .btn-approve:hover {
-            transform: scale(1.02) translateY(-2px);
-            box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
-            background: #4ade80;
-        }
-
-        .btn-negotiate-action {
-            background: var(--accent-blue);
-            color: white;
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .btn-negotiate-action:hover {
-            transform: scale(1.02) translateY(-2px);
-            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
-            background: #60a5fa;
-        }
-
-        .negotiation-btn {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-        }
-        .negotiation-btn:hover {
-            border-color: var(--accent-yellow);
-            background: rgba(250, 204, 21, 0.05);
-        }
-        .negotiation-btn.active {
-            border-color: var(--accent-green);
-            background: rgba(34, 197, 94, 0.08);
-        }
-        
+        /* ... (SEU CSS EXISTENTE PERMANECE IGUAL, NADA MUDA AQUI) ... */
+        :root { --bg-deep: #0a1120; --accent-blue: #3b82f6; --accent-green: #22c55e; --accent-yellow: #facc15; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.08); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: white; min-height: 100vh; background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%), radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.05) 0%, transparent 30%); background-attachment: fixed; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 2rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-approve { background: var(--accent-green); color: #052e16; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2); transition: all 0.3s ease; cursor: pointer; }
+        .btn-approve:hover { transform: scale(1.02) translateY(-2px); box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4); background: #4ade80; }
+        .btn-negotiate-action { background: var(--accent-blue); color: white; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3); transition: all 0.3s ease; cursor: pointer; }
+        .btn-negotiate-action:hover { transform: scale(1.02) translateY(-2px); box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5); background: #60a5fa; }
+        .negotiation-btn { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.3s ease; }
+        .negotiation-btn:hover { border-color: var(--accent-yellow); background: rgba(250, 204, 21, 0.05); }
+        .negotiation-btn.active { border-color: var(--accent-green); background: rgba(34, 197, 94, 0.08); }
         .chart-container { position: relative; height: 320px; width: 100%; }
-
-        .chart-toggle {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 1rem;
-            padding: 4px;
-            display: inline-flex;
-            margin-bottom: 20px;
-        }
-        .toggle-btn {
-            padding: 8px 20px;
-            border-radius: 0.8rem;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            color: #64748b;
-            cursor: pointer;
-        }
-        .toggle-btn.active {
-            background: var(--accent-blue);
-            color: white;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-        }
-        .toggle-btn.active-green {
-            background: var(--accent-green);
-            color: #064e3b;
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
-        }
-
-        .time-selector {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 15px;
-        }
-        .time-btn {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        .chart-toggle { background: rgba(255, 255, 255, 0.05); border-radius: 1rem; padding: 4px; display: inline-flex; margin-bottom: 20px; }
+        .toggle-btn { padding: 8px 20px; border-radius: 0.8rem; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; color: #64748b; cursor: pointer; }
+        .toggle-btn.active { background: var(--accent-blue); color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+        .toggle-btn.active-green { background: var(--accent-green); color: #064e3b; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
+        .time-selector { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
+        .time-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 6px 16px; border-radius: 20px; font-size: 10px; font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.2s; }
         .time-btn:hover { background: rgba(255,255,255,0.1); color: white; }
-        .time-btn.active {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.2);
-            color: white;
-            box-shadow: 0 0 10px rgba(255,255,255,0.05);
-        }
+        .time-btn.active { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white; box-shadow: 0 0 10px rgba(255,255,255,0.05); }
         .hidden-important { display: none !important; }
-
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
-            background: var(--accent-blue); cursor: pointer; margin-top: -6px;
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; cursor: pointer;
-            background: rgba(255,255,255,0.1); border-radius: 2px;
-        }
-        
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent-blue); cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: rgba(255,255,255,0.1); border-radius: 2px; }
         .control-group label { font-size: 10px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em; color: #93c5fd; }
         .control-value { font-size: 14px; font-weight: 900; color: white; }
         .upload-area { cursor: pointer; transition: all 0.3s; }
@@ -156,7 +43,7 @@
 
     <div class="max-w-6xl mx-auto">
         
-        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+        <header class="flex flex-col lg:flex-row justify-between items-center mb-10 gap-6">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-2xl">
                     <i class="fas fa-solar-panel text-white text-lg"></i>
@@ -166,41 +53,41 @@
                 </div>
             </div>
             
-            <div class="flex gap-4">
-                <a href="index.html" class="glass-card px-5 py-2 flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition group">
-                    <i class="fas fa-plus-circle text-yellow-500 group-hover:rotate-90 transition-transform"></i>
-                    Nova Simulação
-                </a>
+            <div class="flex-1 w-full lg:w-auto flex justify-center lg:justify-end gap-3 items-center overflow-x-auto pb-2 lg:pb-0 px-2" id="project-bar">
+                <div class="animate-pulse h-8 w-24 bg-white/5 rounded-full"></div>
+            </div>
 
-                <div class="glass-card px-5 py-2 flex items-center gap-4">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Conectado como</p>
-                        <p id="user-email-display" class="text-xs font-bold text-blue-400">...</p>
-                    </div>
-                    <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300"><i class="fas fa-sign-out-alt"></i></button>
-                </div>
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="glass-card px-4 py-2 flex items-center gap-2 text-[10px] font-bold text-slate-300 hover:text-white hover:bg-white/5 transition whitespace-nowrap">
+                    <i class="fas fa-plus text-yellow-500"></i> Novo
+                </a>
+                <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300 px-2"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </header>
 
         <div id="loading-skeleton" class="animate-pulse glass-card p-12 mb-8 text-center">
             <i class="fas fa-satellite-dish fa-spin text-4xl text-blue-500 mb-4"></i>
-            <h2 class="text-xl font-bold">Recuperando dados do satélite...</h2>
+            <h2 class="text-xl font-bold">Carregando seus projetos...</h2>
         </div>
 
         <div id="content-panel" class="hidden animate-in fade-in duration-700">
             
-            <div class="glass-card p-8 md:p-10 border-blue-500/20 bg-blue-500/[0.02] mb-8">
-                <div class="flex flex-wrap justify-between items-start gap-6">
+            <div class="glass-card p-8 md:p-10 border-blue-500/20 bg-blue-500/[0.02] mb-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                    <i class="fas fa-bolt text-9xl text-white"></i>
+                </div>
+
+                <div class="flex flex-wrap justify-between items-start gap-6 relative z-10">
                     <div>
                         <div class="flex items-center gap-3 mb-3">
-                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500">Projeto Viável</span>
+                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" id="status-dot"></span>
+                            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500" id="status-text">Projeto Viável</span>
                         </div>
                         <h3 id="display-address" class="text-2xl md:text-3xl font-black italic text-white mb-2 leading-tight">...</h3>
                         <p id="display-specs" class="text-xs text-slate-400 font-bold uppercase tracking-widest">...</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Valor do Sistema</p>
+                        <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Investimento Estimado</p>
                         <p id="display-price" class="text-3xl md:text-4xl font-black text-white italic">R$ --.--</p>
                         <p id="savings-badge" class="hidden text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">Desconto aplicado</p>
                     </div>
@@ -233,7 +120,6 @@
             <div class="glass-card p-8 mb-8 relative overflow-hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-4">
                     <h3 class="text-lg font-bold text-white mb-4 md:mb-0"><i class="fas fa-chart-line text-blue-500 mr-2"></i> Análise Financeira</h3>
-                    
                     <div class="chart-toggle">
                         <div id="mode-cash" onclick="window.switchChartMode('cash')" class="toggle-btn active-green">Patrimônio</div>
                         <div id="mode-finan" onclick="window.switchChartMode('finan')" class="toggle-btn">Fluxo Mensal</div>
@@ -257,14 +143,8 @@
                     </div>
                 </div>
 
-                <p id="chart-desc" class="text-center text-xs text-slate-400 mb-6 font-medium">
-                    Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)
-                </p>
-
-                <div class="chart-container">
-                    <canvas id="wealthChart"></canvas>
-                </div>
-
+                <p id="chart-desc" class="text-center text-xs text-slate-400 mb-6 font-medium">Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)</p>
+                <div class="chart-container"><canvas id="wealthChart"></canvas></div>
                 <div class="time-selector">
                     <div id="time-1" onclick="window.switchTimeRange(1)" class="time-btn hidden-important">1 ANO</div>
                     <div id="time-5" onclick="window.switchTimeRange(5)" class="time-btn">5 ANOS</div>
@@ -302,7 +182,6 @@
                             <p id="footer-text" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 italic">Condição padrão selecionada</p>
                         </div>
                     </div>
-                    
                     <button id="btn-final-action" class="btn-approve w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4">
                         Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>
                     </button>
@@ -317,7 +196,6 @@
                     <h2 class="text-2xl font-bold text-white mb-2">Visita Agendada!</h2>
                     <p class="text-slate-300 text-sm mb-6 max-w-lg mx-auto">
                         Sua reserva de preço e agendamento técnico foram confirmados.
-                        Nossa equipe de engenharia entrará em contato em breve para os próximos passos.
                     </p>
                     <div class="inline-flex items-center gap-2 bg-green-500/10 px-4 py-2 rounded-lg border border-green-500/20">
                         <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -356,7 +234,9 @@
         let currentLeadId = null;
         let leadData = null;
         let wealthChart = null;
+        let userProposals = []; // LISTA DE PROJETOS
         
+        // STATES
         let currentChartMode = 'cash';
         let currentTimeRange = 25;
         let currentInterestRate = 1.50;
@@ -367,38 +247,98 @@
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                document.getElementById('user-email-display').innerText = user.email;
-                const params = new URLSearchParams(window.location.search);
-                const urlEmail = params.get('email');
-                if(urlEmail) await buscarPorEmail(urlEmail); 
-                else await buscarPorEmail(user.email); 
+                // Se logado, busca pelo e-mail do usuário
+                await carregarProjetosDoUsuario(user.email);
             } else { 
+                // Se não logado (link mágico pré-login), tenta pegar ID ou Email da URL
                 const params = new URLSearchParams(window.location.search);
-                if (params.get('email')) await buscarPorEmail(params.get('email'));
+                const urlId = params.get('id');
+                const urlEmail = params.get('email');
+
+                if(urlId) await buscarPorId(urlId);
+                else if (urlEmail) await carregarProjetosDoUsuario(urlEmail);
                 else window.location.href = "login.html"; 
             }
         });
 
-        async function buscarPorEmail(email) {
+        // BUSCA TODOS OS PROJETOS DO E-MAIL
+        async function carregarProjetosDoUsuario(email) {
             try {
-                const docRef = db.collection("leads").doc(email);
-                const docSnap = await docRef.get();
-                if (docSnap.exists) {
-                    currentLeadId = docSnap.id;
-                    leadData = docSnap.data();
-                    renderizarDados(leadData);
-                } else {
-                    alert("Proposta não encontrada.");
+                // Busca todas as propostas desse email
+                const snapshot = await db.collection("leads").where("perfil.email", "==", email).orderBy("data_cadastro", "desc").get();
+                
+                if (snapshot.empty) {
+                    alert("Nenhuma proposta encontrada.");
                     window.location.href = "index.html";
+                    return;
                 }
+
+                userProposals = [];
+                snapshot.forEach(doc => {
+                    userProposals.push({ id: doc.id, ...doc.data() });
+                });
+
+                renderizarBarraDeProjetos();
+
+                // Se tiver ID na URL, carrega ele. Se não, carrega o mais recente.
+                const params = new URLSearchParams(window.location.search);
+                const urlId = params.get('id');
+                
+                const activeProject = urlId ? userProposals.find(p => p.id === urlId) : userProposals[0];
+                
+                if(activeProject) {
+                    carregarProjetoNaTela(activeProject);
+                }
+
             } catch (e) { console.error(e); }
+        }
+
+        async function buscarPorId(id) {
+            try {
+                const doc = await db.collection("leads").doc(id).get();
+                if(doc.exists) {
+                    // Carrega só este por enquanto, depois tenta buscar outros do mesmo email
+                    const data = doc.data();
+                    carregarProjetoNaTela({ id: doc.id, ...data });
+                    carregarProjetosDoUsuario(data.perfil.email); // Background fetch
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function renderizarBarraDeProjetos() {
+            const container = document.getElementById('project-bar');
+            container.innerHTML = ''; // Limpa
+
+            userProposals.forEach((proj, index) => {
+                const isActive = proj.id === currentLeadId;
+                const nome = proj.perfil.nome_projeto || `Projeto ${index + 1}`;
+                const statusIcon = proj.status?.fase === 'visita_agendada' ? '<i class="fas fa-check-circle text-green-500 ml-1"></i>' : '';
+
+                const btn = document.createElement('button');
+                btn.className = `whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${isActive ? 'bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'}`;
+                btn.innerHTML = `${nome} ${statusIcon}`;
+                
+                btn.onclick = () => carregarProjetoNaTela(proj);
+                container.appendChild(btn);
+            });
+        }
+
+        function carregarProjetoNaTela(projeto) {
+            currentLeadId = projeto.id;
+            leadData = projeto;
+            
+            // Atualiza URL sem recarregar
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?id=${currentLeadId}`;
+            window.history.pushState({path:newUrl},'',newUrl);
+
+            renderizarBarraDeProjetos(); // Re-renderiza para atualizar o ativo
+            renderizarDados(projeto);
         }
 
         function renderizarDados(data) {
             try {
                 if (!data.financeiro || !data.financeiro.fluxo_caixa_mensal) {
-                    alert("⚠️ Atenção: Esta é uma proposta antiga.\n\nPor favor, gere uma nova proposta na página inicial.");
-                    window.location.href = "index.html";
+                    alert("Proposta antiga incompatível. Gere uma nova.");
                     return;
                 }
 
@@ -415,12 +355,17 @@
 
                 document.getElementById('display-specs').innerText = `${kwp} kWp • ${qtdModulos}x ${modelo}`;
 
-                // Tratamento de Preço
+                // Tratamento de Preço e Desconto
                 const bruto = financeiro.investimento_bruto || 0;
                 const isDiscount = data.status?.desconto_aplicado || false;
                 
-                if(isDiscount) applyDiscountUI(bruto * 0.95);
-                else removeDiscountUI(bruto);
+                // Reset visual dos botões
+                const btnDiscount = document.getElementById('btn-discount');
+                if (isDiscount) {
+                    applyDiscountUI(bruto * 0.95);
+                } else {
+                    removeDiscountUI(bruto);
+                }
 
                 // KPIs
                 const geracaoAno1 = (engenharia.geracao_mensal_media_ano1 || 0) * 12;
@@ -431,14 +376,27 @@
                 document.getElementById('kpi-payback').innerText = (financeiro.payback_anos || 0) + " Anos";
                 document.getElementById('kpi-roi').innerText = (financeiro.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 
-                // --- LÓGICA DE BLOQUEIO DE STATUS ---
+                // LÓGICA DE ESTADO (VISITA AGENDADA)
+                const actionSection = document.getElementById('action-section');
+                const lockedCard = document.getElementById('status-locked-card');
+                const statusText = document.getElementById('status-text');
+                const statusDot = document.getElementById('status-dot');
+
                 if (data.status?.fase === "visita_agendada") {
-                    // Esconde a área de ação (botões)
-                    document.getElementById('action-section').classList.add('hidden');
-                    // Mostra o cartão de bloqueio
-                    document.getElementById('status-locked-card').classList.remove('hidden');
-                } else if (data.status?.fase === "em_analise_concorrencia") {
-                    showAnaliseEnviadaUI();
+                    actionSection.classList.add('hidden');
+                    lockedCard.classList.remove('hidden');
+                    statusText.innerText = "Visita Agendada";
+                    statusText.className = "text-[10px] font-black uppercase tracking-[0.3em] text-blue-400";
+                    statusDot.className = "inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse";
+                } else {
+                    actionSection.classList.remove('hidden');
+                    lockedCard.classList.add('hidden');
+                    statusText.innerText = "Projeto Viável";
+                    statusText.className = "text-[10px] font-black uppercase tracking-[0.3em] text-green-500";
+                    statusDot.className = "inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse";
+                    
+                    if (data.status?.fase === "em_analise_concorrencia") showAnaliseEnviadaUI();
+                    else resetUploadUI();
                 }
 
                 document.getElementById('loading-skeleton').classList.add('hidden');
@@ -446,12 +404,10 @@
                 
                 updateChart();
 
-            } catch (error) {
-                console.error("Erro ao renderizar:", error);
-            }
+            } catch (error) { console.error("Erro render:", error); }
         }
 
-        // --- SISTEMA DE GRÁFICOS ---
+        // --- CHART SYSTEM ---
         window.updateInterestRate = function(val) { currentInterestRate = parseFloat(val); document.getElementById('rate-display').innerText = currentInterestRate.toFixed(2) + "%"; updateChart(); }
         window.updateLoanTerm = function(val) { currentLoanTerm = parseInt(val); document.getElementById('term-display').innerText = currentLoanTerm + "x"; updateChart(); }
 
@@ -459,20 +415,15 @@
             currentChartMode = mode;
             document.getElementById('mode-cash').className = mode === 'cash' ? 'toggle-btn active-green' : 'toggle-btn';
             document.getElementById('mode-finan').className = mode === 'finan' ? 'toggle-btn active' : 'toggle-btn';
-            
-            const desc = document.getElementById('chart-desc');
             const btn1Year = document.getElementById('time-1');
             const finanControls = document.getElementById('finan-controls');
-
             if(mode === 'cash') {
-                desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
-                btn1Year.classList.add('hidden-important'); 
-                finanControls.classList.add('hidden'); 
+                document.getElementById('chart-desc').innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
+                btn1Year.classList.add('hidden-important'); finanControls.classList.add('hidden'); 
                 if(currentTimeRange === 1) window.switchTimeRange(25);
             } else {
-                desc.innerText = "Simulador de Financiamento: Economia Mensal (Oscilação Sazonal)";
-                btn1Year.classList.remove('hidden-important');
-                finanControls.classList.remove('hidden'); 
+                document.getElementById('chart-desc').innerText = "Simulador de Financiamento: Economia Mensal (Oscilação Sazonal)";
+                btn1Year.classList.remove('hidden-important'); finanControls.classList.remove('hidden'); 
             }
             updateChart();
         }
@@ -486,103 +437,47 @@
 
         function updateChart() {
             if(!leadData || !leadData.financeiro.fluxo_caixa_mensal) return;
-            
-            const fluxoCompleto = leadData.financeiro.fluxo_caixa_mensal; 
+            const fluxo = leadData.financeiro.fluxo_caixa_mensal; 
             const precoString = document.getElementById('display-price').innerText;
-            const investimentoAtual = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
+            const investimento = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
             
             const ctx = document.getElementById('wealthChart').getContext('2d');
-            const mesesLimite = currentTimeRange * 12;
-            const dadosRecortados = fluxoCompleto.slice(0, mesesLimite);
-
-            const labels = dadosRecortados.map(d => d.mes_absoluto); 
+            const dados = fluxo.slice(0, currentTimeRange * 12);
+            const labels = dados.map(d => d.mes_absoluto); 
 
             if (currentChartMode === 'cash') {
-                // MODO PATRIMÔNIO (CURVA EXPONENCIAL)
-                const labelsAnuais = [];
-                const dataSolar = [];
-                const dataCDI = [];
-                const taxaCdiLiq = 0.095; // 9.5% a.a
-
-                labelsAnuais.push("Início");
-                dataSolar.push(-investimentoAtual);
-                dataCDI.push(0);
-
-                dadosRecortados.forEach(d => {
+                const labelsAnuais = []; const dataSolar = []; const dataCDI = [];
+                labelsAnuais.push("Início"); dataSolar.push(-investimento); dataCDI.push(0);
+                dados.forEach(d => {
                     if (d.mes_absoluto % 12 === 0) {
                         labelsAnuais.push("Ano " + d.ano);
-                        
-                        const ecoAcumulada = fluxoCompleto.slice(0, d.mes_absoluto).reduce((acc, curr) => acc + curr.economia_reais, 0);
-                        dataSolar.push(ecoAcumulada - investimentoAtual);
-
-                        const montanteCdi = investimentoAtual * Math.pow((1+taxaCdiLiq), d.ano);
-                        dataCDI.push(montanteCdi - investimentoAtual);
+                        const eco = fluxo.slice(0, d.mes_absoluto).reduce((acc, curr) => acc + curr.economia_reais, 0);
+                        dataSolar.push(eco - investimento);
+                        dataCDI.push((investimento * Math.pow(1.095, d.ano)) - investimento);
                     }
                 });
-
-                let gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                gradient.addColorStop(0, 'rgba(34, 197, 94, 0.5)'); gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
-
                 if (wealthChart) wealthChart.destroy();
-                wealthChart = new Chart(ctx, {
-                    type: 'line',
-                    data: { labels: labelsAnuais, datasets: [
-                        { label: 'Patrimônio Solar', data: dataSolar, borderColor: '#22c55e', backgroundColor: gradient, borderWidth: 3, pointBackgroundColor: '#fff', fill: true, tension: 0.3 },
-                        { label: 'Rendimentos CDI', data: dataCDI, borderColor: '#64748b', borderWidth: 2, borderDash: [5,5], pointRadius: 0, fill: false, tension: 0.3 }
-                    ]},
-                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true, labels: {color:'#94a3b8'} } }, scales: { y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b', callback: v => 'R$ ' + v/1000 + 'k' } }, x: { grid: {display:false}, ticks: { color:'#64748b' } } } }
-                });
-
+                wealthChart = new Chart(ctx, { type: 'line', data: { labels: labelsAnuais, datasets: [ { label: 'Patrimônio Solar', data: dataSolar, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true }, { label: 'CDI', data: dataCDI, borderColor: '#64748b', borderDash: [5,5] } ] }, options: { responsive: true, maintainAspectRatio: false } });
             } else {
-                // MODO MENSAL (OSCILAÇÃO)
-                const prazo = currentLoanTerm;
-                const carencia = 2; 
-                const taxaAm = currentInterestRate / 100; 
-                const parcela = (investimentoAtual * taxaAm * Math.pow(1+taxaAm, prazo)) / (Math.pow(1+taxaAm, prazo) - 1);
+                const prazo = currentLoanTerm; const tx = currentInterestRate/100;
+                const parc = (investimento * tx * Math.pow(1+tx, prazo)) / (Math.pow(1+tx, prazo) - 1);
+                const dataEco = dados.map(d => d.economia_reais);
+                const dataParc = dados.map((d, i) => (i >= 2 && i < prazo+2) ? parc : 0);
                 
-                const dataEconomia = dadosRecortados.map(d => d.economia_reais);
-                const dataParcela = dadosRecortados.map((d, i) => {
-                    if (i < carencia) return 0;
-                    if (i < (prazo + carencia)) return parcela;
-                    return 0;
-                });
-
-                let gradientBlue = ctx.createLinearGradient(0, 0, 0, 300);
-                gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.4)'); gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
-
                 if (wealthChart) wealthChart.destroy();
-                wealthChart = new Chart(ctx, {
-                    type: 'line',
-                    data: { labels: labels, datasets: [
-                        { label: 'Economia Mensal (R$)', data: dataEconomia, borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: false, order: 1 }, 
-                        { label: `Parcela Fixa (${prazo}x)`, data: dataParcela, borderColor: '#3b82f6', backgroundColor: gradientBlue, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, order: 2, stepped: 'middle' }
-                    ]},
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        interaction: { mode: 'index', intersect: false }, 
-                        plugins: { 
-                            legend: { display: true, labels: {color:'#94a3b8'} }, 
-                            tooltip: { callbacks: { label: c => c.dataset.label + ": " + c.parsed.y.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) } } 
-                        }, 
-                        scales: { 
-                            y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b' }, title: { display: true, text: 'Valor (R$)', color: '#475569' } }, 
-                            x: { grid: {display:false}, ticks: { display: false }, title: { display: true, text: 'Meses', color: '#475569' } } 
-                        } 
-                    }
-                });
+                wealthChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'Economia', data: dataEco, borderColor: '#22c55e' }, { label: 'Parcela', data: dataParc, borderColor: '#3b82f6', fill: true } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false } } } });
             }
         }
 
+        // --- ACTIONS ---
         window.toggleDiscount = async function() {
-            if (!currentLeadId || !leadData) return;
+            if (!currentLeadId) return;
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
             const bruto = parseFloat(leadData.financeiro.investimento_bruto);
             if (isNegotiating) window.toggleUpload();
             if (!isActive) {
-                const liquido = bruto * 0.95;
-                applyDiscountUI(liquido);
+                applyDiscountUI(bruto * 0.95);
                 await db.collection("leads").doc(currentLeadId).update({ "status.desconto_aplicado": true });
             } else {
                 removeDiscountUI(bruto);
@@ -594,9 +489,8 @@
             document.getElementById('display-price').innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('display-price').classList.add('text-green-500');
             document.getElementById('savings-badge').classList.remove('hidden');
-            const btn = document.getElementById('btn-discount');
-            btn.classList.add('active');
-            btn.innerHTML = '<i class="fas fa-check mr-2 text-green-500"></i> Desconto Ativado';
+            document.getElementById('btn-discount').classList.add('active');
+            document.getElementById('btn-discount').innerHTML = '<i class="fas fa-check mr-2 text-green-500"></i> Desconto Ativado';
             updateChart();
         }
 
@@ -604,9 +498,8 @@
             document.getElementById('display-price').innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('display-price').classList.remove('text-green-500');
             document.getElementById('savings-badge').classList.add('hidden');
-            const btn = document.getElementById('btn-discount');
-            btn.classList.remove('active');
-            btn.innerHTML = '<i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista';
+            document.getElementById('btn-discount').classList.remove('active');
+            document.getElementById('btn-discount').innerHTML = '<i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista';
             updateChart();
         }
 
@@ -631,13 +524,13 @@
             }
         }
 
-        window.handleFileSelect = function(input) {
-            if (input.files && input.files[0]) {
-                selectedFile = input.files[0];
-                document.getElementById('upload-text').innerText = "Arquivo: " + selectedFile.name;
-                document.getElementById('upload-text').classList.add('text-green-400');
-            }
+        function resetUploadUI() {
+            document.getElementById('comp-upload').classList.add('hidden');
+            document.getElementById('btn-final-action').style.display = 'flex';
+            document.getElementById('btn-challenge').classList.remove('active');
         }
+
+        window.handleFileSelect = function(input) { if (input.files[0]) { selectedFile = input.files[0]; document.getElementById('upload-text').innerText = "Arquivo: " + selectedFile.name; } }
 
         async function enviarAnaliseComparativa() {
             if (!selectedFile) { alert("Selecione o PDF."); return; }
@@ -647,10 +540,7 @@
             try {
                 const fileRef = storage.ref().child(`competitors/${currentLeadId}/${selectedFile.name}`);
                 await fileRef.put(selectedFile);
-                await db.collection("leads").doc(currentLeadId).update({
-                    "status.fase": "em_analise_concorrencia",
-                    "concorrencia": { nome_arquivo: selectedFile.name }
-                });
+                await db.collection("leads").doc(currentLeadId).update({ "status.fase": "em_analise_concorrencia", "concorrencia": { nome_arquivo: selectedFile.name } });
                 showAnaliseEnviadaUI();
             } catch (error) { alert("Erro ao enviar."); btn.disabled = false; }
         }
