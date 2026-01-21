@@ -331,7 +331,8 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
         
-        let currentLeadId = null;
+        let currentEmail = null;
+        let currentSimId = null;
         let leadData = null;
 
         // DATA MÍNIMA
@@ -358,92 +359,110 @@
         }
 
         window.voltarParaPainel = function() {
-            if(currentLeadId) window.location.href = `panel.html?email=${encodeURIComponent(currentLeadId)}`;
+            // REDIRECIONAMENTO COM PARÂMETROS CORRETOS
+            if(currentEmail && currentSimId) window.location.href = `panel.html?email=${encodeURIComponent(currentEmail)}&simId=${currentSimId}`;
             else window.history.back();
         }
 
-        // AUTH CHECK
+        // AUTH CHECK (LÊ PARÂMETROS DA URL)
         auth.onAuthStateChanged(async (user) => {
+            const params = new URLSearchParams(window.location.search);
+            const urlEmail = params.get('email');
+            const urlSimId = params.get('simId') || params.get('id');
+
             if (user) {
-                const params = new URLSearchParams(window.location.search);
-                currentLeadId = params.get('id');
-                if(currentLeadId) await carregarDados(currentLeadId, user.email);
-                else { alert("ID inválido."); window.location.href = "panel.html"; }
-            } else { window.location.href = "login.html"; }
+                currentEmail = user.email;
+                currentSimId = urlSimId;
+            } else if (urlEmail && urlSimId) {
+                currentEmail = urlEmail;
+                currentSimId = urlSimId;
+            } else {
+                alert("Link inválido. Redirecionando para login.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            if(currentEmail && currentSimId) {
+                await carregarDados(currentEmail, currentSimId);
+            }
         });
 
-        async function carregarDados(id, email) {
+        // BUSCA DADOS NA ESTRUTURA HIERÁRQUICA
+        async function carregarDados(email, simId) {
             try {
-                const docSnap = await db.collection("leads").doc(id).get();
-                if (docSnap.exists) {
-                    leadData = docSnap.data();
+                // 1. Busca a Simulação Específica (Sub-coleção)
+                const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
+                // 2. Busca o Perfil Pai (para dados de contato)
+                const userRef = db.collection("leads").doc(email);
+
+                const simSnap = await simRef.get();
+                const userSnap = await userRef.get();
+
+                if (simSnap.exists) {
+                    const simData = simSnap.data();
+                    const userData = userSnap.exists ? userSnap.data() : {};
+                    
+                    // Mescla os dados: Simulação tem prioridade, depois Perfil do Usuário
+                    leadData = { 
+                        ...userData, // Dados de contato do pai
+                        ...simData,  // Dados técnicos do filho
+                        id: simId, 
+                        email: email 
+                    };
+                    
                     renderizar(leadData);
                 } else {
-                    alert("Cliente não encontrado.");
-                    window.location.href = "index.html";
+                    alert("Simulação não encontrada.");
+                    window.location.href = "panel.html";
                 }
             } catch (error) { 
                 console.error("Erro:", error); 
-                alert("Erro de conexão.");
+                alert("Erro ao carregar dados. Verifique sua conexão.");
             }
         }
 
         function renderizar(data) {
-            try {
-                // UNIVERSAL ADAPTER (Lê V4 e V1)
-                const engenharia = data.engenharia?.projetado || {};
-                const config = data.configuracao_sistema || {};
-                const financeiro = data.financeiro || {};
-                const projetoAntigo = data.projeto || {};
+            const engenharia = data.engenharia?.projetado || {};
+            const config = data.configuracao_sistema || {};
+            const financeiro = data.financeiro || {};
+            const detalhes = data.detalhes || {};
+            const perfil = data.perfil || {};
 
-                // Prioriza V4, se não tiver, usa V1
-                const kwp = engenharia.potencia_instalada_kwp || projetoAntigo.kwp || "0";
-                
-                // Cálculo seguro de painéis
-                let qtdPaineis = engenharia.qtd_modulos;
-                if (!qtdPaineis) {
-                    // Tenta calcular baseado no kwp se for antigo
-                    qtdPaineis = Math.ceil(parseFloat(kwp) / 0.57); // 570W estimado
-                }
-                
-                const modeloPainel = config.modulo?.modelo || "Módulo Solar Alta Performance";
-                
-                // Preenche Equipamentos
-                document.getElementById('panel-model').innerText = `${qtdPaineis}x ${modeloPainel} (${kwp} kWp)`;
-                
-                // Preenche Endereço
-                const enderecoFull = data.perfil?.endereco_completo || data.endereco || "Local não informado";
-                document.getElementById('install-address').innerText = enderecoFull;
+            const kwp = engenharia.potencia_instalada_kwp || "0";
+            const qtdPaineis = engenharia.qtd_modulos || 0;
+            const modeloPainel = config.modulo?.modelo || "Módulo Solar Alta Performance";
+            
+            document.getElementById('panel-model').innerText = `${qtdPaineis}x ${modeloPainel} (${kwp} kWp)`;
+            
+            // Prioriza endereço da simulação, se não, pega do perfil
+            const enderecoFull = detalhes.endereco_completo || perfil.endereco_completo || "Local não informado";
+            document.getElementById('install-address').innerText = enderecoFull;
 
-                // Preenche Preços
-                const isDiscount = data.status?.desconto_aplicado || false;
-                const valorPadrao = parseFloat(financeiro.investimento_bruto || projetoAntigo.investimento || 0);
-                const valorComDesconto = valorPadrao * 0.95; 
+            const isDiscount = data.status?.desconto_aplicado || false;
+            const valorPadrao = financeiro.investimento_bruto || 0;
+            const valorComDesconto = valorPadrao * 0.95; 
 
-                let valorExibir = valorPadrao;
-                if (isDiscount) {
-                    valorExibir = valorComDesconto;
-                    document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
-                    document.getElementById('price-label').classList.add('text-green-500');
-                } else {
-                    document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
-                    document.getElementById('price-label').classList.remove('text-green-500');
-                }
-                
-                document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-
-                // Contatos
-                document.getElementById('client-email').innerText = data.perfil?.email || data.email;
-                document.getElementById('client-phone').innerText = data.perfil?.whatsapp_formatted || data.whatsapp;
-
-                if(data.perfil?.nome) document.getElementById('titular-nome').value = data.perfil.nome;
-
-                document.getElementById('loading-skeleton').classList.add('hidden');
-                document.getElementById('checkout-content').classList.remove('hidden');
-            } catch(e) {
-                console.error("Erro Render:", e);
-                alert("Erro ao exibir dados. Tente atualizar.");
+            let valorExibir = valorPadrao;
+            if (isDiscount) {
+                valorExibir = valorComDesconto;
+                document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
+                document.getElementById('price-label').classList.add('text-green-500');
+            } else {
+                document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
+                document.getElementById('price-label').classList.remove('text-green-500');
             }
+            
+            document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+
+            // Contatos
+            document.getElementById('client-email').innerText = email || data.email;
+            document.getElementById('client-phone').innerText = perfil.whatsapp_formatted || data.whatsapp || "Via WhatsApp";
+
+            // Nome se existir no perfil
+            if(perfil.nome) document.getElementById('titular-nome').value = perfil.nome;
+
+            document.getElementById('loading-skeleton').classList.add('hidden');
+            document.getElementById('checkout-content').classList.remove('hidden');
         }
 
         // --- AÇÃO PRINCIPAL ---
@@ -461,7 +480,6 @@
             const dataVisita = document.getElementById('visit-date').value;
             const periodo = document.querySelector('input[name="periodo"]:checked').value;
             
-            // Formatando Data
             const dataObj = new Date(dataVisita);
             const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
 
@@ -469,9 +487,15 @@
             const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
 
             try {
-                // 1. Atualiza Lead no Firestore
-                await db.collection("leads").doc(currentLeadId).update({
-                    "perfil.nome": nomeTitular, 
+                // 1. ATUALIZA A SIMULAÇÃO ESPECÍFICA (SUB-COLEÇÃO)
+                const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
+                const userRef = db.collection("leads").doc(currentEmail);
+
+                // Salva o nome no perfil do usuário também (pai)
+                await userRef.update({ "perfil.nome": nomeTitular });
+
+                // Atualiza o status da simulação (filho)
+                await simRef.update({
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
                     "agendamento": {
@@ -489,7 +513,7 @@
 
                 // 2. DISPARA O ROBÔ (FILA_EMAIL)
                 await db.collection("fila_email").add({
-                    to: leadData.email,
+                    to: currentEmail,
                     message: {
                         subject: `Visita Confirmada: ${dataFormatada} - Pro-Sollar`,
                         text: `Olá ${nomeTitular}, sua visita técnica foi agendada com sucesso para o dia ${dataFormatada} (${periodo}).\n\nResumo do Pedido:\n- Sistema: ${document.getElementById('panel-model').innerText}\n- Valor Reservado: ${valorFinalTexto} (${condicaoTexto})\n\nUm engenheiro entrará em contato em breve para confirmar os detalhes.`
