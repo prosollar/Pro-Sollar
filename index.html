@@ -222,17 +222,8 @@
                     data_cadastro: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                // --- PASSO B: ACORDAR O ROBÔ (Enviar Email) ---
-                // Aqui criamos o documento na fila_email para o Cloud Functions pegar
-                await db.collection("fila_email").add({
-                    to: email,
-                    message: {
-                        subject: "Sua Proposta Solar Está Pronta!",
-                        text: `Olá! Seu sistema de ${calculo.kwp}kWp foi calculado. Investimento estimado: R$ ${calculo.investimento}.`
-                    }
-                });
-
-                // --- PASSO C: REDIRECIONAR PARA O PAINEL ---
+                
+                // --- PASSO B: REDIRECIONAR PARA O PAINEL ---
                 // Passamos o email na URL para o painel saber quem é o cliente
                 setTimeout(() => {
                     window.location.href = `panel.html?email=${encodeURIComponent(email)}`;
