@@ -49,6 +49,7 @@
             background: rgba(0, 0, 0, 0.5);
         }
         
+        /* CORREÇÃO DO CALENDÁRIO */
         ::-webkit-calendar-picker-indicator { 
             filter: invert(0.6); 
             opacity: 0.8; 
@@ -462,71 +463,6 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- GERADOR DE E-MAIL PREMIUM (TABELAS PURAS / DARK MODE) ---
-        function gerarHtmlEmail(dados) {
-            return `
-            <div style="background-color: #0a1120; padding: 40px 0; font-family: Arial, sans-serif; color: #ffffff;">
-                <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #1e293b; border-radius: 12px; border: 1px solid #334155;">
-                    <tr>
-                        <td align="center" style="padding: 30px;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 20px; text-transform: uppercase; letter-spacing: 2px;">PRO-<span style="color: #3b82f6;">SOLLAR</span></h1>
-                        </td>
-                    </tr>
-                    
-                    <tr>
-                        <td align="center" style="padding: 0 30px 30px 30px;">
-                            <p style="margin: 0 0 20px 0; font-size: 16px; color: #94a3b8;">
-                                Olá <strong style="color: #ffffff;">${dados.nome}</strong>,<br>
-                                Sua visita técnica foi confirmada.
-                            </p>
-                            
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0f172a; border-radius: 8px; border: 1px solid #334155;">
-                                <tr>
-                                    <td style="padding: 15px; border-bottom: 1px solid #1e293b;">
-                                        <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">Data Agendada</p>
-                                        <p style="margin: 5px 0 0; font-size: 14px; color: #ffffff;">${dados.data} (${dados.periodo})</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 15px; border-bottom: 1px solid #1e293b;">
-                                        <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">Local</p>
-                                        <p style="margin: 5px 0 0; font-size: 14px; color: #ffffff;">${dados.endereco}</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 15px;">
-                                        <p style="margin: 0; font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">Sistema</p>
-                                        <p style="margin: 5px 0 0; font-size: 14px; color: #ffffff;">${dados.sistema}</p>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 20px;">
-                                <tr>
-                                    <td align="center" style="padding: 20px; border: 1px dashed #22c55e; border-radius: 8px; background-color: rgba(34, 197, 94, 0.05);">
-                                        <p style="margin: 0; color: #22c55e; font-size: 10px; font-weight: bold; text-transform: uppercase;">Valor Reservado (${dados.condicao})</p>
-                                        <p style="margin: 5px 0 0; color: #ffffff; font-size: 24px; font-weight: bold;">${dados.valor}</p>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 30px; border-top: 1px solid #334155;">
-                                <tr>
-                                    <td align="center" style="padding-top: 20px;">
-                                        <p style="margin: 0; font-size: 16px; color: #ffffff; font-weight: bold;">"Seja bem-vindo à independência energética."</p>
-                                        <p style="margin: 5px 0 0; font-size: 13px; color: #94a3b8; font-style: italic;">A partir de agora, nós cuidamos de tudo.</p>
-                                    </td>
-                                </tr>
-                            </table>
-
-                        </td>
-                    </tr>
-                </table>
-                <p style="text-align: center; color: #64748b; font-size: 10px; margin-top: 20px; text-transform: uppercase;">© 2026 Pro-Sollar Engineering</p>
-            </div>
-            `;
-        }
-
         // --- AÇÃO PRINCIPAL ---
         window.confirmarPedido = async function(e) {
             e.preventDefault();
@@ -572,26 +508,35 @@
                     }
                 });
 
-                // GERA O HTML DO E-MAIL
-                const emailHtml = gerarHtmlEmail({
-                    nome: nomeTitular,
-                    data: dataFormatada,
-                    periodo: periodo === 'manha' ? 'Período da Manhã' : 'Período da Tarde',
-                    endereco: enderecoTexto,
-                    sistema: sistemaTexto,
-                    valor: valorFinalTexto,
-                    condicao: condicaoTexto
-                });
+                // --- E-MAIL TEXTO PURO (SEM CÓDIGO HTML) ---
+                const mensagemTexto = `
+Olá ${nomeTitular},
 
-                // ATIVA O ALERTA PARA VOCÊ VER QUE O CÓDIGO ATUALIZOU
-                alert("📧 GERANDO EMAIL DARK...");
+Sua reserva de visita técnica foi confirmada com sucesso!
 
-                // ENVIA O E-MAIL (FORÇANDO HTML)
+RESUMO DO AGENDAMENTO:
+---------------------------------------------
+Data: ${dataFormatada} (${periodo})
+Local: ${enderecoTexto}
+Sistema: ${sistemaTexto}
+
+VALOR RESERVADO:
+${valorFinalTexto} (${condicaoTexto})
+---------------------------------------------
+
+"Seja bem-vindo à independência energética.
+A partir de agora, nós cuidamos de tudo."
+
+Att,
+Equipe Pro-Sollar
+                `;
+
+                // ENVIA O E-MAIL COMO TEXTO SIMPLES
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
                         subject: `Confirmação de Agendamento - Pro-Sollar`,
-                        html: emailHtml // Envia SOMENTE o HTML para evitar conflito
+                        text: mensagemTexto
                     }
                 });
 
