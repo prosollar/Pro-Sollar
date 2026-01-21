@@ -359,25 +359,27 @@
         }
 
         window.voltarParaPainel = function() {
-            // REDIRECIONAMENTO COM PARÂMETROS CORRETOS
             if(currentEmail && currentSimId) window.location.href = `panel.html?email=${encodeURIComponent(currentEmail)}&simId=${currentSimId}`;
             else window.history.back();
         }
 
-        // AUTH CHECK (LÊ PARÂMETROS DA URL)
+        // AUTH CHECK E LEITURA DE PARÂMETROS
         auth.onAuthStateChanged(async (user) => {
             const params = new URLSearchParams(window.location.search);
             const urlEmail = params.get('email');
             const urlSimId = params.get('simId') || params.get('id');
 
-            if (user) {
-                currentEmail = user.email;
-                currentSimId = urlSimId;
-            } else if (urlEmail && urlSimId) {
+            // Prioriza URL params para permitir acesso via link mágico
+            if (urlEmail && urlSimId) {
                 currentEmail = urlEmail;
                 currentSimId = urlSimId;
+            } else if (user) {
+                currentEmail = user.email;
+                // Se não tiver ID na URL, volta pro painel pra escolher
+                window.location.href = "panel.html"; 
+                return;
             } else {
-                alert("Link inválido. Redirecionando para login.");
+                alert("Link inválido ou expirado.");
                 window.location.href = "login.html";
                 return;
             }
@@ -387,12 +389,12 @@
             }
         });
 
-        // BUSCA DADOS NA ESTRUTURA HIERÁRQUICA
+        // BUSCA DADOS NA NOVA ESTRUTURA (SUB-COLEÇÃO)
         async function carregarDados(email, simId) {
             try {
-                // 1. Busca a Simulação Específica (Sub-coleção)
+                // 1. Busca a Simulação Específica
                 const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
-                // 2. Busca o Perfil Pai (para dados de contato)
+                // 2. Busca o Perfil Pai (para pegar telefone e nome se precisar)
                 const userRef = db.collection("leads").doc(email);
 
                 const simSnap = await simRef.get();
@@ -402,10 +404,10 @@
                     const simData = simSnap.data();
                     const userData = userSnap.exists ? userSnap.data() : {};
                     
-                    // Mescla os dados: Simulação tem prioridade, depois Perfil do Usuário
+                    // Junta tudo num objeto só
                     leadData = { 
-                        ...userData, // Dados de contato do pai
-                        ...simData,  // Dados técnicos do filho
+                        ...userData, // Dados do Pai
+                        ...simData,  // Dados do Filho (sobrescreve se tiver igual)
                         id: simId, 
                         email: email 
                     };
@@ -417,7 +419,7 @@
                 }
             } catch (error) { 
                 console.error("Erro:", error); 
-                alert("Erro ao carregar dados. Verifique sua conexão.");
+                alert("Erro ao carregar dados. Tente recarregar.");
             }
         }
 
@@ -434,8 +436,8 @@
             
             document.getElementById('panel-model').innerText = `${qtdPaineis}x ${modeloPainel} (${kwp} kWp)`;
             
-            // Prioriza endereço da simulação, se não, pega do perfil
-            const enderecoFull = detalhes.endereco_completo || perfil.endereco_completo || "Local não informado";
+            // Prioridade: Endereço da simulação > Endereço do perfil
+            const enderecoFull = detalhes.endereco_completo || perfil.endereco_completo || data.endereco || "Local não informado";
             document.getElementById('install-address').innerText = enderecoFull;
 
             const isDiscount = data.status?.desconto_aplicado || false;
@@ -458,14 +460,14 @@
             document.getElementById('client-email').innerText = email || data.email;
             document.getElementById('client-phone').innerText = perfil.whatsapp_formatted || data.whatsapp || "Via WhatsApp";
 
-            // Nome se existir no perfil
+            // Se já tiver nome salvo, preenche
             if(perfil.nome) document.getElementById('titular-nome').value = perfil.nome;
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- AÇÃO PRINCIPAL ---
+        // --- AÇÃO PRINCIPAL: CONFIRMAR AGENDAMENTO ---
         window.confirmarPedido = async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
@@ -491,10 +493,10 @@
                 const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
                 const userRef = db.collection("leads").doc(currentEmail);
 
-                // Salva o nome no perfil do usuário também (pai)
+                // Salva o nome no perfil global do usuário
                 await userRef.update({ "perfil.nome": nomeTitular });
 
-                // Atualiza o status da simulação (filho)
+                // Atualiza o status da simulação para 'agendada'
                 await simRef.update({
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
