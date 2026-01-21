@@ -392,6 +392,8 @@
         // BUSCA DADOS NA NOVA ESTRUTURA (SUB-COLEÇÃO)
         async function carregarDados(email, simId) {
             try {
+                if(!email || !simId) throw new Error("ID inválido");
+
                 // 1. Busca a Simulação Específica
                 const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
                 // 2. Busca o Perfil Pai (para pegar telefone e nome se precisar)
