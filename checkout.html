@@ -381,7 +381,7 @@
                 window.location.href = "panel.html"; 
                 return;
             } else {
-                alert("Link inválido.");
+                alert("Link inválido ou expirado.");
                 window.location.href = "login.html";
                 return;
             }
@@ -396,6 +396,7 @@
             try {
                 const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
                 const userRef = db.collection("leads").doc(email);
+
                 const simSnap = await simRef.get();
                 const userSnap = await userRef.get();
 
@@ -463,7 +464,7 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- GERADOR DE E-MAIL PREMIUM (DARK MODE) ---
+        // --- GERADOR DE E-MAIL PREMIUM (DARK MODE - SEM BOTÃO) ---
         function gerarHtmlEmail(dados) {
             const colors = {
                 bgDeep: '#0a1120',
@@ -491,6 +492,7 @@
                         <tr>
                             <td align="center" style="padding: 40px 20px;">
                                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+                                    
                                     <tr>
                                         <td align="center" style="padding-bottom: 40px;">
                                             <h1 style="margin: 0; font-size: 28px; color: ${colors.textWhite}; letter-spacing: 2px; text-transform: uppercase; font-weight: 800; font-style: italic;">
@@ -501,8 +503,10 @@
                                             </p>
                                         </td>
                                     </tr>
+
                                     <tr>
                                         <td style="background-color: ${colors.cardBg}; border-radius: 24px; padding: 40px; border: 1px solid ${colors.border}; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+                                            
                                             <table width="100%" border="0" cellpadding="0" cellspacing="0">
                                                 <tr>
                                                     <td align="center" style="padding-bottom: 25px;">
@@ -524,6 +528,7 @@
                                                     </td>
                                                 </tr>
                                             </table>
+
                                             <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: ${colors.innerBg}; border-radius: 16px; border: 1px solid ${colors.border}; overflow: hidden;">
                                                 <tr>
                                                     <td style="padding: 25px; border-bottom: 1px solid ${colors.cardBg};">
@@ -535,17 +540,18 @@
                                                 </tr>
                                                 <tr>
                                                     <td style="padding: 25px; border-bottom: 1px solid ${colors.cardBg};">
-                                                        <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: 800; letter-spacing: 1px;">Local da Validação Técnica</p>
+                                                        <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: 800; letter-spacing: 1px;">Local</p>
                                                         <p style="margin: 6px 0 0; font-size: 15px; color: ${colors.textWhite}; line-height: 1.4;">${dados.endereco}</p>
                                                     </td>
                                                 </tr>
                                                  <tr>
                                                     <td style="padding: 25px;">
-                                                        <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: 800; letter-spacing: 1px;">Equipamento Reservado</p>
+                                                        <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: 800; letter-spacing: 1px;">Sistema</p>
                                                         <p style="margin: 6px 0 0; font-size: 15px; color: ${colors.textWhite};">${dados.sistema}</p>
                                                     </td>
                                                 </tr>
                                             </table>
+
                                             <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 40px;">
                                                 <tr>
                                                     <td align="center" style="padding: 30px; border: 2px dashed ${colors.accentGreen}; border-radius: 16px; background-color: rgba(34, 197, 94, 0.05);">
@@ -570,6 +576,7 @@
 
                                         </td>
                                     </tr>
+
                                     <tr>
                                         <td align="center" style="padding-top: 40px; padding-bottom: 40px;">
                                             <p style="margin: 20px 0 0; font-size: 11px; color: ${colors.textLabel}; text-transform: uppercase; font-weight: 800; letter-spacing: 2px;">
@@ -577,6 +584,7 @@
                                             </p>
                                         </td>
                                     </tr>
+
                                 </table>
                             </td>
                         </tr>
@@ -615,6 +623,7 @@
                 const userRef = db.collection("leads").doc(currentEmail);
 
                 await userRef.update({ "perfil.nome": nomeTitular });
+
                 await simRef.update({
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
@@ -631,7 +640,7 @@
                     }
                 });
 
-                // GERAR HTML DO E-MAIL (DARK MODE & ELEGANCE)
+                // GERAR HTML DO E-MAIL
                 const emailHtml = gerarHtmlEmail({
                     nome: nomeTitular,
                     data: dataFormatada,
@@ -642,7 +651,7 @@
                     condicao: condicaoTexto
                 });
 
-                // ENVIAR E-MAIL
+                // ENVIAR E-MAIL COM HTML E TEXTO
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
