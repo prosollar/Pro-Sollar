@@ -41,7 +41,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             transition: all 0.3s;
-            color-scheme: dark; /* Garante compatibilidade com tema escuro do navegador */
+            color-scheme: dark;
         }
         .input-dark:focus {
             border-color: var(--accent-blue);
@@ -49,9 +49,8 @@
             background: rgba(0, 0, 0, 0.5);
         }
         
-        /* --- CORREÇÃO DO ÍCONE DE CALENDÁRIO (TOM CINZA) --- */
+        /* CORREÇÃO DO CALENDÁRIO (Cinza Suave) */
         ::-webkit-calendar-picker-indicator { 
-            /* Inverte parcialmente o preto para um tom de cinza médio */
             filter: invert(0.6); 
             opacity: 0.8; 
             cursor: pointer;
@@ -59,7 +58,6 @@
         }
         ::-webkit-calendar-picker-indicator:hover { 
             opacity: 1; 
-            /* Fica um cinza um pouco mais claro no hover, sem brilho */
             filter: invert(0.8); 
         }
 
@@ -369,7 +367,7 @@
             else window.history.back();
         }
 
-        // AUTH CHECK E LEITURA DE PARÂMETROS
+        // AUTH CHECK
         auth.onAuthStateChanged(async (user) => {
             const params = new URLSearchParams(window.location.search);
             const urlEmail = params.get('email');
@@ -393,12 +391,10 @@
             }
         });
 
-        // BUSCA DADOS NA NOVA ESTRUTURA (SUB-COLEÇÃO)
+        // BUSCA DADOS
         async function carregarDados(email, simId) {
             try {
-                // 1. Busca a Simulação Específica
                 const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
-                // 2. Busca o Perfil Pai (Backup dos dados de contato)
                 const userRef = db.collection("leads").doc(email);
 
                 const simSnap = await simRef.get();
@@ -408,13 +404,11 @@
                     const simData = simSnap.data();
                     const userData = userSnap.exists ? userSnap.data() : {};
                     
-                    // Mescla os dados: Simulação > Perfil
                     leadData = { 
                         ...userData, 
                         ...simData,  
                         id: simId, 
                         email: email,
-                        // Força trazer o perfil do pai se o filho não tiver
                         perfil: { ...userData.perfil, ...(simData.perfil || {}) }
                     };
                     
@@ -461,30 +455,131 @@
             
             document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 
-            // --- CORREÇÃO DO DETETIVE DE DADOS (EMAIL E WHATSAPP) ---
-            
-            // 1. E-mail: Tenta pegar da URL, depois do perfil, depois da raiz
             const finalEmail = currentEmail || perfil.email || data.email || "E-mail não encontrado";
             document.getElementById('client-email').innerText = finalEmail;
 
-            // 2. WhatsApp: Procura em TODAS as variações possíveis
             const finalPhone = 
                 perfil.whatsapp_formatted || 
                 perfil.whatsapp || 
                 data.whatsapp_formatted || 
                 data.whatsapp || 
-                "Via WhatsApp"; // Texto padrão caso realmente não ache
+                "Via WhatsApp"; 
 
             document.getElementById('client-phone').innerText = finalPhone;
 
-            // Nome
             if(perfil.nome) document.getElementById('titular-nome').value = perfil.nome;
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- AÇÃO PRINCIPAL: CONFIRMAR AGENDAMENTO ---
+        // --- FUNÇÃO GERADORA DE E-MAIL PREMIUM (HTML INLINE) ---
+        function gerarHtmlEmail(dados) {
+            return `
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+                <meta charset="UTF-8">
+                <title>Confirmação de Visita</title>
+                <style>
+                    body { margin: 0; padding: 0; background-color: #0a1120; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+                </style>
+            </head>
+            <body style="background-color: #0a1120; margin: 0; padding: 40px 0;">
+                
+                <center>
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto;">
+                        
+                        <tr>
+                            <td align="center" style="padding-bottom: 30px;">
+                                <h1 style="margin: 0; font-size: 24px; color: #ffffff; letter-spacing: 2px; text-transform: uppercase;">
+                                    Pro-<span style="color: #3b82f6;">Sollar</span>
+                                </h1>
+                                <p style="margin: 5px 0 0; font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 3px; font-weight: bold;">
+                                    High Performance Engineering
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style="background-color: #1e293b; border-radius: 20px; padding: 40px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                                
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td align="center" style="padding-bottom: 20px;">
+                                            <div style="width: 64px; height: 64px; border-radius: 50%; background-color: rgba(34, 197, 94, 0.15); color: #22c55e; font-size: 32px; line-height: 64px; text-align: center; border: 1px solid rgba(34, 197, 94, 0.3);">
+                                                ✓
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="center" style="padding-bottom: 10px;">
+                                            <h2 style="margin: 0; font-size: 22px; color: #ffffff; font-weight: 700;">Visita Confirmada</h2>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="center" style="padding-bottom: 30px;">
+                                            <p style="margin: 0; font-size: 14px; color: #94a3b8; line-height: 1.6;">
+                                                Olá <strong style="color: #fff;">${dados.nome}</strong>.<br>
+                                                Sua reserva foi realizada com sucesso.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a; border-radius: 12px; border: 1px solid #334155;">
+                                    <tr>
+                                        <td style="padding: 20px; border-bottom: 1px solid #1e293b;">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: bold; letter-spacing: 1px;">Data & Período</p>
+                                            <p style="margin: 4px 0 0; font-size: 15px; color: #ffffff;">${dados.data} <span style="color: #3b82f6;">•</span> ${dados.periodo}</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 20px; border-bottom: 1px solid #1e293b;">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: bold; letter-spacing: 1px;">Local</p>
+                                            <p style="margin: 4px 0 0; font-size: 14px; color: #ffffff; line-height: 1.4;">${dados.endereco}</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 20px;">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: bold; letter-spacing: 1px;">Sistema</p>
+                                            <p style="margin: 4px 0 0; font-size: 14px; color: #ffffff;">${dados.sistema}</p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
+                                    <tr>
+                                        <td align="center" style="padding: 20px; border: 1px dashed rgba(34, 197, 94, 0.4); border-radius: 12px; background-color: rgba(34, 197, 94, 0.05);">
+                                            <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: #22c55e; font-weight: bold; letter-spacing: 1px;">Valor Reservado (${dados.condicao})</p>
+                                            <p style="margin: 8px 0 0; font-size: 28px; color: #ffffff; font-weight: 800; letter-spacing: -1px;">${dados.valor}</p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td align="center" style="padding-top: 40px; border-top: 1px solid #1e293b; margin-top: 40px;">
+                                <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.5;">
+                                    Um engenheiro entrará em contato em breve.<br>
+                                    Este e-mail é uma confirmação automática.
+                                </p>
+                                <p style="margin: 20px 0 0; font-size: 10px; color: #334155; text-transform: uppercase; font-weight: bold; letter-spacing: 2px;">
+                                    © 2026 Pro-Sollar
+                                </p>
+                            </td>
+                        </tr>
+
+                    </table>
+                </center>
+            </body>
+            </html>
+            `;
+        }
+
+        // --- AÇÃO PRINCIPAL ---
         window.confirmarPedido = async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
@@ -504,11 +599,12 @@
 
             const valorFinalTexto = document.getElementById('final-price').innerText;
             const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
+            const sistemaTexto = document.getElementById('panel-model').innerText;
+            const enderecoTexto = document.getElementById('install-address').innerText;
 
             try {
-                // 1. ATUALIZA A SIMULAÇÃO (FILHO)
+                // ATUALIZAR BANCO
                 const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
-                // 2. ATUALIZA O PERFIL (PAI)
                 const userRef = db.collection("leads").doc(currentEmail);
 
                 await userRef.update({ "perfil.nome": nomeTitular });
@@ -529,12 +625,24 @@
                     }
                 });
 
-                // 3. DISPARA O ROBÔ (FILA_EMAIL)
+                // GERAR HTML DO E-MAIL
+                const emailHtml = gerarHtmlEmail({
+                    nome: nomeTitular,
+                    data: dataFormatada,
+                    periodo: periodo === 'manha' ? 'Período da Manhã' : 'Período da Tarde',
+                    endereco: enderecoTexto,
+                    sistema: sistemaTexto,
+                    valor: valorFinalTexto,
+                    condicao: condicaoTexto
+                });
+
+                // ENVIAR E-MAIL COM HTML
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
-                        subject: `Visita Confirmada: ${dataFormatada} - Pro-Sollar`,
-                        text: `Olá ${nomeTitular}, sua visita técnica foi agendada com sucesso para o dia ${dataFormatada} (${periodo}).\n\nResumo do Pedido:\n- Sistema: ${document.getElementById('panel-model').innerText}\n- Valor Reservado: ${valorFinalTexto} (${condicaoTexto})\n\nUm engenheiro entrará em contato em breve para confirmar os detalhes.`
+                        subject: `✅ Agendamento Confirmado: ${dataFormatada} - Pro-Sollar`,
+                        text: `Olá ${nomeTitular}, sua visita foi agendada para ${dataFormatada}.`, // Fallback
+                        html: emailHtml // O HTML lindo
                     }
                 });
 
