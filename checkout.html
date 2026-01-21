@@ -381,7 +381,7 @@
                 window.location.href = "panel.html"; 
                 return;
             } else {
-                alert("Link inválido.");
+                alert("Link inválido ou expirado.");
                 window.location.href = "login.html";
                 return;
             }
@@ -396,6 +396,7 @@
             try {
                 const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
                 const userRef = db.collection("leads").doc(email);
+
                 const simSnap = await simRef.get();
                 const userSnap = await userRef.get();
 
@@ -410,6 +411,7 @@
                         email: email,
                         perfil: { ...userData.perfil, ...(simData.perfil || {}) }
                     };
+                    
                     renderizar(leadData);
                 } else {
                     alert("Simulação não encontrada.");
@@ -417,7 +419,7 @@
                 }
             } catch (error) { 
                 console.error("Erro:", error); 
-                alert("Erro de conexão.");
+                alert("Erro ao carregar dados. Tente recarregar.");
             }
         }
 
@@ -452,9 +454,17 @@
             }
             
             document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-            document.getElementById('client-email').innerText = currentEmail || data.email;
 
-            const finalPhone = perfil.whatsapp_formatted || perfil.whatsapp || data.whatsapp_formatted || data.whatsapp || "Via WhatsApp";
+            const finalEmail = currentEmail || perfil.email || data.email || "E-mail não encontrado";
+            document.getElementById('client-email').innerText = finalEmail;
+
+            const finalPhone = 
+                perfil.whatsapp_formatted || 
+                perfil.whatsapp || 
+                data.whatsapp_formatted || 
+                data.whatsapp || 
+                "Via WhatsApp"; 
+
             document.getElementById('client-phone').innerText = finalPhone;
 
             if(perfil.nome) document.getElementById('titular-nome').value = perfil.nome;
@@ -463,168 +473,105 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- GERADOR DE E-MAIL PREMIUM V2 (LAYOUT VISUAL AVANÇADO) ---
+        // --- FUNÇÃO GERADORA DE E-MAIL PREMIUM (HTML INLINE) ---
         function gerarHtmlEmail(dados) {
-            // Cores da marca para referência inline
-            const colors = {
-                bgDeep: '#0a1120',
-                cardBg: '#1e293b',
-                innerBg: '#0f172a',
-                accentBlue: '#3b82f6',
-                accentGreen: '#22c55e',
-                textWhite: '#ffffff',
-                textMuted: '#94a3b8',
-                textLabel: '#64748b',
-                border: '#334155'
-            };
-
             return `
-            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-            <html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR">
+            <!DOCTYPE html>
+            <html lang="pt-BR">
             <head>
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-                <title>Confirmação Pro-Sollar</title>
+                <meta charset="UTF-8">
+                <title>Confirmação de Visita</title>
+                <style>
+                    body { margin: 0; padding: 0; background-color: #0a1120; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+                </style>
             </head>
-            <body style="margin: 0; padding: 0; background-color: ${colors.bgDeep}; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+            <body style="background-color: #0a1120; margin: 0; padding: 40px 0;">
                 
                 <center>
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: ${colors.bgDeep};">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto;">
+                        
                         <tr>
-                            <td align="center" style="padding: 40px 20px;">
-                                
-                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
-                                    
-                                    <tr>
-                                        <td align="center" style="padding-bottom: 40px;">
-                                            <h1 style="margin: 0; font-size: 28px; color: ${colors.textWhite}; letter-spacing: 2px; text-transform: uppercase; font-weight: 800; font-style: italic;">
-                                                Pro-<span style="color: ${colors.accentBlue};">Sollar</span>
-                                            </h1>
-                                            <p style="margin: 8px 0 0; font-size: 10px; color: ${colors.textLabel}; text-transform: uppercase; letter-spacing: 4px; font-weight: 700;">
-                                                High Performance Engineering
-                                            </p>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td style="background-color: ${colors.cardBg}; border-radius: 24px; padding: 40px; border: 1px solid ${colors.border}; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
-                                            
-                                            <table width="100%" border="0" cellpadding="0" cellspacing="0">
-                                                <tr>
-                                                    <td align="center" style="padding-bottom: 25px;">
-                                                        <div style="display: inline-block; width: 70px; height: 70px; border-radius: 50%; background-color: rgba(34, 197, 94, 0.1); border: 2px solid ${colors.accentGreen}; color: ${colors.accentGreen}; font-size: 36px; line-height: 70px; text-align: center; box-shadow: 0 0 30px rgba(34,197,94,0.3);">
-                                                            ✓
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td align="center" style="padding-bottom: 15px;">
-                                                        <h2 style="margin: 0; font-size: 24px; color: ${colors.textWhite}; font-weight: 800; letter-spacing: -0.5px;">Visita Confirmada!</h2>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td align="center" style="padding-bottom: 40px;">
-                                                        <p style="margin: 0; font-size: 16px; color: ${colors.textMuted}; line-height: 1.6; max-width: 400px;">
-                                                            Olá <strong style="color: ${colors.textWhite};">${dados.nome}</strong>. Sua reserva de preço foi efetuada com sucesso no nosso sistema.
-                                                        </p>
-                                                    </td>
-                                                </tr>
-                                            </table>
-
-                                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: ${colors.innerBg}; border-radius: 16px; border: 1px solid ${colors.border}; overflow: hidden;">
-                                                
-                                                <tr>
-                                                    <td style="padding: 25px; border-bottom: 1px solid ${colors.cardBg};">
-                                                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
-                                                            <tr>
-                                                                <td width="30" style="vertical-align: top; padding-top: 2px;">
-                                                                    <span style="color: ${colors.accentBlue}; font-size: 18px;">📅</span>
-                                                                </td>
-                                                                <td>
-                                                                    <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: 800; letter-spacing: 1px;">Data Agendada</p>
-                                                                    <p style="margin: 6px 0 0; font-size: 18px; color: ${colors.textWhite}; font-weight: 700;">
-                                                                        ${dados.data}
-                                                                    </p>
-                                                                    <p style="margin: 4px 0 0; font-size: 14px; color: ${colors.accentBlue}; font-weight: 600;">
-                                                                        ${dados.periodo}
-                                                                    </p>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-
-                                                <tr>
-                                                    <td style="padding: 25px; border-bottom: 1px solid ${colors.cardBg};">
-                                                         <table width="100%" border="0" cellpadding="0" cellspacing="0">
-                                                            <tr>
-                                                                <td width="30" style="vertical-align: top; padding-top: 2px;">
-                                                                    <span style="color: ${colors.textLabel}; font-size: 18px;">📍</span>
-                                                                </td>
-                                                                <td>
-                                                                    <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: 800; letter-spacing: 1px;">Local da Validação Técnica</p>
-                                                                    <p style="margin: 6px 0 0; font-size: 15px; color: ${colors.textWhite}; line-height: 1.4;">${dados.endereco}</p>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-
-                                                <tr>
-                                                    <td style="padding: 25px;">
-                                                         <table width="100%" border="0" cellpadding="0" cellspacing="0">
-                                                            <tr>
-                                                                <td width="30" style="vertical-align: top; padding-top: 2px;">
-                                                                    <span style="color: ${colors.accentYellow}; font-size: 18px;">⚡</span>
-                                                                </td>
-                                                                <td>
-                                                                    <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: 800; letter-spacing: 1px;">Equipamento Reservado</p>
-                                                                    <p style="margin: 6px 0 0; font-size: 15px; color: ${colors.textWhite};">${dados.sistema}</p>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                            </table>
-
-                                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 40px;">
-                                                <tr>
-                                                    <td align="center" style="padding: 30px; border: 2px dashed ${colors.accentGreen}; border-radius: 16px; background-color: rgba(34, 197, 94, 0.05);">
-                                                        <p style="margin: 0; font-size: 12px; text-transform: uppercase; color: ${colors.accentGreen}; font-weight: 900; letter-spacing: 1.5px;">Valor Total (${dados.condicao})</p>
-                                                        <p style="margin: 10px 0 0; font-size: 36px; color: ${colors.textWhite}; font-weight: 900; letter-spacing: -1px;">${dados.valor}</p>
-                                                    </td>
-                                                </tr>
-                                            </table>
-
-                                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
-                                                <tr>
-                                                    <td align="center">
-                                                        <a href="${dados.link}" style="background-color: ${colors.accentBlue}; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
-                                                            Acessar Meu Painel
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            </table>
-
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td align="center" style="padding-top: 40px; padding-bottom: 40px;">
-                                            <p style="margin: 0; font-size: 13px; color: ${colors.textLabel}; line-height: 1.6;">
-                                                Este é um comprovante digital.<br>
-                                                Nossa equipe de engenharia entrará em contato em breve.
-                                            </p>
-                                            <div style="margin-top: 30px; height: 1px; width: 50px; background-color: ${colors.border};"></div>
-                                            <p style="margin: 20px 0 0; font-size: 11px; color: ${colors.textLabel}; text-transform: uppercase; font-weight: 800; letter-spacing: 2px;">
-                                                © 2026 Pro-Sollar Engineering
-                                            </p>
-                                        </td>
-                                    </tr>
-
-                                </table>
-                                </td>
+                            <td align="center" style="padding-bottom: 30px;">
+                                <h1 style="margin: 0; font-size: 24px; color: #ffffff; letter-spacing: 2px; text-transform: uppercase;">
+                                    Pro-<span style="color: #3b82f6;">Sollar</span>
+                                </h1>
+                                <p style="margin: 5px 0 0; font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 3px; font-weight: bold;">
+                                    High Performance Engineering
+                                </p>
+                            </td>
                         </tr>
+
+                        <tr>
+                            <td style="background-color: #1e293b; border-radius: 20px; padding: 40px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                                
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td align="center" style="padding-bottom: 20px;">
+                                            <div style="width: 64px; height: 64px; border-radius: 50%; background-color: rgba(34, 197, 94, 0.15); color: #22c55e; font-size: 32px; line-height: 64px; text-align: center; border: 1px solid rgba(34, 197, 94, 0.3);">
+                                                ✓
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="center" style="padding-bottom: 10px;">
+                                            <h2 style="margin: 0; font-size: 22px; color: #ffffff; font-weight: 700;">Visita Confirmada</h2>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="center" style="padding-bottom: 30px;">
+                                            <p style="margin: 0; font-size: 14px; color: #94a3b8; line-height: 1.6;">
+                                                Olá <strong style="color: #fff;">${dados.nome}</strong>.<br>
+                                                Sua reserva foi realizada com sucesso.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a; border-radius: 12px; border: 1px solid #334155;">
+                                    <tr>
+                                        <td style="padding: 20px; border-bottom: 1px solid #1e293b;">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: bold; letter-spacing: 1px;">Data & Período</p>
+                                            <p style="margin: 4px 0 0; font-size: 15px; color: #ffffff;">${dados.data} <span style="color: #3b82f6;">•</span> ${dados.periodo}</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 20px; border-bottom: 1px solid #1e293b;">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: bold; letter-spacing: 1px;">Local</p>
+                                            <p style="margin: 4px 0 0; font-size: 14px; color: #ffffff; line-height: 1.4;">${dados.endereco}</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 20px;">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: bold; letter-spacing: 1px;">Sistema</p>
+                                            <p style="margin: 4px 0 0; font-size: 14px; color: #ffffff;">${dados.sistema}</p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
+                                    <tr>
+                                        <td align="center" style="padding: 20px; border: 1px dashed rgba(34, 197, 94, 0.4); border-radius: 12px; background-color: rgba(34, 197, 94, 0.05);">
+                                            <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: #22c55e; font-weight: bold; letter-spacing: 1px;">Valor Reservado (${dados.condicao})</p>
+                                            <p style="margin: 8px 0 0; font-size: 28px; color: #ffffff; font-weight: 800; letter-spacing: -1px;">${dados.valor}</p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td align="center" style="padding-top: 40px; border-top: 1px solid #1e293b; margin-top: 40px;">
+                                <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.5;">
+                                    Um engenheiro entrará em contato em breve.<br>
+                                    Este e-mail é uma confirmação automática.
+                                </p>
+                                <p style="margin: 20px 0 0; font-size: 10px; color: #334155; text-transform: uppercase; font-weight: bold; letter-spacing: 2px;">
+                                    © 2026 Pro-Sollar
+                                </p>
+                            </td>
+                        </tr>
+
                     </table>
                 </center>
             </body>
@@ -637,6 +584,7 @@
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
             const originalHTML = btn.innerHTML;
+            
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div> Processando...';
 
@@ -660,6 +608,7 @@
                 const userRef = db.collection("leads").doc(currentEmail);
 
                 await userRef.update({ "perfil.nome": nomeTitular });
+
                 await simRef.update({
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
@@ -676,10 +625,7 @@
                     }
                 });
 
-                // GERAR LINK E HTML
-                const baseUrl = window.location.origin;
-                const linkPainel = `${baseUrl}/panel.html?email=${encodeURIComponent(currentEmail)}`;
-
+                // GERAR HTML DO E-MAIL
                 const emailHtml = gerarHtmlEmail({
                     nome: nomeTitular,
                     data: dataFormatada,
@@ -687,17 +633,16 @@
                     endereco: enderecoTexto,
                     sistema: sistemaTexto,
                     valor: valorFinalTexto,
-                    condicao: condicaoTexto,
-                    link: linkPainel
+                    condicao: condicaoTexto
                 });
 
-                // ENVIAR E-MAIL
+                // ENVIAR E-MAIL COM HTML
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
                         subject: `✅ Agendamento Confirmado: ${dataFormatada} - Pro-Sollar`,
-                        text: `Olá ${nomeTitular}, visita confirmada para ${dataFormatada}.`,
-                        html: emailHtml
+                        text: `Olá ${nomeTitular}, sua visita foi agendada para ${dataFormatada}.`, // Fallback
+                        html: emailHtml // O HTML lindo
                     }
                 });
 
