@@ -334,16 +334,16 @@
         async function carregarProjetosDoUsuario(email) {
             try {
                 const snapshot = await db.collection("leads").doc(email).collection("simulacoes").orderBy("data_criacao", "desc").get();
-                userProposals = [];
-                snapshot.forEach(doc => userProposals.push({ id: doc.id, ...doc.data() }));
-
-                if (userProposals.length === 0) {
+                if (snapshot.empty) { 
                     // Estado Vazio (Sem projetos)
                     document.getElementById('loading-skeleton').classList.add('hidden');
                     document.getElementById('empty-state').classList.remove('hidden');
                     document.getElementById('content-panel').classList.add('hidden');
-                    return;
+                    return; 
                 }
+
+                userProposals = [];
+                snapshot.forEach(doc => userProposals.push({ id: doc.id, ...doc.data() }));
 
                 document.getElementById('empty-state').classList.add('hidden');
                 renderizarBarraDeProjetos();
@@ -365,49 +365,30 @@
                 const isAgendada = proj.status?.fase === 'visita_agendada';
                 const nome = proj.detalhes?.nome_projeto || `Projeto ${index + 1}`;
                 
-                // CRIA O CONTAINER DO BOTÃO (DIV)
-                const wrapper = document.createElement('div');
-                wrapper.className = "relative group flex items-center";
-
-                // BOTÃO DO PROJETO
                 const btn = document.createElement('button');
-                btn.className = `whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${isActive ? 'bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'}`;
+                btn.className = `group flex items-center gap-3 pr-2 pl-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${isActive ? 'bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'}`;
                 
-                // Ícone de status (Se agendado)
-                const statusIcon = isAgendada ? '<i class="fas fa-check-circle text-green-300 ml-1"></i>' : '';
-                btn.innerHTML = `${nome} ${statusIcon}`;
-                btn.onclick = () => carregarProjetoNaTela(proj);
-
-                wrapper.appendChild(btn);
-
-                // BOTÃO DE DELETAR (LIXEIRA) - SÓ SE NÃO ESTIVER AGENDADA
+                const statusIcon = isAgendada ? '<i class="fas fa-check-circle text-green-300"></i>' : '';
+                
+                let html = `<span>${nome} ${statusIcon}</span>`;
+                
                 if (!isAgendada) {
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = "ml-2 text-red-500/50 hover:text-red-500 transition px-1";
-                    deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
-                    deleteBtn.onclick = (e) => {
-                        e.stopPropagation(); // Evita abrir o projeto ao clicar em deletar
-                        deletarSimulacao(proj.id);
-                    };
-                    wrapper.appendChild(deleteBtn);
+                    html += `<span onclick="event.stopPropagation(); deletarSimulacao('${proj.id}')" class="ml-1 w-5 h-5 flex items-center justify-center rounded-full hover:bg-red-500/20 text-slate-500 hover:text-red-500 transition cursor-pointer"><i class="fas fa-times text-[10px]"></i></span>`;
                 }
 
-                container.appendChild(wrapper);
+                btn.innerHTML = html;
+                btn.onclick = () => carregarProjetoNaTela(proj);
+                container.appendChild(btn);
             });
         }
 
         async function deletarSimulacao(id) {
             if(!confirm("Tem certeza que deseja remover esta simulação?")) return;
-            
             try {
-                // Deleta do Firestore
                 await db.collection("leads").doc(currentUserEmail).collection("simulacoes").doc(id).delete();
-                
-                // Atualiza localmente
                 userProposals = userProposals.filter(p => p.id !== id);
                 renderizarBarraDeProjetos();
-
-                // Se deletou o atual, carrega o primeiro da lista (ou mostra vazio)
+                
                 if (id === currentSimId) {
                     if (userProposals.length > 0) carregarProjetoNaTela(userProposals[0]);
                     else {
@@ -466,7 +447,7 @@
                 
                 userProposals.unshift(projetoSalvo); 
                 closeNewSimModal();
-                document.getElementById('empty-state').classList.add('hidden'); // Garante que tira o empty state
+                document.getElementById('empty-state').classList.add('hidden'); 
                 carregarProjetoNaTela(projetoSalvo);
                 
             } catch (e) { console.error(e); alert("Erro ao criar simulação."); } 
@@ -487,7 +468,7 @@
             });
         };
 
-        // --- RENDER COMPLETO (IDÊNTICO AO ANTERIOR) ---
+        // --- RENDER COMPLETO ---
         function renderizarDados(data) {
             try {
                 if (!data.financeiro || !data.financeiro.fluxo_caixa_mensal) { alert("Erro de dados."); return; }
