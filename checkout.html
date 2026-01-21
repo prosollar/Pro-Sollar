@@ -49,7 +49,7 @@
             background: rgba(0, 0, 0, 0.5);
         }
         
-        /* CORREÇÃO DO CALENDÁRIO */
+        /* ÍCONE DE CALENDÁRIO CINZA */
         ::-webkit-calendar-picker-indicator { 
             filter: invert(0.6); 
             opacity: 0.8; 
@@ -463,70 +463,49 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- GERADOR DE E-MAIL (NOVA VERSÃO: SIMPLES E ELEGANTE) ---
+        // --- GERADOR DE E-MAIL MINIMALISTA (SEM BOTÃO) ---
         function gerarHtmlEmail(dados) {
+            const colors = {
+                bgDeep: '#0a1120',
+                cardBg: '#1e293b',
+                textWhite: '#ffffff',
+                textMuted: '#94a3b8',
+                accentGreen: '#22c55e',
+                border: '#334155'
+            };
+
+            // HTML PURO E SIMPLES
             return `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <style>
-                    body { margin: 0; padding: 0; font-family: sans-serif; background-color: #0a1120; color: #ffffff; }
-                    .container { max-width: 500px; margin: 0 auto; padding: 40px 20px; }
-                    .card { background-color: #171717; border: 1px solid #333; border-radius: 12px; padding: 40px; color: #e5e5e5; }
-                    h1 { margin: 0 0 30px 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; text-align: center; color: #fff; }
-                    .brand-accent { color: #3b82f6; }
-                    .message { font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.5; color: #d4d4d8; }
-                    .divider { border-top: 1px solid #333; margin: 30px 0; }
-                    .details { font-size: 14px; margin-bottom: 20px; }
-                    .label { color: #9ca3af; text-transform: uppercase; font-size: 11px; display: block; margin-bottom: 4px; letter-spacing: 1px; font-weight: bold; }
-                    .value { color: #fff; font-size: 16px; font-weight: 600; }
-                    .price-value { color: #22c55e; font-size: 24px; font-weight: 700; }
-                    .footer { text-align: center; font-size: 14px; color: #9ca3af; font-style: italic; margin-top: 30px; line-height: 1.6; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="card">
-                        <h1>Pro-<span class="brand-accent">Sollar</span></h1>
-                        
-                        <p class="message">
-                            Olá <strong>${dados.nome}</strong>,<br>
-                            Sua visita técnica está confirmada.
+            <div style="background-color: ${colors.bgDeep}; padding: 40px 20px; font-family: sans-serif;">
+                <div style="max-width: 500px; margin: 0 auto; background-color: ${colors.cardBg}; border-radius: 16px; border: 1px solid ${colors.border}; padding: 40px; text-align: center;">
+                    
+                    <h1 style="color: ${colors.textWhite}; font-size: 24px; margin: 0 0 30px 0; text-transform: uppercase; letter-spacing: 2px;">PRO-SOLLAR</h1>
+                    
+                    <p style="color: ${colors.textMuted}; font-size: 16px; margin-bottom: 20px;">
+                        Olá <strong style="color: ${colors.textWhite};">${dados.nome}</strong>,
+                    </p>
+                    <p style="color: ${colors.textMuted}; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+                        Sua visita técnica foi confirmada para<br>
+                        <strong style="color: ${colors.textWhite}; font-size: 18px;">${dados.data} (${dados.periodo})</strong>
+                    </p>
+
+                    <div style="border: 1px dashed ${colors.accentGreen}; border-radius: 8px; padding: 20px; margin-bottom: 30px; background-color: rgba(34, 197, 94, 0.05);">
+                        <p style="margin: 0; color: ${colors.accentGreen}; font-size: 12px; font-weight: bold; text-transform: uppercase;">Valor Reservado</p>
+                        <p style="margin: 5px 0 0; color: ${colors.textWhite}; font-size: 24px; font-weight: bold;">${dados.valor}</p>
+                    </div>
+
+                    <div style="border-top: 1px solid ${colors.border}; padding-top: 30px;">
+                        <p style="color: ${colors.textWhite}; font-size: 16px; font-weight: bold; margin: 0 0 5px 0;">
+                            "Seja bem-vindo à independência energética."
                         </p>
-
-                        <div class="divider"></div>
-
-                        <div class="details">
-                            <span class="label">DATA</span>
-                            <span class="value">${dados.data} • ${dados.periodo}</span>
-                        </div>
-
-                        <div class="details">
-                            <span class="label">LOCAL</span>
-                            <span class="value">${dados.endereco}</span>
-                        </div>
-
-                        <div class="details">
-                            <span class="label">SISTEMA</span>
-                            <span class="value">${dados.sistema}</span>
-                        </div>
-
-                        <div class="details" style="margin-top: 30px;">
-                            <span class="label">VALOR RESERVADO (${dados.condicao})</span>
-                            <span class="price-value">${dados.valor}</span>
-                        </div>
-
-                        <div class="divider"></div>
-
-                        <p class="footer">
-                            "Seja bem-vindo à independência energética.<br>
-                            A partir de agora, nossa engenharia cuida de tudo."
+                        <p style="color: ${colors.textMuted}; font-size: 14px; font-style: italic; margin: 0;">
+                            A partir de agora, nós cuidamos de tudo.
                         </p>
                     </div>
+
                 </div>
-            </body>
-            </html>
+                <p style="text-align: center; color: ${colors.textMuted}; font-size: 10px; margin-top: 20px; text-transform: uppercase;">© 2026 Pro-Sollar Engineering</p>
+            </div>
             `;
         }
 
@@ -553,7 +532,7 @@
             const enderecoTexto = document.getElementById('install-address').innerText;
 
             try {
-                // 1. ATUALIZAÇÃO NO BANCO
+                // ATUALIZAÇÃO NO BANCO
                 const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
                 const userRef = db.collection("leads").doc(currentEmail);
 
@@ -575,23 +554,23 @@
                     }
                 });
 
-                // 2. GERAÇÃO DO HTML (VERSÃO SIMPLES)
+                // GERA O HTML DO E-MAIL
                 const emailHtml = gerarHtmlEmail({
                     nome: nomeTitular,
                     data: dataFormatada,
-                    periodo: periodo === 'manha' ? 'Manhã' : 'Tarde',
+                    periodo: periodo === 'manha' ? 'Período da Manhã' : 'Período da Tarde',
                     endereco: enderecoTexto,
                     sistema: sistemaTexto,
                     valor: valorFinalTexto,
                     condicao: condicaoTexto
                 });
 
-                // 3. ENVIO DO E-MAIL
+                // ENVIA O E-MAIL (Agora sim com o HTML Minimalista)
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
-                        subject: `Confirmação de Agendamento - Pro-Sollar`,
-                        text: `Olá ${nomeTitular}, sua visita foi confirmada para ${dataFormatada}. Valor: ${valorFinalTexto}.`,
+                        subject: `✅ Agendamento Confirmado - Pro-Sollar`,
+                        text: `Olá ${nomeTitular}, sua visita foi confirmada para ${dataFormatada}.`,
                         html: emailHtml
                     }
                 });
