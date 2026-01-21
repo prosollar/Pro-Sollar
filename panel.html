@@ -363,49 +363,67 @@
                     renderizarDados(leadData);
                 } else {
                     alert("Proposta não encontrada.");
+                    window.location.href = "index.html";
                 }
             } catch (e) { console.error(e); }
         }
 
         function renderizarDados(data) {
-            // LÊ OS DADOS CALCULADOS NA LANDING PAGE
-            const engenharia = data.engenharia?.projetado || {};
-            const financeiro = data.financeiro || {};
-            const config = data.configuracao_sistema || {};
+            try {
+                // VERIFICAÇÃO DE SEGURANÇA (DADOS V4)
+                if (!data.financeiro || !data.financeiro.fluxo_caixa_mensal) {
+                    alert("⚠️ Atenção: Esta é uma proposta antiga (versão linear).\n\nComo atualizamos o motor de engenharia para Alta Precisão (V4), por favor, gere uma nova proposta na página inicial.");
+                    window.location.href = "index.html";
+                    return;
+                }
 
-            const endereco = data.endereco || "Endereço não informado";
-            document.getElementById('display-address').innerText = endereco.split('-')[0];
+                const engenharia = data.engenharia?.projetado || {};
+                const financeiro = data.financeiro || {};
+                const config = data.configuracao_sistema || {};
 
-            const kwp = engenharia.potencia_instalada_kwp || 0;
-            const qtdModulos = engenharia.qtd_modulos || 0;
-            const modelo = config.modulo?.modelo || "Módulo Solar";
+                const endereco = data.endereco || "Endereço não informado";
+                document.getElementById('display-address').innerText = endereco.split('-')[0];
 
-            document.getElementById('display-specs').innerText = `${kwp} kWp • ${qtdModulos}x ${modelo}`;
+                const kwp = engenharia.potencia_instalada_kwp || 0;
+                const qtdModulos = engenharia.qtd_modulos || 0;
+                const modelo = config.modulo?.modelo || "Módulo Solar";
 
-            // Tratamento de Preço
-            const bruto = financeiro.investimento_bruto || 0;
-            const isDiscount = data.status?.desconto_aplicado || false;
-            
-            if(isDiscount) applyDiscountUI(bruto * 0.95);
-            else removeDiscountUI(bruto);
+                document.getElementById('display-specs').innerText = `${kwp} kWp • ${qtdModulos}x ${modelo}`;
 
-            // KPIs (Lê direto do objeto Financeiro/Engenharia)
-            const geracaoAno1 = (engenharia.geracao_mensal_media_ano1 || 0) * 12;
-            const economiaAno1 = financeiro.fluxo_caixa_mensal.slice(0, 12).reduce((a,b)=>a+b.economia_reais, 0);
+                // Tratamento de Preço
+                const bruto = financeiro.investimento_bruto || 0;
+                const isDiscount = data.status?.desconto_aplicado || false;
+                
+                if(isDiscount) applyDiscountUI(bruto * 0.95);
+                else removeDiscountUI(bruto);
 
-            document.getElementById('kpi-generation').innerText = Math.round(geracaoAno1) + " kWh";
-            document.getElementById('kpi-economy').innerText = economiaAno1.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
-            document.getElementById('kpi-payback').innerText = (financeiro.payback_anos || 0) + " Anos";
-            document.getElementById('kpi-roi').innerText = (financeiro.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+                // KPIs (Lê direto do objeto Financeiro/Engenharia)
+                const geracaoAno1 = (engenharia.geracao_mensal_media_ano1 || 0) * 12;
+                
+                // Soma segura da economia do ano 1
+                const economiaAno1 = financeiro.fluxo_caixa_mensal.slice(0, 12).reduce((a,b)=>a+b.economia_reais, 0);
 
-            if (data.status?.fase === "em_analise_concorrencia") showAnaliseEnviadaUI();
+                document.getElementById('kpi-generation').innerText = Math.round(geracaoAno1) + " kWh";
+                document.getElementById('kpi-economy').innerText = economiaAno1.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+                document.getElementById('kpi-payback').innerText = (financeiro.payback_anos || 0) + " Anos";
+                document.getElementById('kpi-roi').innerText = (financeiro.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 
-            document.getElementById('loading-skeleton').classList.add('hidden');
-            document.getElementById('content-panel').classList.remove('hidden');
-            updateChart();
+                if (data.status?.fase === "em_analise_concorrencia") showAnaliseEnviadaUI();
+
+                // Esconde Loader
+                document.getElementById('loading-skeleton').classList.add('hidden');
+                document.getElementById('content-panel').classList.remove('hidden');
+                
+                // Inicia Gráfico
+                updateChart();
+
+            } catch (error) {
+                console.error("Erro ao renderizar:", error);
+                alert("Erro ao processar dados da engenharia. Veja o console.");
+            }
         }
 
-        // --- SISTEMA DE GRÁFICOS (FIXO - LÊ O FLUXO GRAVADO) ---
+        // --- SISTEMA DE GRÁFICOS ---
         window.updateInterestRate = function(val) { currentInterestRate = parseFloat(val); document.getElementById('rate-display').innerText = currentInterestRate.toFixed(2) + "%"; updateChart(); }
         window.updateLoanTerm = function(val) { currentLoanTerm = parseInt(val); document.getElementById('term-display').innerText = currentLoanTerm + "x"; updateChart(); }
 
@@ -441,7 +459,6 @@
         function updateChart() {
             if(!leadData || !leadData.financeiro.fluxo_caixa_mensal) return;
             
-            // PEGA O ARRAY GRAVADO NO BANCO (COM OSCILAÇÕES REAIS)
             const fluxoCompleto = leadData.financeiro.fluxo_caixa_mensal; 
             const precoString = document.getElementById('display-price').innerText;
             const investimentoAtual = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
@@ -453,26 +470,22 @@
             const labels = dadosRecortados.map(d => d.mes_absoluto); 
 
             if (currentChartMode === 'cash') {
-                // MODO PATRIMÔNIO (CURVA EXPONENCIAL ACUMULADA)
-                // Usamos labels anuais para não poluir
+                // MODO PATRIMÔNIO (CURVA EXPONENCIAL)
                 const labelsAnuais = [];
                 const dataSolar = [];
                 const dataCDI = [];
                 const taxaCdiLiq = 0.095; // 9.5% a.a
 
-                // Ponto Zero
                 labelsAnuais.push("Início");
                 dataSolar.push(-investimentoAtual);
                 dataCDI.push(0);
 
-                // Pontos Anuais
                 dadosRecortados.forEach(d => {
                     if (d.mes_absoluto % 12 === 0) {
                         labelsAnuais.push("Ano " + d.ano);
                         
-                        // Recalcula o acumulado baseado no valor atual (com/sem desconto)
-                        const ecoAcumuladaAteAgora = fluxoCompleto.slice(0, d.mes_absoluto).reduce((acc, curr) => acc + curr.economia_reais, 0);
-                        dataSolar.push(ecoAcumuladaAteAgora - investimentoAtual);
+                        const ecoAcumulada = fluxoCompleto.slice(0, d.mes_absoluto).reduce((acc, curr) => acc + curr.economia_reais, 0);
+                        dataSolar.push(ecoAcumulada - investimentoAtual);
 
                         const montanteCdi = investimentoAtual * Math.pow((1+taxaCdiLiq), d.ano);
                         dataCDI.push(montanteCdi - investimentoAtual);
@@ -493,13 +506,13 @@
                 });
 
             } else {
-                // MODO MENSAL (AQUI APARECE A OSCILAÇÃO)
+                // MODO MENSAL (OSCILAÇÃO SAZONAL VISÍVEL)
                 const prazo = currentLoanTerm;
                 const carencia = 2; 
                 const taxaAm = currentInterestRate / 100; 
                 const parcela = (investimentoAtual * taxaAm * Math.pow(1+taxaAm, prazo)) / (Math.pow(1+taxaAm, prazo) - 1);
                 
-                const dataEconomia = dadosRecortados.map(d => d.economia_reais); // AQUI ESTÁ A ONDA
+                const dataEconomia = dadosRecortados.map(d => d.economia_reais);
                 const dataParcela = dadosRecortados.map((d, i) => {
                     if (i < carencia) return 0;
                     if (i < (prazo + carencia)) return parcela;
@@ -513,7 +526,7 @@
                 wealthChart = new Chart(ctx, {
                     type: 'line',
                     data: { labels: labels, datasets: [
-                        { label: 'Economia Mensal (R$)', data: dataEconomia, borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: false, order: 1 }, // Linha verde oscilando
+                        { label: 'Economia Mensal (R$)', data: dataEconomia, borderColor: '#22c55e', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: false, order: 1 }, 
                         { label: `Parcela Fixa (${prazo}x)`, data: dataParcela, borderColor: '#3b82f6', backgroundColor: gradientBlue, borderWidth: 2, pointRadius: 0, tension: 0.1, fill: true, order: 2, stepped: 'middle' }
                     ]},
                     options: { 
@@ -526,7 +539,7 @@
                         }, 
                         scales: { 
                             y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b' }, title: { display: true, text: 'Valor (R$)', color: '#475569' } }, 
-                            x: { grid: {display:false}, ticks: { display: false }, title: { display: true, text: 'Meses (Sazonalidade)', color: '#475569' } } 
+                            x: { grid: {display:false}, ticks: { display: false }, title: { display: true, text: 'Meses', color: '#475569' } } 
                         } 
                     }
                 });
@@ -539,7 +552,6 @@
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
             
-            // Recalcula o bruto baseado no que carregou
             const bruto = parseFloat(leadData.financeiro.investimento_bruto);
             
             if (isNegotiating) window.toggleUpload();
