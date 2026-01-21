@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
-        /* ... (SEU CSS EXISTENTE PERMANECE IGUAL, NADA MUDA AQUI) ... */
+        /* ... (SEU CSS EXISTENTE PERMANECE IGUAL) ... */
         :root { --bg-deep: #0a1120; --accent-blue: #3b82f6; --accent-green: #22c55e; --accent-yellow: #facc15; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.08); }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: white; min-height: 100vh; background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%), radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.05) 0%, transparent 30%); background-attachment: fixed; }
         .glass-card { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 2rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -194,9 +194,7 @@
                         <i class="fas fa-calendar-check text-4xl text-green-400"></i>
                     </div>
                     <h2 class="text-2xl font-bold text-white mb-2">Visita Agendada!</h2>
-                    <p class="text-slate-300 text-sm mb-6 max-w-lg mx-auto">
-                        Sua reserva de preço e agendamento técnico foram confirmados.
-                    </p>
+                    <p class="text-slate-300 text-sm mb-6 max-w-lg mx-auto">Sua reserva de preço e agendamento técnico foram confirmados.</p>
                     <div class="inline-flex items-center gap-2 bg-green-500/10 px-4 py-2 rounded-lg border border-green-500/20">
                         <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                         <span class="text-xs font-bold text-green-400 uppercase tracking-widest">Processo em Andamento</span>
@@ -231,12 +229,12 @@
         const auth = firebase.auth();
         const storage = firebase.storage(); 
         
-        let currentLeadId = null;
+        let currentUserEmail = null;
+        let currentSimId = null;
         let leadData = null;
         let wealthChart = null;
-        let userProposals = []; // LISTA DE PROJETOS
+        let userProposals = []; 
         
-        // STATES
         let currentChartMode = 'cash';
         let currentTimeRange = 25;
         let currentInterestRate = 1.50;
@@ -247,29 +245,27 @@
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Se logado, busca pelo e-mail do usuário
-                await carregarProjetosDoUsuario(user.email);
+                currentUserEmail = user.email;
             } else { 
-                // Se não logado (link mágico pré-login), tenta pegar ID ou Email da URL
+                // Se não logado, tenta pegar Email da URL (acesso temporário)
                 const params = new URLSearchParams(window.location.search);
-                const urlId = params.get('id');
                 const urlEmail = params.get('email');
-
-                if(urlId) await buscarPorId(urlId);
-                else if (urlEmail) await carregarProjetosDoUsuario(urlEmail);
-                else window.location.href = "login.html"; 
+                if(urlEmail) currentUserEmail = urlEmail;
+                else return window.location.href = "login.html"; 
             }
+            
+            // Depois de ter o e-mail, carrega os projetos
+            await carregarProjetosDoUsuario(currentUserEmail);
         });
 
-        // BUSCA TODOS OS PROJETOS DO E-MAIL
         async function carregarProjetosDoUsuario(email) {
             try {
-                // Busca todas as propostas desse email
-                const snapshot = await db.collection("leads").where("perfil.email", "==", email).orderBy("data_cadastro", "desc").get();
+                // AGORA BUSCAMOS NA SUB-COLEÇÃO 'SIMULACOES' DO USUÁRIO
+                const snapshot = await db.collection("leads").doc(email).collection("simulacoes").orderBy("data_criacao", "desc").get();
                 
                 if (snapshot.empty) {
-                    alert("Nenhuma proposta encontrada.");
-                    window.location.href = "index.html";
+                    alert("Nenhuma proposta encontrada para este e-mail.");
+                    // window.location.href = "index.html"; 
                     return;
                 }
 
@@ -280,74 +276,62 @@
 
                 renderizarBarraDeProjetos();
 
-                // Se tiver ID na URL, carrega ele. Se não, carrega o mais recente.
+                // Define qual projeto carregar
                 const params = new URLSearchParams(window.location.search);
-                const urlId = params.get('id');
+                const urlSimId = params.get('simId'); // Agora buscamos pelo ID da simulação
                 
-                const activeProject = urlId ? userProposals.find(p => p.id === urlId) : userProposals[0];
+                const activeProject = urlSimId ? userProposals.find(p => p.id === urlSimId) : userProposals[0];
                 
                 if(activeProject) {
                     carregarProjetoNaTela(activeProject);
+                } else {
+                    carregarProjetoNaTela(userProposals[0]); // Fallback para o mais recente
                 }
 
-            } catch (e) { console.error(e); }
-        }
-
-        async function buscarPorId(id) {
-            try {
-                const doc = await db.collection("leads").doc(id).get();
-                if(doc.exists) {
-                    // Carrega só este por enquanto, depois tenta buscar outros do mesmo email
-                    const data = doc.data();
-                    carregarProjetoNaTela({ id: doc.id, ...data });
-                    carregarProjetosDoUsuario(data.perfil.email); // Background fetch
-                }
-            } catch(e) { console.error(e); }
+            } catch (e) { console.error("Erro ao carregar projetos:", e); }
         }
 
         function renderizarBarraDeProjetos() {
             const container = document.getElementById('project-bar');
-            container.innerHTML = ''; // Limpa
+            container.innerHTML = ''; 
 
             userProposals.forEach((proj, index) => {
-                const isActive = proj.id === currentLeadId;
-                const nome = proj.perfil.nome_projeto || `Projeto ${index + 1}`;
+                const isActive = proj.id === currentSimId;
+                const nome = proj.detalhes?.nome_projeto || `Projeto ${index + 1}`;
                 const statusIcon = proj.status?.fase === 'visita_agendada' ? '<i class="fas fa-check-circle text-green-500 ml-1"></i>' : '';
 
                 const btn = document.createElement('button');
                 btn.className = `whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${isActive ? 'bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'}`;
                 btn.innerHTML = `${nome} ${statusIcon}`;
-                
                 btn.onclick = () => carregarProjetoNaTela(proj);
                 container.appendChild(btn);
             });
         }
 
         function carregarProjetoNaTela(projeto) {
-            currentLeadId = projeto.id;
+            currentSimId = projeto.id;
             leadData = projeto;
             
-            // Atualiza URL sem recarregar
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?id=${currentLeadId}`;
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?email=${encodeURIComponent(currentUserEmail)}&simId=${currentSimId}`;
             window.history.pushState({path:newUrl},'',newUrl);
 
-            renderizarBarraDeProjetos(); // Re-renderiza para atualizar o ativo
+            renderizarBarraDeProjetos(); 
             renderizarDados(projeto);
         }
 
         function renderizarDados(data) {
             try {
                 if (!data.financeiro || !data.financeiro.fluxo_caixa_mensal) {
-                    alert("Proposta antiga incompatível. Gere uma nova.");
+                    alert("Dados incompletos.");
                     return;
                 }
 
                 const engenharia = data.engenharia?.projetado || {};
                 const financeiro = data.financeiro || {};
                 const config = data.configuracao_sistema || {};
+                const detalhes = data.detalhes || {};
 
-                const endereco = data.endereco || "Endereço não informado";
-                document.getElementById('display-address').innerText = endereco.split('-')[0];
+                document.getElementById('display-address').innerText = (detalhes.endereco_completo || "Local").split('-')[0];
 
                 const kwp = engenharia.potencia_instalada_kwp || 0;
                 const qtdModulos = engenharia.qtd_modulos || 0;
@@ -355,11 +339,9 @@
 
                 document.getElementById('display-specs').innerText = `${kwp} kWp • ${qtdModulos}x ${modelo}`;
 
-                // Tratamento de Preço e Desconto
                 const bruto = financeiro.investimento_bruto || 0;
                 const isDiscount = data.status?.desconto_aplicado || false;
                 
-                // Reset visual dos botões
                 const btnDiscount = document.getElementById('btn-discount');
                 if (isDiscount) {
                     applyDiscountUI(bruto * 0.95);
@@ -367,7 +349,6 @@
                     removeDiscountUI(bruto);
                 }
 
-                // KPIs
                 const geracaoAno1 = (engenharia.geracao_mensal_media_ano1 || 0) * 12;
                 const economiaAno1 = financeiro.fluxo_caixa_mensal.slice(0, 12).reduce((a,b)=>a+b.economia_reais, 0);
 
@@ -376,7 +357,7 @@
                 document.getElementById('kpi-payback').innerText = (financeiro.payback_anos || 0) + " Anos";
                 document.getElementById('kpi-roi').innerText = (financeiro.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 
-                // LÓGICA DE ESTADO (VISITA AGENDADA)
+                // ESTADO VISUAL
                 const actionSection = document.getElementById('action-section');
                 const lockedCard = document.getElementById('status-locked-card');
                 const statusText = document.getElementById('status-text');
@@ -471,17 +452,21 @@
 
         // --- ACTIONS ---
         window.toggleDiscount = async function() {
-            if (!currentLeadId) return;
+            if (!currentSimId || !currentUserEmail) return; // Precisa do Email e ID
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
             const bruto = parseFloat(leadData.financeiro.investimento_bruto);
             if (isNegotiating) window.toggleUpload();
+            
+            // ATENÇÃO: Atualiza na sub-coleção correta
+            const docRef = db.collection("leads").doc(currentUserEmail).collection("simulacoes").doc(currentSimId);
+
             if (!isActive) {
                 applyDiscountUI(bruto * 0.95);
-                await db.collection("leads").doc(currentLeadId).update({ "status.desconto_aplicado": true });
+                await docRef.update({ "status.desconto_aplicado": true });
             } else {
                 removeDiscountUI(bruto);
-                await db.collection("leads").doc(currentLeadId).update({ "status.desconto_aplicado": false });
+                await docRef.update({ "status.desconto_aplicado": false });
             }
         }
 
@@ -520,7 +505,7 @@
                 btnChallenge.classList.remove('active');
                 btnFinal.className = "btn-approve w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
                 btnFinal.innerHTML = 'Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>';
-                btnFinal.onclick = () => { if (currentLeadId) window.location.href = `checkout.html?id=${currentLeadId}`; };
+                btnFinal.onclick = () => { if (currentSimId) window.location.href = `checkout.html?email=${encodeURIComponent(currentUserEmail)}&simId=${currentSimId}`; };
             }
         }
 
@@ -538,9 +523,11 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
             try {
-                const fileRef = storage.ref().child(`competitors/${currentLeadId}/${selectedFile.name}`);
+                // ATENÇÃO: Atualiza na sub-coleção
+                const fileRef = storage.ref().child(`competitors/${currentSimId}/${selectedFile.name}`);
                 await fileRef.put(selectedFile);
-                await db.collection("leads").doc(currentLeadId).update({ "status.fase": "em_analise_concorrencia", "concorrencia": { nome_arquivo: selectedFile.name } });
+                const docRef = db.collection("leads").doc(currentUserEmail).collection("simulacoes").doc(currentSimId);
+                await docRef.update({ "status.fase": "em_analise_concorrencia", "concorrencia": { nome_arquivo: selectedFile.name } });
                 showAnaliseEnviadaUI();
             } catch (error) { alert("Erro ao enviar."); btn.disabled = false; }
         }
@@ -552,7 +539,7 @@
         }
 
         window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
-        document.getElementById('btn-final-action').onclick = () => { if (currentLeadId) window.location.href = `checkout.html?id=${currentLeadId}`; };
+        document.getElementById('btn-final-action').onclick = () => { if (currentSimId) window.location.href = `checkout.html?email=${encodeURIComponent(currentUserEmail)}&simId=${currentSimId}`; };
     </script>
 </body>
 </html>
