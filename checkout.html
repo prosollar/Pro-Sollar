@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
+
         :root { --bg-deep: #0a1120; --accent-blue: #3b82f6; --accent-green: #22c55e; --accent-yellow: #facc15; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.08); }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: white; min-height: 100vh; background-image: radial-gradient(circle at 10% 10%, rgba(34, 197, 94, 0.1) 0%, transparent 40%), radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.1) 0%, transparent 40%); background-attachment: fixed; }
         .glass-card { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 2rem; }
@@ -177,47 +178,34 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- GERA O E-MAIL EM HTML PURO (MINIMALISTA) ---
-        function gerarEmailMinimalista(dados) {
-            // Esse HTML é uma "Carta Digital" em fundo preto
+        // --- GERA HTML PURO (DARK MODE, SEM BOTÕES) ---
+        function gerarHtmlEmail(dados) {
+            const colors = { bgDeep: '#0a1120', cardBg: '#1e293b', textWhite: '#ffffff', textMuted: '#94a3b8', accentGreen: '#22c55e', border: '#334155' };
             return `
-            <!DOCTYPE html>
-            <html>
-            <body style="margin:0; padding:0; background-color:#0a1120; font-family: sans-serif; color:#e0e0e0;">
-                <div style="max-width:500px; margin:0 auto; padding:40px 20px;">
-                    <div style="text-align:center; margin-bottom:40px;">
-                        <h1 style="color:#ffffff; font-size:24px; text-transform:uppercase; letter-spacing:2px; margin:0;">Pro-<span style="color:#3b82f6;">Sollar</span></h1>
-                        <p style="font-size:10px; color:#6b7280; text-transform:uppercase; letter-spacing:3px; margin-top:5px;">High Performance</p>
-                    </div>
-
-                    <div style="background-color:#1e293b; padding:30px; border-radius:12px; border:1px solid #334155; text-align:center;">
-                        <h2 style="color:#ffffff; margin-top:0;">Confirmação de Visita</h2>
-                        <p style="color:#94a3b8; font-size:15px; margin-bottom:25px;">Olá ${dados.nome}, sua reserva está confirmada.</p>
-                        
-                        <div style="background-color:#0f172a; padding:20px; border-radius:8px; text-align:left; margin-bottom:25px;">
-                            <p style="margin:5px 0; font-size:14px;"><strong style="color:#64748b; font-size:10px; text-transform:uppercase;">Data:</strong> <br> ${dados.data} (${dados.periodo})</p>
-                            <p style="margin:15px 0 5px 0; font-size:14px;"><strong style="color:#64748b; font-size:10px; text-transform:uppercase;">Local:</strong> <br> ${dados.endereco}</p>
-                            <p style="margin:15px 0 5px 0; font-size:14px;"><strong style="color:#64748b; font-size:10px; text-transform:uppercase;">Sistema:</strong> <br> ${dados.sistema}</p>
+            <div style="background-color: ${colors.bgDeep}; padding: 40px 20px; font-family: sans-serif; color: ${colors.textWhite};">
+                <center>
+                    <div style="max-width: 500px; background-color: ${colors.cardBg}; border-radius: 16px; border: 1px solid ${colors.border}; padding: 40px; text-align: center;">
+                        <h1 style="color: ${colors.textWhite}; font-size: 24px; margin: 0 0 30px 0; text-transform: uppercase; letter-spacing: 2px;">PRO-SOLLAR</h1>
+                        <p style="color: ${colors.textMuted}; font-size: 16px; margin-bottom: 20px;">Olá <strong style="color: ${colors.textWhite};">${dados.nome}</strong>,</p>
+                        <p style="color: ${colors.textMuted}; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">Sua visita técnica foi confirmada para<br><strong style="color: ${colors.textWhite}; font-size: 18px;">${dados.data} (${dados.periodo})</strong></p>
+                        <div style="border: 1px dashed ${colors.accentGreen}; border-radius: 8px; padding: 20px; margin-bottom: 30px; background-color: rgba(34, 197, 94, 0.05);">
+                            <p style="margin: 0; color: ${colors.accentGreen}; font-size: 12px; font-weight: bold; text-transform: uppercase;">Valor Reservado (${dados.condicao})</p>
+                            <p style="margin: 5px 0 0; color: ${colors.textWhite}; font-size: 24px; font-weight: bold;">${dados.valor}</p>
                         </div>
-
-                        <div style="border:1px dashed #22c55e; padding:15px; border-radius:8px; background-color:rgba(34,197,94,0.05);">
-                            <p style="margin:0; font-size:10px; color:#22c55e; font-weight:bold; text-transform:uppercase;">Valor Reservado (${dados.condicao})</p>
-                            <p style="margin:5px 0 0; font-size:20px; color:#ffffff; font-weight:bold;">${dados.valor}</p>
+                        <div style="border-top: 1px solid ${colors.border}; padding-top: 30px;">
+                            <p style="color: ${colors.textWhite}; font-size: 16px; font-weight: bold; margin: 0 0 5px 0;">"Seja bem-vindo à independência energética."</p>
+                            <p style="color: ${colors.textMuted}; font-size: 14px; font-style: italic; margin: 0;">A partir de agora, nós cuidamos de tudo.</p>
                         </div>
                     </div>
-
-                    <div style="text-align:center; margin-top:40px; border-top:1px solid #334155; padding-top:20px;">
-                        <p style="font-size:16px; color:#ffffff; font-weight:bold; margin-bottom:5px;">"Seja bem-vindo à independência energética."</p>
-                        <p style="font-size:14px; color:#94a3b8; font-style:italic; margin-top:0;">A partir de agora, nós cuidamos de tudo.</p>
-                    </div>
-                </div>
-            </body>
-            </html>
+                    <p style="text-align: center; color: ${colors.textMuted}; font-size: 10px; margin-top: 20px; text-transform: uppercase;">© 2026 Pro-Sollar Engineering</p>
+                </center>
+            </div>
             `;
         }
 
-        function gerarTextoPuro(dados) {
-            return `CONFIRMAÇÃO PRO-SOLLAR\n\nOlá ${dados.nome},\n\nSua visita técnica foi confirmada.\n\nDATA: ${dados.data} (${dados.periodo})\nLOCAL: ${dados.endereco}\nSISTEMA: ${dados.sistema}\nVALOR: ${dados.valor}\n\n"Seja bem-vindo à independência energética."`;
+        // --- GERA TEXTO PURO (FALLBACK SEM FORMATAÇÃO) ---
+        function gerarTextoEmail(dados) {
+            return `CONFIRMAÇÃO PRO-SOLLAR\n\nOlá ${dados.nome},\nSua visita técnica foi confirmada.\n\nDATA: ${dados.data} (${dados.periodo})\nVALOR RESERVADO: ${dados.valor} (${dados.condicao})\n\n"Seja bem-vindo à independência energética."`;
         }
 
         // --- AÇÃO PRINCIPAL ---
@@ -233,26 +221,38 @@
             const nomeRecebedor = isMesmoNome ? nomeTitular : document.getElementById('recebedor-nome').value;
             const dataVisita = document.getElementById('visit-date').value;
             const periodo = document.querySelector('input[name="periodo"]:checked').value;
+            
             const dataObj = new Date(dataVisita);
             const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+
             const valorFinalTexto = document.getElementById('final-price').innerText;
             const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
             const sistemaTexto = document.getElementById('panel-model').innerText;
             const enderecoTexto = document.getElementById('install-address').innerText;
 
             try {
-                // ATUALIZAÇÃO NO BANCO
+                // 1. ATUALIZAÇÃO DO BANCO DE DADOS
                 const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
                 const userRef = db.collection("leads").doc(currentEmail);
+
                 await userRef.update({ "perfil.nome": nomeTitular });
+
                 await simRef.update({
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
-                    "agendamento": { responsavel_local: nomeRecebedor, data_visita: dataVisita, periodo: periodo, status: "pendente_confirmacao", termo_aceite: true },
-                    "fechamento": { valor_reservado: valorFinalTexto, condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado" }
+                    "agendamento": {
+                        responsavel_local: nomeRecebedor,
+                        data_visita: dataVisita,
+                        periodo: periodo,
+                        status: "pendente_confirmacao",
+                        termo_aceite: true
+                    },
+                    "fechamento": {
+                        valor_reservado: valorFinalTexto,
+                        condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado"
+                    }
                 });
 
-                // PREPARA OS DADOS
                 const dadosEmail = {
                     nome: nomeTitular,
                     data: dataFormatada,
@@ -263,21 +263,22 @@
                     condicao: condicaoTexto
                 };
 
-                // --- ESTRATÉGIA ANTI-TEMPLATE: ENVIAR HTML E TEXT ---
+                // 2. ENVIO DO E-MAIL (VOLTANDO PARA A COLEÇÃO SEGURA)
+                // Enviamos AMBOS (html e text) para dar a maior chance possível de override
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
-                        subject: `✅ Confirmação de Agendamento - Pro-Sollar`,
-                        text: gerarTextoPuro(dadosEmail), // Fallback
-                        html: gerarHtmlEmail(dadosEmail)  // HTML Dark Zen
+                        subject: `Confirmação de Agendamento - Pro-Sollar`,
+                        text: gerarTextoEmail(dadosEmail),
+                        html: gerarHtmlEmail(dadosEmail)
                     }
                 });
 
                 document.getElementById('success-modal').classList.remove('hidden');
 
             } catch (error) {
-                console.error("Erro:", error);
-                alert("Erro ao processar.");
+                console.error("Erro completo:", error);
+                alert("Erro ao processar: " + error.message);
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
             }
