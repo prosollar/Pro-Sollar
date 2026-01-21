@@ -1,165 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro-Sollar | Inteligência Energética</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
-        :root { --bg-deep: #0a1120; --accent-blue: #3b82f6; --accent-yellow: #facc15; }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-deep);
-            color: white;
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 10% 80%, rgba(250, 204, 21, 0.05) 0%, transparent 30%);
-            background-attachment: fixed;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        .card-glow { position: relative; }
-        .card-glow::before {
-            content: ""; position: absolute; inset: -1px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), transparent, rgba(250, 204, 21, 0.5));
-            border-radius: 2.5rem; z-index: -1; opacity: 0.4;
-        }
-        
-        /* INPUTS COM ÍCONES */
-        .input-wrapper { position: relative; }
-        .input-icon {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            pointer-events: none;
-            transition: color 0.3s ease;
-        }
-        .input-dark {
-            background: rgba(0, 0, 0, 0.4) !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
-            color: #fff !important;
-            padding-left: 50px !important;
-            transition: all 0.3s ease;
-        }
-        .input-dark:focus {
-            border-color: var(--accent-blue) !important;
-            background: rgba(0, 0, 0, 0.6) !important;
-            outline: none;
-        }
-        .input-dark:focus + .input-icon, .input-wrapper:focus-within .input-icon {
-            color: var(--accent-blue);
-        }
-
-        .btn-yellow {
-            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
-            color: #000; font-weight: 800;
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
-            transition: all 0.3s ease;
-        }
-        .btn-yellow:hover { transform: scale(1.02); box-shadow: 0 0 35px rgba(250, 204, 21, 0.6); }
-        .btn-yellow:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
-        
-        .pac-container { 
-            background-color: #1e293b !important; 
-            border-radius: 1rem !important; 
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            font-family: inherit !important; 
-            z-index: 9999 !important;
-            margin-top: 5px !important;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
-        }
-        .pac-item { color: #94a3b8 !important; padding: 12px 16px !important; border-top: 1px solid rgba(255,255,255,0.05) !important; cursor: pointer !important; }
-        .pac-item:hover { background-color: rgba(255,255,255,0.05) !important; color: white !important; }
-        .pac-item-query { color: white !important; font-weight: bold; }
-        .pac-logo::after { display: none; }
-    </style>
-</head>
-<body class="overflow-x-hidden">
-
-    <nav class="container mx-auto p-8 flex justify-between items-center relative z-10">
-        <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center">
-                <i class="fas fa-solar-panel text-white text-2xl"></i>
-            </div>
-            <span class="text-2xl font-black tracking-tighter uppercase">Pro-<span class="text-blue-500">Sollar</span></span>
-        </div>
-        <a href="login.html" class="bg-blue-600/20 border border-blue-500/30 px-6 py-2 rounded-full text-sm font-bold hover:bg-blue-600 transition text-white">
-            <i class="fas fa-user-circle mr-2"></i> Área do Cliente
-        </a>
-    </nav>
-
-    <main class="container mx-auto px-6 py-12 grid lg:grid-cols-2 gap-16 items-center">
-        <div class="space-y-8">
-            <h1 class="text-6xl lg:text-7xl font-extrabold leading-[1.1]">
-                Economia que vem do <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Céu.</span>
-            </h1>
-            <p class="text-slate-400 text-xl max-w-lg">Análise inteligente via satélite para entregar sua independência energética em segundos.</p>
-        </div>
-
-        <div class="card-glow">
-            <div class="glass-card p-10 space-y-6 min-h-[500px] flex flex-col justify-center">
-                
-                <div id="form-container">
-                    <h2 class="text-2xl font-bold mb-6">Simule Seu Potencial</h2>
-                    <form id="simuladorForm" class="space-y-4">
-                        
-                        <div class="input-wrapper">
-                            <input type="text" id="endereco" placeholder="Endereço da Instalação" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
-                            <i class="fas fa-map-marker-alt input-icon"></i>
-                        </div>
-
-                        <div class="input-wrapper">
-                            <input type="tel" id="consumo" placeholder="Gasto Mensal (R$)" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" onkeyup="formatarMoeda(this)">
-                            <i class="fas fa-dollar-sign input-icon"></i>
-                        </div>
-
-                        <div class="input-wrapper">
-                            <input type="email" id="email" placeholder="Seu E-mail" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
-                            <i class="fas fa-envelope input-icon"></i>
-                        </div>
-
-                        <div class="input-wrapper">
-                            <input type="tel" id="whatsapp" placeholder="WhatsApp" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" oninput="mascaraTelefone(this)">
-                            <i class="fab fa-whatsapp input-icon"></i>
-                        </div>
-                        
-                        <input type="hidden" id="lat"> <input type="hidden" id="lng">
-
-                        <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase text-[11px] font-black tracking-widest">
-                            Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2"></i>
-                        </button>
-                    </form>
-                </div>
-
-                <div id="msg-sucesso" class="hidden text-center animate-in fade-in zoom-in duration-500">
-                    <div class="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-400 border border-blue-500/30">
-                        <i class="fas fa-envelope-open-text text-4xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Quase lá!</h2>
-                    <p class="text-slate-300 text-sm mb-6 leading-relaxed">
-                        Geramos sua proposta de alta precisão. Por segurança, enviamos um <strong>Link de Acesso</strong> para o seu e-mail.
-                    </p>
-                    <div class="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl text-xs text-yellow-200 mb-6">
-                        <i class="fas fa-exclamation-triangle mr-2"></i> Verifique também a caixa de Spam.
-                    </div>
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Aguardando confirmação...</p>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
@@ -180,7 +19,7 @@
         function formatarMoeda(i) { let v = i.value.replace(/\D/g,''); v = (v/100).toFixed(2) + ''; v = v.replace(".", ","); v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); i.value = "R$ " + v; }
         function mascaraTelefone(i) { let v = i.value.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); i.value = v; }
         
-        // --- MOTOR DE ENGENHARIA V4.0 (COMPLETO E PRECISO) ---
+        // --- MOTOR DE ENGENHARIA V4.0 ---
         function calcularEngenhariaPrecisao(contaMensalReais, lat = -23.5) {
             const TARIFA_ATUAL = 0.96; 
             const PERDA_SISTEMA = 0.25; 
@@ -270,7 +109,7 @@
             };
         }
 
-        // --- AÇÃO PRINCIPAL: GERAR PROPOSTA E CRIAR NOVO ID ---
+        // --- 4. AÇÃO PRINCIPAL CORRIGIDA (SUB-COLEÇÃO) ---
         document.getElementById('btnGerar').addEventListener('click', async function() {
             const email = document.getElementById('email').value;
             const zap = document.getElementById('whatsapp').value;
@@ -286,17 +125,16 @@
             btn.disabled = true;
 
             try {
-                // 1. VERIFICAR LIMITE DE 3 PROJETOS
-                const snapshot = await db.collection("leads").where("perfil.email", "==", email).get();
+                // REF AO USUÁRIO PAI
+                const userRef = db.collection("leads").doc(email);
+
+                // 1. VERIFICAR LIMITE (NA SUB-COLEÇÃO)
+                const snapshot = await userRef.collection("simulacoes").get();
                 if (snapshot.size >= 3) {
                     alert("Você já atingiu o limite de 3 simulações gratuitas.\n\nAcesse seu painel para ver os projetos existentes.");
-                    
-                    // Envia link para ele acessar os que já tem
                     const actionCodeSettings = { url: window.location.origin + `/login.html?email=${encodeURIComponent(email)}`, handleCodeInApp: true };
                     await auth.sendSignInLinkToEmail(email, actionCodeSettings);
                     window.localStorage.setItem('emailForSignIn', email);
-                    
-                    // Mostra tela de sucesso/login
                     document.getElementById('form-container').classList.add('hidden');
                     document.getElementById('msg-sucesso').classList.remove('hidden');
                     return;
@@ -304,43 +142,46 @@
 
                 btn.innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> Calculando...';
 
-                // 2. CÁLCULO E SAVE (USANDO .add() PARA ID ÚNICO)
+                // 2. CÁLCULO
                 const consumoLimpo = parseFloat(consumoRaw.replace(/[^0-9,]/g, '').replace(',', '.'));
                 const dadosCompletos = calcularEngenhariaPrecisao(consumoLimpo, parseFloat(lat));
-
-                // Nome amigável do projeto (Ex: "Rua das Flores")
                 const nomeProjeto = endereco.split(',')[0].substring(0, 25);
 
-                const leadObject = {
-                    email: email, // Mantém para busca legado se necessário
-                    engenharia: dadosCompletos.engenharia,
-                    configuracao_sistema: dadosCompletos.configuracao_sistema,
-                    financeiro: dadosCompletos.financeiro,
+                // 3. GRAVA DADOS DO PERFIL NA RAIZ (PAI)
+                await userRef.set({
                     perfil: {
                         email: email,
                         whatsapp_formatted: zap,
+                        ultimo_acesso: firebase.firestore.FieldValue.serverTimestamp()
+                    }
+                }, { merge: true });
+
+                // 4. GRAVA A SIMULAÇÃO NA SUB-COLEÇÃO (FILHO)
+                const simDoc = await userRef.collection("simulacoes").add({
+                    engenharia: dadosCompletos.engenharia,
+                    configuracao_sistema: dadosCompletos.configuracao_sistema,
+                    financeiro: dadosCompletos.financeiro,
+                    detalhes: {
                         endereco_completo: endereco,
-                        nome_projeto: nomeProjeto // Usado no botão do painel
+                        nome_projeto: nomeProjeto,
+                        consumo_simulado: consumoLimpo
                     },
-                    data_cadastro: firebase.firestore.FieldValue.serverTimestamp(),
-                    status: { fase: 'lead_novo', desconto_aplicado: false }
-                };
+                    data_criacao: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: { fase: 'nova_simulacao', desconto_aplicado: false }
+                });
 
-                // CRIA NOVO DOCUMENTO
-                const docRef = await db.collection("leads").add(leadObject);
-
-                // 3. ENVIAR LINK DE ACESSO
+                // 5. ENVIAR LINK DE ACESSO
                 const actionCodeSettings = { url: window.location.origin + `/login.html?email=${encodeURIComponent(email)}`, handleCodeInApp: true };
                 await auth.sendSignInLinkToEmail(email, actionCodeSettings);
                 window.localStorage.setItem('emailForSignIn', email);
 
-                // 4. SUCESSO
+                // 6. SUCESSO E REDIRECIONA
+                // Passamos o email (para achar o pai) e o simId (para achar o filho)
                 document.getElementById('form-container').classList.add('hidden');
                 document.getElementById('msg-sucesso').classList.remove('hidden');
                 
-                // Redireciona usando o ID ÚNICO da simulação
                 setTimeout(() => {
-                    window.location.href = `panel.html?id=${docRef.id}`;
+                    window.location.href = `panel.html?email=${encodeURIComponent(email)}&simId=${simDoc.id}`;
                 }, 1500);
 
             } catch (error) {
@@ -351,7 +192,6 @@
             }
         });
 
-        // --- GOOGLE PLACES ---
         window.initAutocomplete = function() {
             const autocomplete = new google.maps.places.Autocomplete(document.getElementById('endereco'), {
                 componentRestrictions: { country: "br" },
@@ -367,6 +207,7 @@
             });
         };
     </script>
+    
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 </body>
 </html>
