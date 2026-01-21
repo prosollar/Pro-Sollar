@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
-
         :root { --bg-deep: #0a1120; --accent-blue: #3b82f6; --accent-green: #22c55e; --accent-yellow: #facc15; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.08); }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: white; min-height: 100vh; background-image: radial-gradient(circle at 10% 10%, rgba(34, 197, 94, 0.1) 0%, transparent 40%), radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.1) 0%, transparent 40%); background-attachment: fixed; }
         .glass-card { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 2rem; }
@@ -29,9 +28,7 @@
 
     <div class="max-w-5xl mx-auto">
         <header class="flex items-center gap-4 mb-8 cursor-pointer" onclick="voltarParaPainel()">
-            <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition">
-                <i class="fas fa-arrow-left text-slate-400"></i>
-            </div>
+            <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition"><i class="fas fa-arrow-left text-slate-400"></i></div>
             <h1 class="text-xl font-bold text-slate-300">Voltar para Negociação</h1>
         </header>
 
@@ -43,43 +40,21 @@
         <div id="checkout-content" class="hidden grid lg:grid-cols-5 gap-8 animate-in fade-in duration-700">
             <div class="lg:col-span-3 space-y-6">
                 <div class="glass-card p-8 border-l-4 border-l-green-500">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-sm font-black uppercase tracking-widest text-slate-500">Composição do Sistema</h2>
-                        <span class="bg-green-500/10 text-green-400 text-[10px] font-bold px-3 py-1 rounded-full border border-green-500/20 uppercase tracking-wide">Pré-Aprovado</span>
-                    </div>
+                    <div class="flex justify-between items-center mb-6"><h2 class="text-sm font-black uppercase tracking-widest text-slate-500">Composição do Sistema</h2><span class="bg-green-500/10 text-green-400 text-[10px] font-bold px-3 py-1 rounded-full border border-green-500/20 uppercase tracking-wide">Pré-Aprovado</span></div>
                     <div class="space-y-3 mb-8">
-                        <div class="equip-item">
-                            <div class="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center text-yellow-500"><i class="fas fa-solar-panel text-lg"></i></div>
-                            <div><p id="panel-model" class="text-sm font-bold text-white">Carregando...</p><div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5 flex-wrap"><span class="text-green-400">25 Anos Performance</span><span>•</span><span>12 Anos Produto</span></div></div>
-                        </div>
-                        <div class="equip-item">
-                            <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400"><i class="fas fa-microchip text-lg"></i></div>
-                            <div><p class="text-sm font-bold text-white">Inversor Inteligente</p><div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5"><span class="text-blue-300">Garantia Estendida</span><span>•</span><span>Wi-Fi Incluso</span></div></div>
-                        </div>
-                        <div class="equip-item">
-                            <div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-400"><i class="fas fa-file-contract text-lg"></i></div>
-                            <div><p class="text-sm font-bold text-white">Seguro Risco Engenharia</p><div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5"><span class="text-purple-300">1 Ano Incluso</span><span>•</span><span>Instalação Segura</span></div></div>
-                        </div>
+                        <div class="equip-item"><div class="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center text-yellow-500"><i class="fas fa-solar-panel text-lg"></i></div><div><p id="panel-model" class="text-sm font-bold text-white">Carregando...</p><div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5 flex-wrap"><span class="text-green-400">25 Anos Performance</span><span>•</span><span>12 Anos Produto</span></div></div></div>
+                        <div class="equip-item"><div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-400"><i class="fas fa-microchip text-lg"></i></div><div><p class="text-sm font-bold text-white">Inversor Inteligente</p><div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5"><span class="text-blue-300">Garantia Estendida</span><span>•</span><span>Wi-Fi Incluso</span></div></div></div>
+                        <div class="equip-item"><div class="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-400"><i class="fas fa-file-contract text-lg"></i></div><div><p class="text-sm font-bold text-white">Seguro Risco Engenharia</p><div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5"><span class="text-purple-300">1 Ano Incluso</span><span>•</span><span>Instalação Segura</span></div></div></div>
                     </div>
-                    <div class="pt-6 border-t border-white/5 flex justify-between items-end">
-                        <div><p class="text-xs text-slate-500 mb-1">Local de Instalação</p><p id="install-address" class="text-sm font-medium text-white max-w-xs">...</p></div>
-                        <div class="text-right"><p id="price-label" class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Investimento Total</p><p id="final-price" class="text-3xl font-black text-green-400">R$ --</p></div>
-                    </div>
+                    <div class="pt-6 border-t border-white/5 flex justify-between items-end"><div><p class="text-xs text-slate-500 mb-1">Local de Instalação</p><p id="install-address" class="text-sm font-medium text-white max-w-xs">...</p></div><div class="text-right"><p id="price-label" class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">Investimento Total</p><p id="final-price" class="text-3xl font-black text-green-400">R$ --</p></div></div>
                 </div>
                 <div class="glass-card p-8">
                     <h2 class="text-sm font-black uppercase tracking-widest text-slate-500 mb-6">Canais de Contato</h2>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-[10px] text-slate-400 uppercase font-bold">E-mail</label><p id="client-email" class="text-white font-medium">...</p></div>
-                        <div><label class="text-[10px] text-slate-400 uppercase font-bold">WhatsApp</label><p id="client-phone" class="text-white font-medium">...</p></div>
-                    </div>
+                    <div class="grid grid-cols-2 gap-4"><div><label class="text-[10px] text-slate-400 uppercase font-bold">E-mail</label><p id="client-email" class="text-white font-medium">...</p></div><div><label class="text-[10px] text-slate-400 uppercase font-bold">WhatsApp</label><p id="client-phone" class="text-white font-medium">...</p></div></div>
                 </div>
             </div>
-
             <div class="lg:col-span-2 space-y-6">
-                <div class="transparency-card p-6">
-                    <div class="flex items-center gap-3 mb-3"><i class="fas fa-shield-alt text-blue-400 text-xl"></i><h3 class="text-sm font-bold text-white">Transparência Total</h3></div>
-                    <p class="text-xs text-slate-400 leading-relaxed text-justify">Este valor é baseado em dados de satélite. Após o agendamento, nossa engenharia fará uma <strong class="text-white">Validação Técnica Presencial</strong> no seu imóvel.</p>
-                </div>
+                <div class="transparency-card p-6"><div class="flex items-center gap-3 mb-3"><i class="fas fa-shield-alt text-blue-400 text-xl"></i><h3 class="text-sm font-bold text-white">Transparência Total</h3></div><p class="text-xs text-slate-400 leading-relaxed text-justify">Este valor é baseado em dados de satélite. Após o agendamento, nossa engenharia fará uma <strong class="text-white">Validação Técnica Presencial</strong> no seu imóvel.</p></div>
                 <div class="glass-card p-8 relative overflow-hidden">
                     <form id="booking-form" onsubmit="confirmarPedido(event)">
                         <div>
@@ -202,27 +177,47 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- FUNÇÃO DE E-MAIL LIMPO (OVERRIDE NO TEMPLATE) ---
-        function gerarEmailTextoPuro(dados) {
-            // Este HTML super simples força o Firebase a não usar o template padrão
+        // --- GERA O E-MAIL EM HTML PURO (MINIMALISTA) ---
+        function gerarEmailMinimalista(dados) {
+            // Esse HTML é uma "Carta Digital" em fundo preto
             return `
-            <div style="background-color:#0a1120; color:#ffffff; padding:40px; font-family:sans-serif;">
-                <h2 style="margin-bottom:20px;">CONFIRMAÇÃO PRO-SOLLAR</h2>
-                <p>Olá <strong>${dados.nome}</strong>,</p>
-                <p>Sua visita técnica foi confirmada com sucesso.</p>
-                <br>
-                <p><strong>DATA:</strong> ${dados.data} (${dados.periodo})</p>
-                <p><strong>LOCAL:</strong> ${dados.endereco}</p>
-                <p><strong>SISTEMA:</strong> ${dados.sistema}</p>
-                <p><strong>VALOR RESERVADO:</strong> ${dados.valor}</p>
-                <br>
-                <hr style="border:1px solid #333;">
-                <br>
-                <p style="font-style:italic; color:#999;">"Seja bem-vindo à independência energética.<br>A partir de agora, nós cuidamos de tudo."</p>
-                <br>
-                <p style="font-size:12px; color:#666;">© 2026 Pro-Sollar Engineering</p>
-            </div>
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0; padding:0; background-color:#0a1120; font-family: sans-serif; color:#e0e0e0;">
+                <div style="max-width:500px; margin:0 auto; padding:40px 20px;">
+                    <div style="text-align:center; margin-bottom:40px;">
+                        <h1 style="color:#ffffff; font-size:24px; text-transform:uppercase; letter-spacing:2px; margin:0;">Pro-<span style="color:#3b82f6;">Sollar</span></h1>
+                        <p style="font-size:10px; color:#6b7280; text-transform:uppercase; letter-spacing:3px; margin-top:5px;">High Performance</p>
+                    </div>
+
+                    <div style="background-color:#1e293b; padding:30px; border-radius:12px; border:1px solid #334155; text-align:center;">
+                        <h2 style="color:#ffffff; margin-top:0;">Confirmação de Visita</h2>
+                        <p style="color:#94a3b8; font-size:15px; margin-bottom:25px;">Olá ${dados.nome}, sua reserva está confirmada.</p>
+                        
+                        <div style="background-color:#0f172a; padding:20px; border-radius:8px; text-align:left; margin-bottom:25px;">
+                            <p style="margin:5px 0; font-size:14px;"><strong style="color:#64748b; font-size:10px; text-transform:uppercase;">Data:</strong> <br> ${dados.data} (${dados.periodo})</p>
+                            <p style="margin:15px 0 5px 0; font-size:14px;"><strong style="color:#64748b; font-size:10px; text-transform:uppercase;">Local:</strong> <br> ${dados.endereco}</p>
+                            <p style="margin:15px 0 5px 0; font-size:14px;"><strong style="color:#64748b; font-size:10px; text-transform:uppercase;">Sistema:</strong> <br> ${dados.sistema}</p>
+                        </div>
+
+                        <div style="border:1px dashed #22c55e; padding:15px; border-radius:8px; background-color:rgba(34,197,94,0.05);">
+                            <p style="margin:0; font-size:10px; color:#22c55e; font-weight:bold; text-transform:uppercase;">Valor Reservado (${dados.condicao})</p>
+                            <p style="margin:5px 0 0; font-size:20px; color:#ffffff; font-weight:bold;">${dados.valor}</p>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center; margin-top:40px; border-top:1px solid #334155; padding-top:20px;">
+                        <p style="font-size:16px; color:#ffffff; font-weight:bold; margin-bottom:5px;">"Seja bem-vindo à independência energética."</p>
+                        <p style="font-size:14px; color:#94a3b8; font-style:italic; margin-top:0;">A partir de agora, nós cuidamos de tudo.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
             `;
+        }
+
+        function gerarTextoPuro(dados) {
+            return `CONFIRMAÇÃO PRO-SOLLAR\n\nOlá ${dados.nome},\n\nSua visita técnica foi confirmada.\n\nDATA: ${dados.data} (${dados.periodo})\nLOCAL: ${dados.endereco}\nSISTEMA: ${dados.sistema}\nVALOR: ${dados.valor}\n\n"Seja bem-vindo à independência energética."`;
         }
 
         // --- AÇÃO PRINCIPAL ---
@@ -241,11 +236,12 @@
             const dataObj = new Date(dataVisita);
             const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
             const valorFinalTexto = document.getElementById('final-price').innerText;
+            const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
             const sistemaTexto = document.getElementById('panel-model').innerText;
             const enderecoTexto = document.getElementById('install-address').innerText;
 
             try {
-                // ATUALIZA BANCO
+                // ATUALIZAÇÃO NO BANCO
                 const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
                 const userRef = db.collection("leads").doc(currentEmail);
                 await userRef.update({ "perfil.nome": nomeTitular });
@@ -256,20 +252,24 @@
                     "fechamento": { valor_reservado: valorFinalTexto, condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado" }
                 });
 
-                // ENVIA O E-MAIL COM O TRUQUE DE HTML
-                // O segredo aqui é enviar 'html' e NÃO enviar 'text'. Isso desativa o template automático do Trigger Email.
+                // PREPARA OS DADOS
+                const dadosEmail = {
+                    nome: nomeTitular,
+                    data: dataFormatada,
+                    periodo: periodo === 'manha' ? 'Manhã' : 'Tarde',
+                    endereco: enderecoTexto,
+                    sistema: sistemaTexto,
+                    valor: valorFinalTexto,
+                    condicao: condicaoTexto
+                };
+
+                // --- ESTRATÉGIA ANTI-TEMPLATE: ENVIAR HTML E TEXT ---
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
-                        subject: `Confirmação de Agendamento - Pro-Sollar`,
-                        html: gerarEmailTextoPuro({
-                            nome: nomeTitular,
-                            data: dataFormatada,
-                            periodo: periodo === 'manha' ? 'Manhã' : 'Tarde',
-                            endereco: enderecoTexto,
-                            sistema: sistemaTexto,
-                            valor: valorFinalTexto
-                        })
+                        subject: `✅ Confirmação de Agendamento - Pro-Sollar`,
+                        text: gerarTextoPuro(dadosEmail), // Fallback
+                        html: gerarHtmlEmail(dadosEmail)  // HTML Dark Zen
                     }
                 });
 
