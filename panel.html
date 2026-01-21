@@ -44,6 +44,7 @@
             color: #052e16;
             box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         .btn-approve:hover {
             transform: scale(1.02) translateY(-2px);
@@ -56,6 +57,7 @@
             color: white;
             box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         .btn-negotiate-action:hover {
             transform: scale(1.02) translateY(-2px);
@@ -177,7 +179,7 @@
 
         <div id="loading-skeleton" class="animate-pulse glass-card p-12 mb-8 text-center">
             <i class="fas fa-satellite-dish fa-spin text-4xl text-blue-500 mb-4"></i>
-            <h2 class="text-xl font-bold">Calculando viabilidade...</h2>
+            <h2 class="text-xl font-bold">Recuperando dados do satélite...</h2>
         </div>
 
         <div id="content-panel" class="hidden animate-in fade-in duration-700">
@@ -187,7 +189,7 @@
                     <div>
                         <div class="flex items-center gap-3 mb-3">
                             <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500">Projeto Aprovado</span>
+                            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500">Projeto Viável</span>
                         </div>
                         <h3 id="display-address" class="text-2xl md:text-3xl font-black italic text-white mb-2 leading-tight">...</h3>
                         <p id="display-specs" class="text-xs text-slate-400 font-bold uppercase tracking-widest">...</p>
@@ -339,70 +341,113 @@
         let currentLoanTerm = 60;
         let isNegotiating = false; 
         let selectedFile = null;
+        // Variável calculada dinamicamente para o gráfico
+        let calculatedFlow = [];
 
         // AUTH & LOAD
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 document.getElementById('user-email-display').innerText = user.email;
                 const params = new URLSearchParams(window.location.search);
-                const urlId = params.get('id');
-                if(urlId) { currentLeadId = urlId; await carregarPainel(urlId, user.email); }
-                else { await buscarPorEmail(user.email); }
-            } else { window.location.href = "login.html"; }
+                const urlEmail = params.get('email');
+                
+                // Prioriza buscar pelo email, pois nossa landing page usa email como ID ou chave
+                if(urlEmail) { 
+                    await buscarPorEmail(urlEmail); 
+                } else {
+                    await buscarPorEmail(user.email); 
+                }
+            } else { 
+                // Permite testar o layout se estiver com ?email= na URL mesmo sem login, ou manda pro login
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('email')) {
+                   // Modo "visualização pública" limitada ou teste
+                   await buscarPorEmail(params.get('email'));
+                } else {
+                   window.location.href = "login.html"; 
+                }
+            }
         });
 
         async function buscarPorEmail(email) {
-            const snapshot = await db.collection("leads").where("perfil.email", "==", email).limit(1).get();
-            if (!snapshot.empty) {
-                const doc = snapshot.docs[0];
-                currentLeadId = doc.id;
-                await carregarPainel(doc.id, email);
-            } else {
-                const oldSnap = await db.collection("leads").where("email", "==", email).limit(1).get();
-                if(!oldSnap.empty) {
-                    const doc = oldSnap.docs[0];
-                    currentLeadId = doc.id;
-                    await carregarPainel(doc.id, email);
-                } else { alert("Proposta não encontrada."); window.location.href="index.html"; }
+            // Tenta achar o doc onde o ID é o email (padrão da landing page)
+            try {
+                const docRef = db.collection("leads").doc(email);
+                const docSnap = await docRef.get();
+                
+                if (docSnap.exists) {
+                    currentLeadId = docSnap.id;
+                    await carregarPainel(docSnap);
+                } else {
+                    alert("Proposta não encontrada para este e-mail.");
+                    // window.location.href="index.html"; 
+                }
+            } catch (e) {
+                console.error(e);
             }
         }
 
-        async function carregarPainel(id, userEmail) {
+        async function carregarPainel(docSnap) {
             try {
-                const docRef = db.collection("leads").doc(id);
-                const docSnap = await docRef.get();
-                if (docSnap.exists) {
-                    leadData = docSnap.data();
-                    const emailDono = leadData.perfil?.email || leadData.email;
-                    if(emailDono !== userEmail) { alert("Acesso negado."); window.location.href="index.html"; return; }
-                    renderizarDados(leadData);
-                }
+                leadData = docSnap.data();
+                renderizarDados(leadData);
             } catch(e) { console.error(e); }
         }
 
         function renderizarDados(data) {
-            const endereco = data.perfil?.endereco_completo || data.endereco;
-            document.getElementById('display-address').innerText = endereco;
-            const qtdPaineis = data.engenharia?.projetado?.qtd_modulos || 0;
-            const kwp = data.engenharia?.projetado?.potencia_instalada_kwp || 0;
-            document.getElementById('display-specs').innerText = `${endereco.split(',')[1] || ""} • ${kwp} kWp • ${qtdPaineis} Painéis`;
+            // 1. DADOS PRINCIPAIS
+            const endereco = data.endereco || "Endereço não informado";
+            document.getElementById('display-address').innerText = endereco.split('-')[0]; // Pega a primeira parte antes do traço se houver
+
+            // Mapeia os dados salvos pela Landing Page (index.html)
+            // Lá salvamos: projeto: { kwp, investimento, payback, paineis }
+            const projeto = data.projeto || {};
+            const kwp = projeto.kwp || 0;
+            const paineis = projeto.paineis || Math.ceil(kwp / 0.55);
+
+            document.getElementById('display-specs').innerText = `${endereco} • ${kwp} kWp • ~${paineis} Painéis`;
 
             const aplicouDesconto = data.status?.desconto_aplicado || false;
-            const precoBruto = data.financeiro?.investimento_bruto || 0;
-            const precoLiq = data.financeiro?.valor_final || 0;
+            
+            // Tratamento de valores (string '95000.00' ou number)
+            let precoBruto = parseFloat(projeto.investimento);
+            
+            // Simulação de desconto (ex: 5% a vista)
+            let precoLiq = precoBruto * 0.95; 
             
             if(aplicouDesconto) applyDiscountUI(precoLiq);
             else removeDiscountUI(precoBruto);
 
-            const kpiGen = data.engenharia?.projetado?.geracao_mensal_media_inicial || 0;
-            let economiaAno1 = 0;
-            if (data.financeiro?.fluxo_caixa_mensal) {
-                economiaAno1 = data.financeiro.fluxo_caixa_mensal.slice(0, 12).reduce((a, b) => a + b.receita_economia, 0);
+            // 2. KPIS E CÁLCULOS MATEMÁTICOS PARA O GRÁFICO
+            // Como a landing page só salva o básico, vamos calcular o fluxo aqui
+            
+            // Geração média mensal (Estimativa: kWp * 125 kWh/mês por kWp no Brasil)
+            const geracaoMensal = kwp * 125; 
+            const tarifaMedia = 0.92; // R$/kWh
+            const economiaMensalInicial = geracaoMensal * tarifaMedia;
+
+            document.getElementById('kpi-generation').innerText = Math.round(geracaoMensal) + " kWh";
+            document.getElementById('kpi-economy').innerText = (economiaMensalInicial * 12).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+            document.getElementById('kpi-payback').innerText = projeto.payback + " Anos";
+            
+            // Projeção simples de 25 anos (com inflação energética de 6% a.a.)
+            let economiaTotal = 0;
+            calculatedFlow = [];
+            let economiaAtual = economiaMensalInicial;
+            let inflacaoEnergetica = 0.06 / 12; // mensal
+            
+            for (let i = 1; i <= 300; i++) { // 25 anos * 12 meses
+                economiaTotal += economiaAtual;
+                calculatedFlow.push({
+                    mes: i,
+                    ano: Math.ceil(i/12),
+                    receita_economia: economiaAtual,
+                    fluxo_acumulado: economiaTotal - precoBruto // Simplificado
+                });
+                economiaAtual = economiaAtual * (1 + inflacaoEnergetica);
             }
-            document.getElementById('kpi-generation').innerText = kpiGen + " kWh";
-            document.getElementById('kpi-economy').innerText = economiaAno1.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
-            document.getElementById('kpi-payback').innerText = (data.financeiro?.payback_anos || 0) + " Anos";
-            document.getElementById('kpi-roi').innerText = (data.financeiro?.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+
+            document.getElementById('kpi-roi').innerText = economiaTotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
 
             if (data.status?.fase === "em_analise_concorrencia") {
                 showAnaliseEnviadaUI();
@@ -430,14 +475,14 @@
             if(mode === 'cash') {
                 desc.innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
                 btn1Year.classList.add('hidden-important'); 
-                finanControls.classList.add('hidden'); // ESCONDE OS SLIDERS
+                finanControls.classList.add('hidden'); 
                 
                 if(currentTimeRange === 1) window.switchTimeRange(25);
 
             } else {
                 desc.innerText = "Simulador de Financiamento: Economia vs Parcela";
                 btn1Year.classList.remove('hidden-important');
-                finanControls.classList.remove('hidden'); // MOSTRA OS SLIDERS
+                finanControls.classList.remove('hidden'); 
             }
             updateChart();
         }
@@ -451,7 +496,8 @@
 
         function updateChart() {
             if(!leadData) return;
-            const fluxo = leadData.financeiro.fluxo_caixa_mensal;
+            // Usa o fluxo calculado dinamicamente
+            const fluxo = calculatedFlow; 
             const precoString = document.getElementById('display-price').innerText;
             const investimentoAtual = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
             const ctx = document.getElementById('wealthChart').getContext('2d');
@@ -465,7 +511,12 @@
                 
                 dadosAnuais.forEach(d => {
                     labels.push("Ano " + d.ano);
-                    dataSolar.push(d.fluxo_acumulado); 
+                    // Recalcula o acumulado baseado no preço atual (que pode ter desconto)
+                    // Fluxo Acumulado = Economia Acumulada - Investimento Inicial
+                    const economiaAcumuladaNoAno = fluxo.slice(0, d.mes).reduce((acc, curr) => acc + curr.receita_economia, 0);
+                    
+                    dataSolar.push(economiaAcumuladaNoAno - investimentoAtual); 
+                    
                     const montanteCdi = investimentoAtual * Math.pow((1+taxaCdiLiq), d.ano);
                     dataCDI.push(montanteCdi - investimentoAtual);
                 });
@@ -549,7 +600,15 @@
                 btnFinal.innerHTML = 'Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>';
                 statusTitle.innerText = "Tudo pronto para economizar?";
                 statusIcon.className = "fas fa-file-contract text-blue-500 text-xl";
-                btnFinal.onclick = () => alert("Redirecionando para contrato...");
+                
+                // LÓGICA DO CHECKOUT AQUI
+                btnFinal.onclick = () => {
+                   if (currentLeadId) {
+                       window.location.href = `checkout.html?id=${currentLeadId}`;
+                   } else {
+                       alert("ID do cliente não encontrado.");
+                   }
+                };
             }
         }
 
@@ -613,15 +672,17 @@
             if (!currentLeadId || !leadData) return;
             const btn = document.getElementById('btn-discount');
             const isActive = btn.classList.contains('active');
-            const bruto = leadData.financeiro.investimento_bruto;
-            const liquido = leadData.financeiro.valor_final;
-
+            
+            // Recalcula o bruto baseado no que carregou
+            const bruto = parseFloat(leadData.projeto.investimento);
+            
             // 2. Lógica de Exclusividade: Se Negociação estiver ativa, fecha ela.
             if (isNegotiating) {
                 window.toggleUpload(); // Reseta o modo negociação
             }
 
             if (!isActive) {
+                const liquido = bruto * 0.95;
                 applyDiscountUI(liquido);
                 await db.collection("leads").doc(currentLeadId).update({ "status.desconto_aplicado": true });
             } else {
@@ -656,16 +717,16 @@
 
         window.toggleUpload = toggleUpload; 
         window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
-        // COMO DEVE FICAR (CONECTADO AO CHECKOUT):
+
+        // Inicializa o botão de ação final com o evento correto
         document.getElementById('btn-final-action').onclick = () => {
-            // Verifica se temos o ID do cliente
-            if (currentLeadId) {
-                // Leva para o checkout enviando o ID na URL
-                window.location.href = `checkout.html?id=${currentLeadId}`;
-            } else {
-                // Segurança caso a página tenha perdido a conexão
-                alert("Erro de identificação. Por favor, recarregue a página.");
-                window.location.reload();
-            }
+             if (currentLeadId) {
+                 window.location.href = `checkout.html?id=${currentLeadId}`;
+             } else {
+                 alert("Aguarde o carregamento da proposta...");
+             }
         };
+
     </script>
+</body>
+</html>
