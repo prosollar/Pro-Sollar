@@ -88,6 +88,15 @@
             <h2 class="text-xl font-bold">Carregando seus projetos...</h2>
         </div>
 
+        <div id="empty-state" class="hidden text-center py-20">
+            <i class="fas fa-wind text-6xl text-slate-600 mb-4"></i>
+            <h2 class="text-2xl font-bold text-slate-400">Nenhuma simulação ativa</h2>
+            <p class="text-sm text-slate-500 mb-6">Você limpou todos os seus rascunhos.</p>
+            <button onclick="openNewSimModal()" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-xl font-bold text-white transition">
+                Criar Nova Simulação
+            </button>
+        </div>
+
         <div id="content-panel" class="hidden animate-in fade-in duration-700">
             
             <div class="glass-card p-8 md:p-10 border-blue-500/20 bg-blue-500/[0.02] mb-8 relative overflow-hidden">
@@ -230,29 +239,16 @@
     <div id="new-sim-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-bg px-4 animate-in fade-in zoom-in duration-300">
         <div class="glass-card p-8 w-full max-w-md border border-yellow-500/20 relative">
             <button onclick="closeNewSimModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
-            
             <div class="text-center mb-6">
-                <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-yellow-400">
-                    <i class="fas fa-plus text-xl"></i>
-                </div>
+                <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-yellow-400"><i class="fas fa-plus text-xl"></i></div>
                 <h3 class="text-xl font-bold text-white">Nova Simulação</h3>
                 <p class="text-xs text-slate-400 mt-1">Adicione outro imóvel ao seu perfil (Máx. 3)</p>
             </div>
-
             <div class="space-y-4">
-                <div class="input-wrapper">
-                    <input type="text" id="new-endereco" placeholder="Endereço da Instalação" class="input-dark">
-                    <i class="fas fa-map-marker-alt input-icon"></i>
-                </div>
-                <div class="input-wrapper">
-                    <input type="tel" id="new-consumo" placeholder="Gasto Mensal (R$)" class="input-dark" onkeyup="window.formatarMoeda(this)">
-                    <i class="fas fa-dollar-sign input-icon"></i>
-                </div>
+                <div class="input-wrapper"><input type="text" id="new-endereco" placeholder="Endereço da Instalação" class="input-dark"><i class="fas fa-map-marker-alt input-icon"></i></div>
+                <div class="input-wrapper"><input type="tel" id="new-consumo" placeholder="Gasto Mensal (R$)" class="input-dark" onkeyup="window.formatarMoeda(this)"><i class="fas fa-dollar-sign input-icon"></i></div>
                 <input type="hidden" id="new-lat"> <input type="hidden" id="new-lng">
-
-                <button onclick="criarNovaSimulacao()" id="btn-create-sim" class="w-full py-4 rounded-xl font-black uppercase text-xs tracking-widest bg-gradient-to-r from-yellow-400 to-yellow-600 text-black shadow-lg hover:scale-[1.02] transition-transform">
-                    Calcular Agora
-                </button>
+                <button onclick="criarNovaSimulacao()" id="btn-create-sim" class="w-full py-4 rounded-xl font-black uppercase text-xs tracking-widest bg-gradient-to-r from-yellow-400 to-yellow-600 text-black shadow-lg hover:scale-[1.02] transition-transform">Calcular Agora</button>
             </div>
         </div>
     </div>
@@ -338,11 +334,18 @@
         async function carregarProjetosDoUsuario(email) {
             try {
                 const snapshot = await db.collection("leads").doc(email).collection("simulacoes").orderBy("data_criacao", "desc").get();
-                if (snapshot.empty) { alert("Nenhuma proposta encontrada."); return; }
-
                 userProposals = [];
                 snapshot.forEach(doc => userProposals.push({ id: doc.id, ...doc.data() }));
 
+                if (userProposals.length === 0) {
+                    // Estado Vazio (Sem projetos)
+                    document.getElementById('loading-skeleton').classList.add('hidden');
+                    document.getElementById('empty-state').classList.remove('hidden');
+                    document.getElementById('content-panel').classList.add('hidden');
+                    return;
+                }
+
+                document.getElementById('empty-state').classList.add('hidden');
                 renderizarBarraDeProjetos();
 
                 const params = new URLSearchParams(window.location.search);
@@ -359,14 +362,60 @@
             container.innerHTML = ''; 
             userProposals.forEach((proj, index) => {
                 const isActive = proj.id === currentSimId;
+                const isAgendada = proj.status?.fase === 'visita_agendada';
                 const nome = proj.detalhes?.nome_projeto || `Projeto ${index + 1}`;
-                const statusIcon = proj.status?.fase === 'visita_agendada' ? '<i class="fas fa-check-circle text-green-500 ml-1"></i>' : '';
+                
+                // CRIA O CONTAINER DO BOTÃO (DIV)
+                const wrapper = document.createElement('div');
+                wrapper.className = "relative group flex items-center";
+
+                // BOTÃO DO PROJETO
                 const btn = document.createElement('button');
                 btn.className = `whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${isActive ? 'bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'}`;
+                
+                // Ícone de status (Se agendado)
+                const statusIcon = isAgendada ? '<i class="fas fa-check-circle text-green-300 ml-1"></i>' : '';
                 btn.innerHTML = `${nome} ${statusIcon}`;
                 btn.onclick = () => carregarProjetoNaTela(proj);
-                container.appendChild(btn);
+
+                wrapper.appendChild(btn);
+
+                // BOTÃO DE DELETAR (LIXEIRA) - SÓ SE NÃO ESTIVER AGENDADA
+                if (!isAgendada) {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = "ml-2 text-red-500/50 hover:text-red-500 transition px-1";
+                    deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation(); // Evita abrir o projeto ao clicar em deletar
+                        deletarSimulacao(proj.id);
+                    };
+                    wrapper.appendChild(deleteBtn);
+                }
+
+                container.appendChild(wrapper);
             });
+        }
+
+        async function deletarSimulacao(id) {
+            if(!confirm("Tem certeza que deseja remover esta simulação?")) return;
+            
+            try {
+                // Deleta do Firestore
+                await db.collection("leads").doc(currentUserEmail).collection("simulacoes").doc(id).delete();
+                
+                // Atualiza localmente
+                userProposals = userProposals.filter(p => p.id !== id);
+                renderizarBarraDeProjetos();
+
+                // Se deletou o atual, carrega o primeiro da lista (ou mostra vazio)
+                if (id === currentSimId) {
+                    if (userProposals.length > 0) carregarProjetoNaTela(userProposals[0]);
+                    else {
+                        document.getElementById('content-panel').classList.add('hidden');
+                        document.getElementById('empty-state').classList.remove('hidden');
+                    }
+                }
+            } catch(e) { alert("Erro ao deletar."); console.error(e); }
         }
 
         function carregarProjetoNaTela(projeto) {
@@ -379,12 +428,8 @@
         }
 
         // --- LÓGICA DO MODAL DE NOVA SIMULAÇÃO ---
-        window.openNewSimModal = function() {
-            document.getElementById('new-sim-modal').classList.remove('hidden');
-        }
-        window.closeNewSimModal = function() {
-            document.getElementById('new-sim-modal').classList.add('hidden');
-        }
+        window.openNewSimModal = function() { document.getElementById('new-sim-modal').classList.remove('hidden'); }
+        window.closeNewSimModal = function() { document.getElementById('new-sim-modal').classList.add('hidden'); }
 
         window.criarNovaSimulacao = async function() {
             const btn = document.getElementById('btn-create-sim');
@@ -404,14 +449,13 @@
                 const dados = calcularEngenhariaPrecisao(consumoLimpo, parseFloat(lat));
                 const nomeProjeto = endereco.split(',')[0].substring(0, 20);
                 
-                // AUTOMÁTICO: Pega o whatsapp do projeto atual para salvar no novo
                 const zapAtual = leadData?.perfil?.whatsapp_formatted || "";
 
                 const novoProjeto = {
                     engenharia: dados.engenharia,
                     configuracao_sistema: dados.configuracao_sistema,
                     financeiro: dados.financeiro,
-                    perfil: { whatsapp_formatted: zapAtual }, // Salva zap para consistência
+                    perfil: { whatsapp_formatted: zapAtual }, 
                     detalhes: { endereco_completo: endereco, nome_projeto: nomeProjeto, consumo_simulado: consumoLimpo },
                     data_criacao: firebase.firestore.FieldValue.serverTimestamp(),
                     status: { fase: 'nova_simulacao', desconto_aplicado: false }
@@ -422,15 +466,11 @@
                 
                 userProposals.unshift(projetoSalvo); 
                 closeNewSimModal();
+                document.getElementById('empty-state').classList.add('hidden'); // Garante que tira o empty state
                 carregarProjetoNaTela(projetoSalvo);
                 
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao criar simulação.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = originalText;
-            }
+            } catch (e) { console.error(e); alert("Erro ao criar simulação."); } 
+            finally { btn.disabled = false; btn.innerText = originalText; }
         }
 
         // --- GOOGLE AUTOCOMPLETE (MODAL) ---
@@ -447,7 +487,7 @@
             });
         };
 
-        // --- RENDER COMPLETO ---
+        // --- RENDER COMPLETO (IDÊNTICO AO ANTERIOR) ---
         function renderizarDados(data) {
             try {
                 if (!data.financeiro || !data.financeiro.fluxo_caixa_mensal) { alert("Erro de dados."); return; }
