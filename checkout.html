@@ -396,7 +396,6 @@
             try {
                 const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
                 const userRef = db.collection("leads").doc(email);
-
                 const simSnap = await simRef.get();
                 const userSnap = await userRef.get();
 
@@ -464,7 +463,7 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- GERADOR DE E-MAIL PREMIUM (SEM BOTÃO, COM SAUDAÇÃO ELEGANTE) ---
+        // --- GERADOR DE E-MAIL PREMIUM (DARK MODE) ---
         function gerarHtmlEmail(dados) {
             const colors = {
                 bgDeep: '#0a1120',
@@ -529,8 +528,9 @@
                                                 <tr>
                                                     <td style="padding: 25px; border-bottom: 1px solid ${colors.cardBg};">
                                                         <p style="margin: 0; font-size: 11px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: 800; letter-spacing: 1px;">Data Agendada</p>
-                                                        <p style="margin: 6px 0 0; font-size: 18px; color: ${colors.textWhite}; font-weight: 700;">${dados.data}</p>
-                                                        <p style="margin: 4px 0 0; font-size: 14px; color: ${colors.accentBlue}; font-weight: 600;">${dados.periodo}</p>
+                                                        <p style="margin: 6px 0 0; font-size: 18px; color: ${colors.textWhite}; font-weight: 700;">
+                                                            ${dados.data} <span style="color: ${colors.accentBlue}; margin: 0 5px;">|</span> <span style="font-size: 14px; font-weight: 600;">${dados.periodo}</span>
+                                                        </p>
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -610,11 +610,11 @@
             const enderecoTexto = document.getElementById('install-address').innerText;
 
             try {
+                // ATUALIZAÇÃO NO BANCO
                 const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
                 const userRef = db.collection("leads").doc(currentEmail);
 
                 await userRef.update({ "perfil.nome": nomeTitular });
-
                 await simRef.update({
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
@@ -631,7 +631,7 @@
                     }
                 });
 
-                // GERAR HTML DO E-MAIL (SEM BOTÃO)
+                // GERAR HTML DO E-MAIL (DARK MODE & ELEGANCE)
                 const emailHtml = gerarHtmlEmail({
                     nome: nomeTitular,
                     data: dataFormatada,
@@ -647,7 +647,7 @@
                     to: currentEmail,
                     message: {
                         subject: `✅ Agendamento Confirmado: ${dataFormatada} - Pro-Sollar`,
-                        text: `Olá ${nomeTitular}, sua visita foi agendada para ${dataFormatada}. Valor reservado: ${valorFinalTexto}.`,
+                        text: `Olá ${nomeTitular}, sua visita foi confirmada para ${dataFormatada}. Valor reservado: ${valorFinalTexto}.`,
                         html: emailHtml
                     }
                 });
