@@ -463,47 +463,114 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- GERADOR DE E-MAIL PREMIUM (DARK MODE - SEM BOTÃO) ---
+        // --- GERADOR DE E-MAIL PREMIUM (SEM TAGS HTML/BODY/HEAD - APENAS CONTEÚDO) ---
         function gerarHtmlEmail(dados) {
             const colors = {
                 bgDeep: '#0a1120',
                 cardBg: '#1e293b',
+                innerBg: '#0f172a',
+                accentBlue: '#3b82f6',
+                accentGreen: '#22c55e',
                 textWhite: '#ffffff',
                 textMuted: '#94a3b8',
-                accentGreen: '#22c55e',
+                textLabel: '#64748b',
                 border: '#334155'
             };
 
+            // INJETAMOS APENAS O BLOCO PRINCIPAL PARA EVITAR CONFLITOS DE DOCTYPE
             return `
-            <div style="background-color: ${colors.bgDeep}; padding: 40px 20px; font-family: sans-serif; color: ${colors.textWhite};">
-                <div style="max-width: 500px; margin: 0 auto; background-color: ${colors.cardBg}; border-radius: 16px; border: 1px solid ${colors.border}; padding: 40px; text-align: center;">
-                    
-                    <h1 style="color: ${colors.textWhite}; font-size: 24px; margin: 0 0 30px 0; text-transform: uppercase; letter-spacing: 2px;">PRO-SOLLAR</h1>
-                    
-                    <p style="color: ${colors.textMuted}; font-size: 16px; margin-bottom: 20px;">
-                        Olá <strong style="color: ${colors.textWhite};">${dados.nome}</strong>,
-                    </p>
-                    <p style="color: ${colors.textMuted}; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
-                        Sua visita técnica foi confirmada para<br>
-                        <strong style="color: ${colors.textWhite}; font-size: 18px;">${dados.data} (${dados.periodo})</strong>
-                    </p>
+            <div style="background-color: ${colors.bgDeep}; padding: 40px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: ${colors.textWhite};">
+                <center>
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: ${colors.bgDeep};">
+                        
+                        <tr>
+                            <td align="center" style="padding-bottom: 40px;">
+                                <h1 style="margin: 0; font-size: 24px; color: ${colors.textWhite}; letter-spacing: 2px; text-transform: uppercase;">
+                                    Pro-<span style="color: ${colors.accentBlue};">Sollar</span>
+                                </h1>
+                                <p style="margin: 5px 0 0; font-size: 9px; color: ${colors.textLabel}; text-transform: uppercase; letter-spacing: 3px; font-weight: bold;">
+                                    High Performance Engineering
+                                </p>
+                            </td>
+                        </tr>
 
-                    <div style="border: 1px dashed ${colors.accentGreen}; border-radius: 8px; padding: 20px; margin-bottom: 30px; background-color: rgba(34, 197, 94, 0.05);">
-                        <p style="margin: 0; color: ${colors.accentGreen}; font-size: 12px; font-weight: bold; text-transform: uppercase;">Valor Reservado</p>
-                        <p style="margin: 5px 0 0; color: ${colors.textWhite}; font-size: 24px; font-weight: bold;">${dados.valor}</p>
-                    </div>
+                        <tr>
+                            <td style="background-color: ${colors.cardBg}; border-radius: 16px; padding: 40px; border: 1px solid ${colors.border};">
+                                
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td align="center" style="padding-bottom: 20px;">
+                                            <div style="font-size: 40px; line-height: 1;">✅</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="center" style="padding-bottom: 30px;">
+                                            <h2 style="margin: 0 0 10px 0; font-size: 22px; color: ${colors.textWhite};">Confirmação Oficial</h2>
+                                            <p style="margin: 0; font-size: 14px; color: ${colors.textMuted}; line-height: 1.5;">
+                                                Olá <strong style="color: #fff;">${dados.nome}</strong>, sua reserva foi processada.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
 
-                    <div style="border-top: 1px solid ${colors.border}; padding-top: 30px;">
-                        <p style="color: ${colors.textWhite}; font-size: 16px; font-weight: bold; margin: 0 0 5px 0;">
-                            "Seja bem-vindo à independência energética."
-                        </p>
-                        <p style="color: ${colors.textMuted}; font-size: 14px; font-style: italic; margin: 0;">
-                            A partir de agora, nós cuidamos de tudo.
-                        </p>
-                    </div>
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: ${colors.innerBg}; border-radius: 8px; border: 1px solid ${colors.border}; overflow: hidden;">
+                                    <tr>
+                                        <td style="padding: 20px; border-bottom: 1px solid ${colors.cardBg};">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: bold; letter-spacing: 1px;">Data</p>
+                                            <p style="margin: 5px 0 0; font-size: 16px; color: ${colors.textWhite}; font-weight: bold;">
+                                                ${dados.data} <span style="font-weight: normal; color: ${colors.textMuted};">(${dados.periodo})</span>
+                                            </p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 20px; border-bottom: 1px solid ${colors.cardBg};">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: bold; letter-spacing: 1px;">Local</p>
+                                            <p style="margin: 5px 0 0; font-size: 14px; color: ${colors.textWhite}; line-height: 1.4;">${dados.endereco}</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 20px;">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: ${colors.textLabel}; font-weight: bold; letter-spacing: 1px;">Sistema</p>
+                                            <p style="margin: 5px 0 0; font-size: 14px; color: ${colors.textWhite};">${dados.sistema}</p>
+                                        </td>
+                                    </tr>
+                                </table>
 
-                </div>
-                <p style="text-align: center; color: ${colors.textMuted}; font-size: 10px; margin-top: 20px; text-transform: uppercase;">© 2026 Pro-Sollar Engineering</p>
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
+                                    <tr>
+                                        <td align="center" style="padding: 20px; border: 1px dashed ${colors.accentGreen}; border-radius: 8px; background-color: rgba(34, 197, 94, 0.05);">
+                                            <p style="margin: 0; font-size: 10px; text-transform: uppercase; color: ${colors.accentGreen}; font-weight: bold; letter-spacing: 1px;">Valor Reservado (${dados.condicao})</p>
+                                            <p style="margin: 5px 0 0; font-size: 24px; color: ${colors.textWhite}; font-weight: bold;">${dados.valor}</p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 30px; border-top: 1px solid ${colors.border};">
+                                    <tr>
+                                        <td align="center" style="padding-top: 20px;">
+                                            <p style="margin: 0; font-size: 16px; color: ${colors.textWhite}; font-weight: bold; letter-spacing: 0.5px;">
+                                                "Seja bem-vindo à independência energética."
+                                            </p>
+                                            <p style="margin: 5px 0 0; font-size: 13px; color: ${colors.textMuted}; font-style: italic;">
+                                                A partir de agora, nós cuidamos de tudo.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td align="center" style="padding-top: 30px; padding-bottom: 30px;">
+                                <p style="margin: 0; font-size: 10px; color: ${colors.textLabel}; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">
+                                    © 2026 Pro-Sollar Engineering
+                                </p>
+                            </td>
+                        </tr>
+
+                    </table>
+                </center>
             </div>
             `;
         }
@@ -531,7 +598,6 @@
             const enderecoTexto = document.getElementById('install-address').innerText;
 
             try {
-                // ATUALIZAÇÃO NO BANCO
                 const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
                 const userRef = db.collection("leads").doc(currentEmail);
 
@@ -553,7 +619,7 @@
                     }
                 });
 
-                // GERA O HTML DO E-MAIL
+                // GERAR HTML DO E-MAIL (APENAS CONTEÚDO)
                 const emailHtml = gerarHtmlEmail({
                     nome: nomeTitular,
                     data: dataFormatada,
@@ -564,12 +630,12 @@
                     condicao: condicaoTexto
                 });
 
-                // ENVIA O E-MAIL (FORÇANDO APENAS HTML NO PAYLOAD)
+                // ENVIA O E-MAIL (SEM O CAMPO TEXT PARA FORÇAR HTML)
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
-                        subject: `✅ Agendamento Confirmado - Pro-Sollar`,
-                        html: emailHtml // Removido o campo 'text' para forçar o uso do HTML
+                        subject: `Confirmação de Agendamento - Pro-Sollar`,
+                        html: emailHtml // SOMENTE HTML PARA EVITAR TEMPLATE PADRÃO DE TEXTO
                     }
                 });
 
