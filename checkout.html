@@ -41,6 +41,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             transition: all 0.3s;
+            color-scheme: dark; /* Corrige o calendário branco */
         }
         .input-dark:focus {
             border-color: var(--accent-blue);
@@ -89,7 +90,7 @@
 
     <div class="max-w-5xl mx-auto">
         
-        <header class="flex items-center gap-4 mb-8 cursor-pointer" onclick="window.history.back()">
+        <header class="flex items-center gap-4 mb-8 cursor-pointer" onclick="voltarParaPainel()">
             <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition">
                 <i class="fas fa-arrow-left text-slate-400"></i>
             </div>
@@ -101,7 +102,7 @@
             <p class="text-slate-400">Carregando termos da proposta...</p>
         </div>
 
-        <div id="checkout-content" class="hidden grid lg:grid-cols-5 gap-8">
+        <div id="checkout-content" class="hidden grid lg:grid-cols-5 gap-8 animate-in fade-in duration-700">
             
             <div class="lg:col-span-3 space-y-6">
                 
@@ -123,7 +124,7 @@
                                 <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5 flex-wrap">
                                     <span class="text-green-400"><i class="fas fa-chart-line mr-1"></i>25 Anos Performance</span>
                                     <span class="text-slate-600">•</span>
-                                    <span><i class="fas fa-box mr-1"></i>8 Anos Produto</span>
+                                    <span><i class="fas fa-box mr-1"></i>12 Anos Produto</span>
                                 </div>
                             </div>
                         </div>
@@ -151,7 +152,7 @@
                                 <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5">
                                     <span class="text-purple-300"><i class="fas fa-check-circle mr-1"></i>1 Ano Incluso</span>
                                     <span>•</span>
-                                    <span>Renovável</span>
+                                    <span>Instalação Segura</span>
                                 </div>
                             </div>
                         </div>
@@ -273,7 +274,7 @@
                                     <input type="checkbox" id="terms" required class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-600 bg-slate-900/50 checked:border-green-500 checked:bg-green-500 transition-all">
                                     <i class="fas fa-check text-black text-[10px] absolute left-1 top-1 opacity-0 peer-checked:opacity-100"></i>
                                 </div>
-                                <span class="text-[11px] text-slate-400 leading-tight group-hover:text-slate-300 transition text-justify">
+                                <span class="text-xs text-slate-400 leading-tight group-hover:text-slate-300 transition text-justify">
                                     Autorizo a visita técnica e estou ciente de que a <strong>Proposta Comercial Definitiva</strong> dependerá da validação das condições do telhado e rede elétrica pelo engenheiro responsável.
                                 </span>
                             </label>
@@ -295,7 +296,7 @@
                 </div>
                 <h2 class="text-2xl font-bold text-white mb-2">Visita Agendada!</h2>
                 <p class="text-slate-300 text-sm mb-6 leading-relaxed">
-                    Sua reserva de preço foi realizada com sucesso. Nossa equipe de engenharia entrará em contato em até 24h para confirmar os detalhes da visita.
+                    Sua reserva de preço foi realizada com sucesso. Enviamos a proposta detalhada para seu e-mail.
                 </p>
                 <button onclick="window.location.href='index.html'" class="bg-white/10 border border-white/20 hover:bg-white/20 text-white w-full py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition">
                     Voltar ao Início
@@ -350,6 +351,11 @@
             }
         }
 
+        window.voltarParaPainel = function() {
+            if(currentLeadId) window.location.href = `panel.html?email=${encodeURIComponent(currentLeadId)}`;
+            else window.history.back();
+        }
+
         // AUTH CHECK
         auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -365,96 +371,58 @@
                 const docSnap = await db.collection("leads").doc(id).get();
                 if (docSnap.exists) {
                     leadData = docSnap.data();
-                    const emailDono = leadData.perfil?.email || leadData.email;
-                    if(emailDono !== email) { alert("Acesso negado."); return; }
                     renderizar(leadData);
+                } else {
+                    alert("Cliente não encontrado.");
+                    window.location.href = "index.html";
                 }
             } catch (error) { console.error("Erro:", error); }
         }
 
         function renderizar(data) {
-            const qtd = data.engenharia?.projetado?.qtd_modulos || 0;
-            const kwp = data.engenharia?.projetado?.potencia_instalada_kwp || 0;
-            const modulo = data.configuracao_sistema?.modulo?.modelo || "Painel Monocristalino N-Type";
-            
-            document.getElementById('panel-model').innerText = `${qtd}x ${modulo} (${kwp} kWp)`;
-            document.getElementById('install-address').innerText = data.perfil?.endereco_completo || data.endereco;
+            // PROTEÇÃO: Verifica se os dados complexos (V4) existem
+            const engenharia = data.engenharia?.projetado || {};
+            const config = data.configuracao_sistema || {};
+            const financeiro = data.financeiro || {};
 
+            const kwp = engenharia.potencia_instalada_kwp || "0";
+            const qtdPaineis = engenharia.qtd_modulos || 0;
+            const modeloPainel = config.modulo?.modelo || "Módulo Solar Alta Performance";
+            
+            // Preenche Equipamentos
+            document.getElementById('panel-model').innerText = `${qtdPaineis}x ${modeloPainel} (${kwp} kWp)`;
+            
+            // Preenche Endereço
+            const enderecoFull = data.perfil?.endereco_completo || data.endereco || "Local não informado";
+            document.getElementById('install-address').innerText = enderecoFull;
+
+            // Preenche Preços
             const isDiscount = data.status?.desconto_aplicado || false;
-            const precoBruto = data.financeiro?.investimento_bruto;
-            const precoLiq = data.financeiro?.valor_final;
-            const valorFinal = isDiscount ? precoLiq : precoBruto;
-            
-            document.getElementById('final-price').innerText = valorFinal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-            
-            if(isDiscount) {
+            const valorPadrao = financeiro.investimento_bruto || 0;
+            const valorComDesconto = valorPadrao * 0.95; 
+
+            // Se o status diz que tem desconto, mostramos o valor com desconto.
+            let valorExibir = valorPadrao;
+            if (isDiscount) {
+                valorExibir = valorComDesconto;
                 document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
                 document.getElementById('price-label').classList.add('text-green-500');
             } else {
                 document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
+                document.getElementById('price-label').classList.remove('text-green-500');
             }
+            
+            document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 
+            // Contatos
             document.getElementById('client-email').innerText = data.perfil?.email || data.email;
-            document.getElementById('client-phone').innerText = data.perfil?.whatsapp_formatted || "Via WhatsApp";
+            document.getElementById('client-phone').innerText = data.perfil?.whatsapp_formatted || data.whatsapp;
 
+            // Nome se existir
             if(data.perfil?.nome) document.getElementById('titular-nome').value = data.perfil.nome;
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
-        }
-
-        // --- FUNÇÃO DE ENVIO DO E-MAIL (TRIGGER) ---
-        async function enviarEmailConfirmacao(dadosPedido) {
-            // HTML DO E-MAIL (TEMPLATE PROFISSIONAL)
-            const htmlEmail = `
-            <!DOCTYPE html>
-            <html>
-            <body style="margin:0;padding:0;background-color:#0f172a;font-family:Arial,sans-serif;">
-                <div style="background-color:#0f172a;padding:40px 10px;">
-                    <table style="border-spacing:0;width:100%;max-width:600px;margin:0 auto;background-color:#1e293b;border-radius:16px;overflow:hidden;border:1px solid #334155;">
-                        <tr>
-                            <td style="padding:30px;text-align:center;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-bottom:1px solid #334155;">
-                                <h1 style="margin:0;color:#fff;font-size:24px;">Pro-<span style="color:#3b82f6">Sollar</span></h1>
-                                <p style="margin:5px 0 0;color:#22c55e;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;">Engenharia de Alta Performance</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding:40px 30px;color:#e2e8f0;">
-                                <h2 style="margin:0 0 15px;color:#fff;">Olá, ${dadosPedido.nome}!</h2>
-                                <p style="line-height:1.6;color:#cbd5e1;">Recebemos sua solicitação de agendamento em <strong>${dadosPedido.endereco}</strong>.</p>
-                                
-                                <div style="background-color:#0f172a;border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid #3b82f6;">
-                                    <p style="margin:0 0 10px;color:#94a3b8;font-size:11px;font-weight:bold;text-transform:uppercase;">Data Solicitada</p>
-                                    <p style="margin:0 0 20px;color:#fff;font-size:16px;font-weight:bold;">${dadosPedido.dataVisita} (${dadosPedido.periodo})</p>
-                                    
-                                    <p style="margin:0 0 10px;color:#94a3b8;font-size:11px;font-weight:bold;text-transform:uppercase;">Valor Reservado (${dadosPedido.condicao})</p>
-                                    <p style="margin:0;color:#22c55e;font-size:20px;font-weight:bold;">${dadosPedido.valor}</p>
-                                </div>
-
-                                <p style="font-size:14px;line-height:1.6;color:#94a3b8;background:rgba(250,204,21,0.05);padding:15px;border-radius:8px;border:1px dashed rgba(250,204,21,0.3);">
-                                    <strong>🛡️ Compromisso de Transparência:</strong><br>
-                                    Este valor está <strong>travado</strong> para você. Ele só sofrerá alteração caso nossa visita técnica identifique divergências estruturais.
-                                </p>
-
-                                <div style="text-align:center;margin-top:40px;">
-                                    <a href="https://pro-sollar-performance.web.app/" style="background-color:#22c55e;color:#064e3b;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:bold;display:inline-block;">Acessar Meu Painel</a>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </body>
-            </html>
-            `;
-
-            // GRAVA NA COLEÇÃO 'MAIL' PARA A EXTENSÃO DISPARAR
-            await db.collection("mail").add({
-                to: [dadosPedido.email],
-                message: {
-                    subject: "✅ Visita Confirmada: Pro-Sollar",
-                    html: htmlEmail,
-                }
-            });
         }
 
         // --- AÇÃO PRINCIPAL ---
@@ -472,11 +440,11 @@
             const dataVisita = document.getElementById('visit-date').value;
             const periodo = document.querySelector('input[name="periodo"]:checked').value;
             
-            // Formatando Data para o E-mail (DD/MM/AAAA)
+            // Formatando Data
             const dataObj = new Date(dataVisita);
             const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
 
-            const valorFinal = document.getElementById('final-price').innerText;
+            const valorFinalTexto = document.getElementById('final-price').innerText;
             const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
 
             try {
@@ -493,21 +461,20 @@
                         termo_aceite: true
                     },
                     "fechamento": {
-                        valor_reservado: valorFinal,
-                        condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado",
-                        obs: "Sujeito a validação técnica"
+                        valor_reservado: valorFinalTexto,
+                        condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado"
                     }
                 });
 
-                // 2. Dispara o E-mail Profissional
-                await enviarEmailConfirmacao({
-                    nome: nomeTitular,
-                    email: leadData.perfil?.email || leadData.email,
-                    endereco: document.getElementById('install-address').innerText,
-                    dataVisita: dataFormatada,
-                    periodo: periodo,
-                    valor: valorFinal,
-                    condicao: condicaoTexto
+                // 2. DISPARA O ROBÔ (NOSSO SISTEMA V3) 
+                // Usamos a coleção 'fila_email' em vez de 'mail' para usar o Cloud Functions gratuito
+                await db.collection("fila_email").add({
+                    to: leadData.email,
+                    message: {
+                        subject: `Visita Confirmada: ${dataFormatada} - Pro-Sollar`,
+                        text: `Olá ${nomeTitular}, sua visita técnica foi agendada com sucesso para o dia ${dataFormatada} (${periodo}).\n\nResumo do Pedido:\n- Sistema: ${document.getElementById('panel-model').innerText}\n- Valor Reservado: ${valorFinalTexto} (${condicaoTexto})\n\nUm engenheiro entrará em contato em breve para confirmar os detalhes.`
+                        // O Cloud Functions vai pegar isso e colocar no template Azul/Amarelo automaticamente
+                    }
                 });
 
                 document.getElementById('success-modal').classList.remove('hidden');
