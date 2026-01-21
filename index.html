@@ -181,7 +181,7 @@
         function formatarMoeda(i) { let v = i.value.replace(/\D/g,''); v = (v/100).toFixed(2) + ''; v = v.replace(".", ","); v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); i.value = "R$ " + v; }
         function mascaraTelefone(i) { let v = i.value.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); i.value = v; }
         
-        // --- MOTOR DE ENGENHARIA V4.0 (COM SAZONALIDADE E FLUXO DISCRETO) ---
+        // --- MOTOR DE ENGENHARIA V4.0 ---
         function calcularEngenhariaPrecisao(contaMensalReais, lat = -23.5) {
             const TARIFA_ATUAL = 0.96; 
             const PERDA_SISTEMA = 0.25; 
@@ -271,7 +271,7 @@
             };
         }
 
-        // --- 4. AÇÃO PRINCIPAL (SUB-COLEÇÃO + TRAVA DE 3) ---
+        // --- 4. AÇÃO PRINCIPAL: GERAR PROPOSTA E CRIAR NOVO ID ---
         document.getElementById('btnGerar').addEventListener('click', async function() {
             const email = document.getElementById('email').value;
             const zap = document.getElementById('whatsapp').value;
@@ -290,13 +290,15 @@
                 // REF AO USUÁRIO PAI
                 const userRef = db.collection("leads").doc(email);
 
-                // 1. VERIFICAR LIMITE NA SUB-COLEÇÃO
+                // 1. VERIFICAR LIMITE DE 3 PROJETOS
                 const snapshot = await userRef.collection("simulacoes").get();
                 if (snapshot.size >= 3) {
                     alert("Você já atingiu o limite de 3 simulações gratuitas.\n\nAcesse seu painel para ver os projetos existentes.");
+                    
                     const actionCodeSettings = { url: window.location.origin + `/login.html?email=${encodeURIComponent(email)}`, handleCodeInApp: true };
                     await auth.sendSignInLinkToEmail(email, actionCodeSettings);
                     window.localStorage.setItem('emailForSignIn', email);
+                    
                     document.getElementById('form-container').classList.add('hidden');
                     document.getElementById('msg-sucesso').classList.remove('hidden');
                     return;
@@ -337,14 +339,11 @@
                 await auth.sendSignInLinkToEmail(email, actionCodeSettings);
                 window.localStorage.setItem('emailForSignIn', email);
 
-                // 6. SUCESSO E REDIRECIONA COM PARÂMETROS CORRETOS
+                // 6. SUCESSO (SEM REDIRECIONAR AUTOMATICAMENTE)
                 document.getElementById('form-container').classList.add('hidden');
                 document.getElementById('msg-sucesso').classList.remove('hidden');
                 
-                setTimeout(() => {
-                    // Manda email e ID da simulação para o painel abrir a aba certa
-                    window.location.href = `panel.html?email=${encodeURIComponent(email)}&simId=${simDoc.id}`;
-                }, 1500);
+                // O cliente agora precisa ir ao e-mail clicar no link
 
             } catch (error) {
                 console.error("Erro:", error);
