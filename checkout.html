@@ -321,7 +321,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
     <script>
-        // CONFIGURAÇÃO FIREBASE
+        // CONFIGURAÇÃO
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -596,6 +596,16 @@
                                                 </tr>
                                             </table>
 
+                                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 30px;">
+                                                <tr>
+                                                    <td align="center">
+                                                        <a href="${dados.link}" style="background-color: ${colors.accentBlue}; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
+                                                            Acessar Meu Painel
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+
                                         </td>
                                     </tr>
 
@@ -627,7 +637,6 @@
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
             const originalHTML = btn.innerHTML;
-            
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div> Processando...';
 
@@ -640,19 +649,17 @@
             const dataObj = new Date(dataVisita);
             const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
 
-            // Captura os dados da tela para o e-mail
             const valorFinalTexto = document.getElementById('final-price').innerText;
             const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
             const sistemaTexto = document.getElementById('panel-model').innerText;
             const enderecoTexto = document.getElementById('install-address').innerText;
 
             try {
-                // 1. ATUALIZAÇÃO NO BANCO
+                // ATUALIZAR BANCO
                 const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
                 const userRef = db.collection("leads").doc(currentEmail);
 
                 await userRef.update({ "perfil.nome": nomeTitular });
-
                 await simRef.update({
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
@@ -669,24 +676,28 @@
                     }
                 });
 
-                // 2. GERAÇÃO DO HTML PREMIUM DO E-MAIL
-                const htmlEmail = gerarHtmlEmail({
+                // GERAR LINK E HTML
+                const baseUrl = window.location.origin;
+                const linkPainel = `${baseUrl}/panel.html?email=${encodeURIComponent(currentEmail)}`;
+
+                const emailHtml = gerarHtmlEmail({
                     nome: nomeTitular,
                     data: dataFormatada,
                     periodo: periodo === 'manha' ? 'Período da Manhã' : 'Período da Tarde',
                     endereco: enderecoTexto,
                     sistema: sistemaTexto,
                     valor: valorFinalTexto,
-                    condicao: condicaoTexto
+                    condicao: condicaoTexto,
+                    link: linkPainel
                 });
 
-                // 3. ENVIO DO E-MAIL COM HTML
+                // ENVIAR E-MAIL
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
                         subject: `✅ Agendamento Confirmado: ${dataFormatada} - Pro-Sollar`,
-                        text: `Olá ${nomeTitular}, sua visita foi confirmada para ${dataFormatada}. Valor reservado: ${valorFinalTexto}.`, // Fallback
-                        html: htmlEmail // AQUI VAI O HTML LINDÃO
+                        text: `Olá ${nomeTitular}, visita confirmada para ${dataFormatada}.`,
+                        html: emailHtml
                     }
                 });
 
