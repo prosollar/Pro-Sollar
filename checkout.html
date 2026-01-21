@@ -41,7 +41,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             transition: all 0.3s;
-            color-scheme: dark; 
+            color-scheme: dark; /* Garante compatibilidade com tema escuro do navegador */
         }
         .input-dark:focus {
             border-color: var(--accent-blue);
@@ -49,13 +49,17 @@
             background: rgba(0, 0, 0, 0.5);
         }
         
+        /* --- CORREÇÃO DO ÍCONE DE CALENDÁRIO --- */
         ::-webkit-calendar-picker-indicator { 
-            filter: invert(1); 
-            opacity: 0.6; 
+            filter: invert(1) brightness(100%); /* Inverte a cor para Branco */
+            opacity: 0.8; 
             cursor: pointer;
             transition: 0.3s;
         }
-        ::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+        ::-webkit-calendar-picker-indicator:hover { 
+            opacity: 1; 
+            filter: invert(1) drop-shadow(0 0 5px rgba(255,255,255,0.5));
+        }
 
         .btn-confirm {
             background: linear-gradient(135deg, var(--accent-green) 0%, #15803d 100%);
@@ -369,7 +373,6 @@
             const urlEmail = params.get('email');
             const urlSimId = params.get('simId') || params.get('id');
 
-            // Prioriza URL params para permitir acesso via link mágico
             if (urlEmail && urlSimId) {
                 currentEmail = urlEmail;
                 currentSimId = urlSimId;
@@ -393,7 +396,7 @@
             try {
                 // 1. Busca a Simulação Específica
                 const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
-                // 2. Busca o Perfil Pai (para pegar telefone e nome se precisar)
+                // 2. Busca o Perfil Pai (Backup dos dados de contato)
                 const userRef = db.collection("leads").doc(email);
 
                 const simSnap = await simRef.get();
@@ -402,15 +405,15 @@
                 if (simSnap.exists) {
                     const simData = simSnap.data();
                     const userData = userSnap.exists ? userSnap.data() : {};
-                    const userPerfil = userData.perfil || {};
                     
-                    // Junta tudo num objeto só com segurança
+                    // Mescla os dados: Simulação > Perfil
                     leadData = { 
-                        ...userData, // Dados do Pai
-                        ...simData,  // Dados do Filho
-                        perfil: { ...userPerfil }, // Garante objeto perfil
+                        ...userData, 
+                        ...simData,  
                         id: simId, 
-                        email: email 
+                        email: email,
+                        // Força trazer o perfil do pai se o filho não tiver
+                        perfil: { ...userData.perfil, ...(simData.perfil || {}) }
                     };
                     
                     renderizar(leadData);
@@ -425,67 +428,58 @@
         }
 
         function renderizar(data) {
-            try {
-                const engenharia = data.engenharia?.projetado || {};
-                const config = data.configuracao_sistema || {};
-                const financeiro = data.financeiro || {};
-                const detalhes = data.detalhes || {};
-                const perfil = data.perfil || {};
+            const engenharia = data.engenharia?.projetado || {};
+            const config = data.configuracao_sistema || {};
+            const financeiro = data.financeiro || {};
+            const detalhes = data.detalhes || {};
+            const perfil = data.perfil || {};
 
-                const kwp = engenharia.potencia_instalada_kwp || "0";
-                const qtdPaineis = engenharia.qtd_modulos || 0;
-                const modeloPainel = config.modulo?.modelo || "Módulo Solar Alta Performance";
-                
-                document.getElementById('panel-model').innerText = `${qtdPaineis}x ${modeloPainel} (${kwp} kWp)`;
-                
-                // Prioridade: Endereço da simulação > Endereço do perfil
-                const enderecoFull = detalhes.endereco_completo || perfil.endereco_completo || data.endereco || "Local não informado";
-                document.getElementById('install-address').innerText = enderecoFull;
-
-                const isDiscount = data.status?.desconto_aplicado || false;
-                const valorPadrao = financeiro.investimento_bruto || 0;
-                const valorComDesconto = valorPadrao * 0.95; 
-
-                let valorExibir = valorPadrao;
-                if (isDiscount) {
-                    valorExibir = valorComDesconto;
-                    document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
-                    document.getElementById('price-label').classList.add('text-green-500');
-                } else {
-                    document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
-                    document.getElementById('price-label').classList.remove('text-green-500');
-                }
-                
-                document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-
-                // --- CORREÇÃO DO DETETIVE DE DADOS (EMAIL E WHATSAPP) ---
-                
-                // 1. E-mail: Tenta pegar da URL, depois do perfil, depois da raiz
-                const finalEmail = currentEmail || perfil.email || data.email || "E-mail não encontrado";
-                document.getElementById('client-email').innerText = finalEmail;
-
-                // 2. WhatsApp: Procura em TODAS as variações possíveis
-                const finalPhone = 
-                    perfil.whatsapp_formatted || 
-                    perfil.whatsapp || 
-                    data.whatsapp_formatted || 
-                    data.whatsapp || 
-                    "Via WhatsApp"; // Texto padrão caso realmente não ache
-
-                document.getElementById('client-phone').innerText = finalPhone;
-
-                // Nome
-                if(perfil.nome) document.getElementById('titular-nome').value = perfil.nome;
-
-                document.getElementById('loading-skeleton').classList.add('hidden');
-                document.getElementById('checkout-content').classList.remove('hidden');
+            const kwp = engenharia.potencia_instalada_kwp || "0";
+            const qtdPaineis = engenharia.qtd_modulos || 0;
+            const modeloPainel = config.modulo?.modelo || "Módulo Solar Alta Performance";
             
-            } catch(e) {
-                console.error("Erro render:", e);
-                // Força remoção do loader mesmo com erro para não travar
-                document.getElementById('loading-skeleton').classList.add('hidden');
-                document.getElementById('checkout-content').classList.remove('hidden');
+            document.getElementById('panel-model').innerText = `${qtdPaineis}x ${modeloPainel} (${kwp} kWp)`;
+            
+            const enderecoFull = detalhes.endereco_completo || perfil.endereco_completo || data.endereco || "Local não informado";
+            document.getElementById('install-address').innerText = enderecoFull;
+
+            const isDiscount = data.status?.desconto_aplicado || false;
+            const valorPadrao = financeiro.investimento_bruto || 0;
+            const valorComDesconto = valorPadrao * 0.95; 
+
+            let valorExibir = valorPadrao;
+            if (isDiscount) {
+                valorExibir = valorComDesconto;
+                document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
+                document.getElementById('price-label').classList.add('text-green-500');
+            } else {
+                document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
+                document.getElementById('price-label').classList.remove('text-green-500');
             }
+            
+            document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+
+            // --- CORREÇÃO DO DETETIVE DE DADOS (EMAIL E WHATSAPP) ---
+            
+            // 1. E-mail: Tenta pegar da URL, depois do perfil, depois da raiz
+            const finalEmail = currentEmail || perfil.email || data.email || "E-mail não encontrado";
+            document.getElementById('client-email').innerText = finalEmail;
+
+            // 2. WhatsApp: Procura em TODAS as variações possíveis
+            const finalPhone = 
+                perfil.whatsapp_formatted || 
+                perfil.whatsapp || 
+                data.whatsapp_formatted || 
+                data.whatsapp || 
+                "Via WhatsApp"; // Texto padrão caso realmente não ache
+
+            document.getElementById('client-phone').innerText = finalPhone;
+
+            // Nome
+            if(perfil.nome) document.getElementById('titular-nome').value = perfil.nome;
+
+            document.getElementById('loading-skeleton').classList.add('hidden');
+            document.getElementById('checkout-content').classList.remove('hidden');
         }
 
         // --- AÇÃO PRINCIPAL: CONFIRMAR AGENDAMENTO ---
