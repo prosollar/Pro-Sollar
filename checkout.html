@@ -157,11 +157,8 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
-
     <script>
+        // CONFIGURAÇÃO
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -170,96 +167,100 @@
             messagingSenderId: "484051034820",
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
+
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         
         let currentEmail = null;
         let currentSimId = null;
-        let isOldFormat = false; // Flag para formato antigo
         let leadData = null;
 
+        // DATA MÍNIMA
         const dateInput = document.getElementById('visit-date');
-        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
         dateInput.min = tomorrow.toISOString().split('T')[0];
 
+        // LOGICA DE TOGGLE DO NOME
         window.toggleRecebedor = function() {
             const check = document.getElementById('check-mesmo-nome');
             const campo = document.getElementById('campo-recebedor');
             const input = document.getElementById('recebedor-nome');
-            if(check.checked) { campo.classList.add('hidden'); input.required = false; input.value = ""; } 
-            else { campo.classList.remove('hidden'); input.required = true; input.focus(); }
+            
+            if(check.checked) {
+                campo.classList.add('hidden');
+                input.required = false;
+                input.value = ""; 
+            } else {
+                campo.classList.remove('hidden');
+                input.required = true;
+                input.focus();
+            }
         }
 
         window.voltarParaPainel = function() {
-            if(currentEmail && currentSimId && !isOldFormat) window.location.href = `panel.html?email=${encodeURIComponent(currentEmail)}&simId=${currentSimId}`;
-            else if (isOldFormat && currentSimId) window.location.href = `panel.html?id=${currentSimId}`;
+            if(currentEmail && currentSimId) window.location.href = `panel.html?email=${encodeURIComponent(currentEmail)}&simId=${currentSimId}`;
             else window.history.back();
         }
 
+        // AUTH CHECK E LEITURA DE PARÂMETROS
         auth.onAuthStateChanged(async (user) => {
             const params = new URLSearchParams(window.location.search);
             const urlEmail = params.get('email');
             const urlSimId = params.get('simId') || params.get('id');
 
-            if (user) {
-                currentEmail = user.email;
-                currentSimId = urlSimId;
-            } else if (urlSimId) { // Aceita sem email para compatibilidade antiga
+            if (urlEmail && urlSimId) {
                 currentEmail = urlEmail;
                 currentSimId = urlSimId;
+            } else if (user) {
+                currentEmail = user.email;
+                window.location.href = "panel.html"; 
+                return;
             } else {
-                alert("Link inválido.");
+                alert("Link inválido ou expirado.");
                 window.location.href = "login.html";
                 return;
             }
 
-            if(currentSimId) await carregarDadosHibrido(currentEmail, currentSimId);
+            if(currentEmail && currentSimId) {
+                await carregarDados(currentEmail, currentSimId);
+            }
         });
 
-        // --- BUSCA INTELIGENTE (TENTA NOVO, DEPOIS ANTIGO) ---
-        async function carregarDadosHibrido(email, simId) {
+        // BUSCA DADOS NA NOVA ESTRUTURA (SUB-COLEÇÃO)
+        async function carregarDados(email, simId) {
             try {
-                let simData = null;
-                let userData = {};
+                // 1. Busca a Simulação Específica
+                const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
+                // 2. Busca o Perfil Pai (Backup dos dados de contato)
+                const userRef = db.collection("leads").doc(email);
 
-                // TENTATIVA 1: FORMATO NOVO (V5 - Sub-coleção)
-                if (email) {
-                    const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
-                    const userRef = db.collection("leads").doc(email);
-                    const simSnap = await simRef.get();
+                const simSnap = await simRef.get();
+                const userSnap = await userRef.get();
+
+                if (simSnap.exists) {
+                    const simData = simSnap.data();
+                    const userData = userSnap.exists ? userSnap.data() : {};
                     
-                    if (simSnap.exists) {
-                        simData = simSnap.data();
-                        const userSnap = await userRef.get();
-                        if (userSnap.exists) userData = userSnap.data().perfil || {};
-                        isOldFormat = false;
-                    }
-                }
-
-                // TENTATIVA 2: FORMATO ANTIGO (V1/V3 - Raiz)
-                if (!simData) {
-                    const docSnap = await db.collection("leads").doc(simId).get();
-                    if (docSnap.exists) {
-                        simData = docSnap.data();
-                        userData = simData.perfil || {};
-                        currentEmail = simData.email; // Recupera email do doc antigo
-                        isOldFormat = true;
-                        console.log("Formato antigo detectado");
-                    }
-                }
-
-                if (simData) {
-                    leadData = { ...userData, ...simData, id: simId, email: currentEmail };
+                    // Mescla os dados: Simulação > Perfil
+                    leadData = { 
+                        ...userData, 
+                        ...simData,  
+                        id: simId, 
+                        email: email,
+                        // Força trazer o perfil do pai se o filho não tiver
+                        perfil: { ...userData.perfil, ...(simData.perfil || {}) }
+                    };
+                    
                     renderizar(leadData);
                 } else {
                     alert("Simulação não encontrada.");
                     window.location.href = "panel.html";
                 }
-
-            } catch (error) {
-                console.error("Erro:", error);
-                alert("Erro de conexão. Tente novamente.");
+            } catch (error) { 
+                console.error("Erro:", error); 
+                alert("Erro ao carregar dados. Tente recarregar.");
             }
         }
 
@@ -271,9 +272,7 @@
             const perfil = data.perfil || {};
 
             const kwp = engenharia.potencia_instalada_kwp || "0";
-            let qtdPaineis = engenharia.qtd_modulos;
-            if(!qtdPaineis) qtdPaineis = Math.ceil(parseFloat(kwp)/0.57);
-
+            const qtdPaineis = engenharia.qtd_modulos || 0;
             const modeloPainel = config.modulo?.modelo || "Módulo Solar Alta Performance";
             
             document.getElementById('panel-model').innerText = `${qtdPaineis}x ${modeloPainel} (${kwp} kWp)`;
@@ -296,19 +295,36 @@
             }
             
             document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-            document.getElementById('client-email').innerText = currentEmail || data.email;
-            document.getElementById('client-phone').innerText = perfil.whatsapp_formatted || data.whatsapp || "Via WhatsApp";
 
-            if(perfil.nome || data.nome) document.getElementById('titular-nome').value = perfil.nome || data.nome;
+            // --- CORREÇÃO DO DETETIVE DE DADOS (EMAIL E WHATSAPP) ---
+            
+            // 1. E-mail: Tenta pegar da URL, depois do perfil, depois da raiz
+            const finalEmail = currentEmail || perfil.email || data.email || "E-mail não encontrado";
+            document.getElementById('client-email').innerText = finalEmail;
+
+            // 2. WhatsApp: Procura em TODAS as variações possíveis
+            const finalPhone = 
+                perfil.whatsapp_formatted || 
+                perfil.whatsapp || 
+                data.whatsapp_formatted || 
+                data.whatsapp || 
+                "Via WhatsApp"; // Texto padrão caso realmente não ache
+
+            document.getElementById('client-phone').innerText = finalPhone;
+
+            // Nome
+            if(perfil.nome) document.getElementById('titular-nome').value = perfil.nome;
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
+        // --- AÇÃO PRINCIPAL: CONFIRMAR AGENDAMENTO ---
         window.confirmarPedido = async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
             const originalHTML = btn.innerHTML;
+            
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div> Processando...';
 
@@ -317,24 +333,22 @@
             const nomeRecebedor = isMesmoNome ? nomeTitular : document.getElementById('recebedor-nome').value;
             const dataVisita = document.getElementById('visit-date').value;
             const periodo = document.querySelector('input[name="periodo"]:checked').value;
+            
             const dataObj = new Date(dataVisita);
             const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+
             const valorFinalTexto = document.getElementById('final-price').innerText;
             const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
 
             try {
-                // ATUALIZAÇÃO INTELIGENTE (DEPENDE DO FORMATO)
-                let docRef;
-                if (isOldFormat) {
-                    docRef = db.collection("leads").doc(currentSimId);
-                } else {
-                    // Atualiza Nome no Pai
-                    await db.collection("leads").doc(currentEmail).update({ "perfil.nome": nomeTitular });
-                    // Define Ref do Filho
-                    docRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
-                }
+                // 1. ATUALIZA A SIMULAÇÃO (FILHO)
+                const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
+                // 2. ATUALIZA O PERFIL (PAI)
+                const userRef = db.collection("leads").doc(currentEmail);
 
-                await docRef.update({
+                await userRef.update({ "perfil.nome": nomeTitular });
+
+                await simRef.update({
                     "status.fase": "visita_agendada", 
                     "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
                     "agendamento": {
@@ -350,12 +364,12 @@
                     }
                 });
 
-                // DISPARA ROBÔ
+                // 3. DISPARA O ROBÔ (FILA_EMAIL)
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
                         subject: `Visita Confirmada: ${dataFormatada} - Pro-Sollar`,
-                        text: `Olá ${nomeTitular}, sua visita técnica foi agendada para ${dataFormatada} (${periodo}).\nValor: ${valorFinalTexto}`
+                        text: `Olá ${nomeTitular}, sua visita técnica foi agendada com sucesso para o dia ${dataFormatada} (${periodo}).\n\nResumo do Pedido:\n- Sistema: ${document.getElementById('panel-model').innerText}\n- Valor Reservado: ${valorFinalTexto} (${condicaoTexto})\n\nUm engenheiro entrará em contato em breve para confirmar os detalhes.`
                     }
                 });
 
