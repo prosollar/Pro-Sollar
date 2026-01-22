@@ -181,11 +181,15 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- DESIGN: LANDSCAPE / EXECUTIVE DASHBOARD COM LOGO ---
+        // --- DESIGN FINAL: EXECUTIVE DASHBOARD COM LOGO PRO-SOLLAR ---
         function gerarHtmlEmail(dados) {
+            
+            // Link Oficial da sua Logomarca no Firebase
+            const LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/pro-sollar-performance.firebasestorage.app/o/Pr%C3%B3-Sollar%20Engenharia%20Apresenta%C3%A7%C3%A3o.png?alt=media&token=640b3321-e58f-44f9-8d93-5e48aa86c830"; 
+
             const c = {
                 bg: '#020617',         // Fundo Preto Profundo
-                card: '#0f172a',       // O Cartão Principal (Slate Dark)
+                card: '#0f172a',       // O Cartão Principal
                 glass: '#1e293b',      // Blocos internos
                 border: '#334155',     // Bordas sutis
                 text: '#f8fafc',       // Branco
@@ -194,20 +198,16 @@
                 blue: '#3b82f6'        // Azul Tech
             };
 
-            // URL do seu logo (Substitua se você hospedar em outro lugar)
-            const logoUrl = "https://i.imgur.com/8X8X8X8.png"; // Exemplo - O seu logo será inserido aqui
-
             return `
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8">
                 <style>
-                    /* Responsividade para Mobile: Empilha as colunas se a tela for pequena */
+                    /* Responsividade Mobile: Garante leitura perfeita no celular */
                     @media only screen and (max-width: 600px) {
-                        .col-split { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 20px !important; }
+                        .col-split { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 20px !important; border-right: none !important; }
                         .mobile-center { text-align: center !important; }
-                        .desktop-only { display: none !important; }
                     }
                 </style>
             </head>
@@ -220,15 +220,15 @@
                             <table width="700" border="0" cellspacing="0" cellpadding="0" style="max-width: 700px; width: 100%; margin: 0 auto; border-spacing: 0;">
                                 
                                 <tr>
-                                    <td style="padding-bottom: 20px;">
+                                    <td style="padding-bottom: 25px;">
                                         <table width="100%" border="0">
                                             <tr>
                                                 <td align="left" valign="middle">
-                                                    <img src="image_2.png" alt="Pro-Sollar Engenharia" width="150" height="auto" style="display: block; border: 0;">
+                                                    <img src="${LOGO_URL}" alt="Pro-Sollar Engenharia" width="180" style="display: block; border: 0; max-width: 180px; height: auto;">
                                                 </td>
                                                 <td align="right" valign="middle">
-                                                    <span style="background-color: rgba(34, 197, 94, 0.15); color: ${c.accent}; font-size: 10px; font-weight: bold; padding: 6px 12px; border-radius: 4px; border: 1px solid rgba(34, 197, 94, 0.3); letter-spacing: 1px;">
-                                                        AGENDAMENTO CONFIRMADO
+                                                    <span style="background-color: rgba(34, 197, 94, 0.15); color: ${c.accent}; font-size: 10px; font-weight: bold; padding: 6px 12px; border-radius: 4px; border: 1px solid rgba(34, 197, 94, 0.3); letter-spacing: 1px; font-family: sans-serif;">
+                                                        CONFIRMADO
                                                     </span>
                                                 </td>
                                             </tr>
@@ -240,94 +240,15 @@
                                     <td style="background-color: ${c.card}; border: 1px solid ${c.border}; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
                                         
                                         <div style="background-color: ${c.glass}; padding: 30px; border-bottom: 1px solid ${c.border};">
-                                            <h1 style="color: ${c.text}; font-size: 24px; margin: 0 0 10px 0;">Olá, ${dados.nome}.</h1>
+                                            <h1 style="color: ${c.text}; font-size: 24px; margin: 0 0 10px 0; font-weight: 600;">Olá, ${dados.nome}.</h1>
                                             <p style="color: ${c.muted}; font-size: 14px; margin: 0; line-height: 1.5;">
-                                                Este é o seu comprovante oficial de reserva. Nossa engenharia já está preparando a documentação para a visita técnica.
+                                                Este é o seu comprovante oficial de reserva. Nossa engenharia já está preparando a documentação para a visita técnica no seu imóvel.
                                             </p>
                                         </div>
 
                                         <div style="padding: 30px;">
                                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                                 <tr>
-                                                    <td class="col-split" width="55%" valign="top" style="padding-right: 20px; border-right: 1px dashed ${c.border};">
-                                                        
-                                                        <p style="color: ${c.blue}; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
-                                                            <span style="margin-right: 5px;">📅</span> DADOS DA VISITA
-                                                        </p>
-
-                                                        <table width="100%" border="0">
-                                                            <tr>
-                                                                <td style="padding-bottom: 15px;">
-                                                                    <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Data Agendada</p>
-                                                                    <p style="margin: 2px 0 0 0; font-size: 16px; color: ${c.text}; font-weight: 600;">${dados.data}</p>
-                                                                    <p style="margin: 0; font-size: 12px; color: ${c.accent};">${dados.periodo}</p>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>
-                                                                    <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Localização</p>
-                                                                    <p style="margin: 2px 0 0 0; font-size: 14px; color: ${c.text}; line-height: 1.4;">${dados.endereco}</p>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-
-                                                    </td>
-
-                                                    <td class="col-split" width="45%" valign="top" style="padding-left: 30px;">
-                                                        
-                                                        <p style="color: ${c.accent}; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
-                                                            <span style="margin-right: 5px;">🔒</span> CONDIÇÃO COMERCIAL
-                                                        </p>
-
-                                                        <div style="background-color: rgba(2, 6, 23, 0.5); padding: 20px; border-radius: 8px; border: 1px solid ${c.border};">
-                                                            <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Valor Reservado</p>
-                                                            <p style="margin: 5px 0; font-size: 26px; color: ${c.text}; font-weight: 700; letter-spacing: -1px;">${dados.valor}</p>
-                                                            
-                                                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                                                                <p style="margin: 0; font-size: 11px; color: ${c.muted};">
-                                                                    Modalidade: <strong style="color: ${c.text};">${dados.condicao}</strong>
-                                                                </p>
-                                                            </div>
-                                                        </div>
-
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-
-                                        <div style="background-color: ${c.glass}; padding: 15px 30px; border-top: 1px solid ${c.border};">
-                                            <table width="100%" border="0">
-                                                <tr>
-                                                    <td width="20" valign="middle"><span style="font-size: 16px;">🛡️</span></td>
-                                                    <td valign="middle">
-                                                        <p style="margin: 0; font-size: 11px; color: ${c.muted};">
-                                                            <strong>Processo Seguro:</strong> A proposta definitiva está sujeita à validação técnica presencial.
-                                                        </p>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td align="center" style="padding-top: 30px; opacity: 0.6;">
-                                        <p style="font-size: 10px; color: ${c.muted}; margin: 0;">
-                                            © 2026 Pro-Sollar Performance. <br>
-                                            Energia Inteligente. Futuro Sustentável.
-                                        </p>
-                                    </td>
-                                </tr>
-
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-            </body>
-            </html>
-            `;
-        }
         // --- AÇÃO PRINCIPAL ---
         window.confirmarPedido = async function(e) {
             e.preventDefault();
