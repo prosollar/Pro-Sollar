@@ -244,13 +244,13 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- DESIGN: DEEP TECH FINAL (Botão CTA no Card) ---
+        // --- DESIGN: DEEP TECH FINAL (Botão Solar CTA) ---
         function gerarHtmlEmail(dados) {
             
-            // 1. URL DO LOGO TRANSPARENTE
+            // URL DO LOGO TRANSPARENTE
             const LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/pro-sollar-performance.firebasestorage.app/o/Logo%20-%20Pro-Sollar.png?alt=media&token=ef2edf99-5cba-47c5-b7a0-14bfabd9f4d6"; 
             
-            // 2. ⚠️ COLOQUE AQUI O LINK PARA ONDE O CLIENTE DEVE IR (Login/Painel)
+            // ⚠️ COLOQUE AQUI O LINK REAL DO PAINEL
             const LINK_PAINEL = "https://seusite.com/login"; 
 
             const c = {
@@ -277,8 +277,7 @@
                         .col-stack { display: block !important; width: 100% !important; margin-bottom: 20px; }
                         .no-pad-mobile { padding-right: 0 !important; }
                         .logo-img { width: 180px !important; height: auto !important; }
-                        /* Ajuste do botão no mobile para não quebrar */
-                        .btn-cta { display: block !important; text-align: center !important; margin-top: 10px !important; }
+                        .btn-cta { display: block !important; text-align: center !important; margin-top: 15px !important; }
                     }
                 </style>
             </head>
@@ -347,13 +346,15 @@
                                                                 
                                                                 <table border="0" cellspacing="0" cellpadding="0" width="100%">
                                                                     <tr>
-                                                                        <td class="col-stack" valign="middle" width="50%">
+                                                                        <td class="col-stack" valign="middle" width="45%">
                                                                             <span style="color: ${c.accent_green}; font-size: 32px; font-weight: 700; letter-spacing: -1px; text-shadow: 0 0 20px rgba(74, 222, 128, 0.2); display: block; margin-bottom: 5px;">${dados.valor}</span>
                                                                         </td>
-                                                                        <td class="col-stack" valign="middle" align="right" width="50%">
-                                                                            <a href="${LINK_PAINEL}" class="btn-cta" style="background: linear-gradient(90deg, ${c.accent_green} 0%, ${c.accent_blue} 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 50px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4); border: 0; display: inline-block; white-space: nowrap;">
+                                                                        <td class="col-stack" valign="middle" align="right" width="55%">
+                                                                            
+                                                                            <a href="${LINK_PAINEL}" class="btn-cta" style="background: linear-gradient(90deg, #FFD700 0%, #FF8C00 100%); color: #0f172a; text-decoration: none; padding: 12px 24px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5); border: 0; display: inline-block; white-space: nowrap;">
                                                                                 ACESSAR PAINEL &#10140;
                                                                             </a>
+
                                                                         </td>
                                                                     </tr>
                                                                 </table>
