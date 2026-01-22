@@ -181,7 +181,7 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- DESIGN: LANDSCAPE / EXECUTIVE DASHBOARD ---
+        // --- DESIGN: LANDSCAPE / EXECUTIVE DASHBOARD COM LOGO ---
         function gerarHtmlEmail(dados) {
             const c = {
                 bg: '#020617',         // Fundo Preto Profundo
@@ -193,6 +193,9 @@
                 accent: '#22c55e',     // Verde Neon (Sucesso)
                 blue: '#3b82f6'        // Azul Tech
             };
+
+            // URL do seu logo (Substitua se você hospedar em outro lugar)
+            const logoUrl = "https://i.imgur.com/8X8X8X8.png"; // Exemplo - O seu logo será inserido aqui
 
             return `
             <!DOCTYPE html>
@@ -221,7 +224,7 @@
                                         <table width="100%" border="0">
                                             <tr>
                                                 <td align="left" valign="middle">
-                                                    <span style="color: ${c.text}; font-size: 20px; font-weight: 800; letter-spacing: 2px;">PRO<span style="color:${c.blue}">-</span>SOLLAR</span>
+                                                    <img src="image_2.png" alt="Pro-Sollar Engenharia" width="150" height="auto" style="display: block; border: 0;">
                                                 </td>
                                                 <td align="right" valign="middle">
                                                     <span style="background-color: rgba(34, 197, 94, 0.15); color: ${c.accent}; font-size: 10px; font-weight: bold; padding: 6px 12px; border-radius: 4px; border: 1px solid rgba(34, 197, 94, 0.3); letter-spacing: 1px;">
