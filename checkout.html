@@ -244,30 +244,22 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- DESIGN: DEEP TECH HYBRID (Fundo Claro + Card Site Identity) ---
+        // --- DESIGN: DEEP TECH HYBRID (Final Version: Left Align + Big Logo) ---
         function gerarHtmlEmail(dados) {
             
-            // ⚠️ Use o link HTTPS público do seu Storage
+            // NOVO LINK (Imagem Transparente)
             const LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/pro-sollar-performance.firebasestorage.app/o/Logo%20-%20Pro-Sollar.png?alt=media&token=ef2edf99-5cba-47c5-b7a0-14bfabd9f4d6"; 
 
-            // Paleta Híbrida: Site Dark dentro de Email Light
             const c = {
-                // O ambiente do e-mail (Fundo Claro)
-                bg_email: '#f3f4f6',   // Cinza muito claro, quase branco
-                
-                // A Identidade do Site (Card Dark)
-                card_bg: '#0f172a',    // Slate 900 (O fundo Deep do site)
-                card_border: '#1e293b',// Borda sutil escura
-                
-                // Tipografia no Dark Mode
-                text_white: '#f8fafc', // Branco gelo
-                text_muted: '#94a3b8', // Cinza slate claro
-                
-                // Elementos Tech
-                widget_bg: '#1e293b',  // Fundo dos blocos internos (Simula o glass escuro)
-                accent_green: '#4ade80', // Verde Neon (Mais brilhante para fundo escuro)
-                accent_blue: '#60a5fa',  // Azul Neon
-                divider: '#334155'     // Linhas divisórias
+                bg_email: '#f3f4f6',   
+                card_bg: '#0f172a',    
+                card_border: '#1e293b',
+                text_white: '#f8fafc', 
+                text_muted: '#94a3b8', 
+                widget_bg: '#1e293b',  
+                accent_green: '#4ade80', 
+                accent_blue: '#60a5fa',  
+                divider: '#334155'     
             };
 
             return `
@@ -277,23 +269,25 @@
                 <meta charset="UTF-8">
                 <style>
                     @media only screen and (max-width: 600px) {
-                        .wrapper { padding: 10px !important; }
+                        .wrapper-td { padding: 10px !important; }
                         .content-padding { padding: 25px 20px !important; }
                         .col-stack { display: block !important; width: 100% !important; margin-bottom: 20px; }
                         .no-pad-mobile { padding-right: 0 !important; }
+                        /* No mobile, o logo grande pode quebrar, então ajustamos */
+                        .logo-img { width: 180px !important; height: auto !important; }
                     }
                 </style>
             </head>
             <body style="margin: 0; padding: 0; background-color: ${c.bg_email}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                 
-                <table class="wrapper" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${c.bg_email}; padding: 40px 0;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${c.bg_email}; padding: 40px 0;">
                     <tr>
-                        <td align="center">
+                        <td class="wrapper-td" align="left" style="padding-left: 30px; padding-right: 30px;">
                             
-                            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: ${c.card_bg}; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); overflow: hidden; border: 1px solid ${c.card_border}; margin: 0 auto;">
+                            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: ${c.card_bg}; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); overflow: hidden; border: 1px solid ${c.card_border}; margin: 0;">
                                 
                                 <tr>
-                                    <td height="6" style="background: linear-gradient(90deg, ${c.accent_green} 0%, ${c.accent_blue} 100%); box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);"></td>
+                                    <td height="6" style="background: linear-gradient(90deg, ${c.accent_green} 0%, ${c.accent_blue} 100%); box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);"></td>
                                 </tr>
 
                                 <tr>
@@ -301,7 +295,7 @@
                                         <table width="100%" border="0">
                                             <tr>
                                                 <td align="left" valign="middle">
-                                                    <img src="${LOGO_URL}" alt="Pro-Sollar" width="110" style="display: block; border: 0;">
+                                                    <img class="logo-img" src="${LOGO_URL}" alt="Pro-Sollar" width="220" style="display: block; border: 0; max-width: 100%; height: auto;">
                                                 </td>
                                                 <td align="right" valign="middle">
                                                     <div style="background-color: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: ${c.accent_green}; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 100px; letter-spacing: 0.5px; display: inline-block; text-shadow: 0 0 10px rgba(74, 222, 128, 0.2);">
@@ -324,11 +318,9 @@
 
                                 <tr>
                                     <td class="content-padding" style="padding: 0 40px 40px 40px;">
-                                        
                                         <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${c.widget_bg}; border: 1px solid ${c.divider}; border-radius: 16px;">
                                             <tr>
                                                 <td style="padding: 30px;">
-                                                    
                                                     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px; border-bottom: 1px dashed ${c.divider}; padding-bottom: 30px;">
                                                         <tr>
                                                             <td class="col-stack no-pad-mobile" width="50%" valign="top" style="padding-right: 20px;">
@@ -342,7 +334,6 @@
                                                             </td>
                                                         </tr>
                                                     </table>
-
                                                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                                         <tr>
                                                             <td align="left">
@@ -360,11 +351,9 @@
                                                             </td>
                                                         </tr>
                                                     </table>
-
                                                 </td>
                                             </tr>
                                         </table>
-
                                     </td>
                                 </tr>
 
@@ -372,9 +361,7 @@
                                     <td style="background-color: rgba(0,0,0,0.2); padding: 25px 40px; border-top: 1px solid ${c.divider}; text-align: left;">
                                         <table width="100%" border="0">
                                             <tr>
-                                                <td width="24" valign="top" style="padding-top: 2px;">
-                                                    <span style="font-size: 16px;">🛡️</span>
-                                                </td>
+                                                <td width="24" valign="top" style="padding-top: 2px;"><span style="font-size: 16px;">🛡️</span></td>
                                                 <td style="padding-left: 10px;">
                                                     <p style="font-size: 12px; color: ${c.text_muted}; margin: 0; line-height: 1.5; font-weight: 400;">
                                                         <strong>Validação Técnica:</strong> A proposta definitiva depende da análise presencial de telhado e elétrica.
@@ -382,14 +369,12 @@
                                                 </td>
                                             </tr>
                                         </table>
-                                        <p style="font-size: 10px; color: #475569; margin-top: 20px; text-align: center; text-transform: uppercase; letter-spacing: 1px;">
-                                            © 2026 Pro-Sollar Performance
-                                        </p>
+                                        <p style="font-size: 10px; color: #475569; margin-top: 20px; text-align: center; text-transform: uppercase; letter-spacing: 1px;">© 2026 Pro-Sollar Performance</p>
                                     </td>
                                 </tr>
 
                             </table>
-                            </td>
+                        </td>
                     </tr>
                 </table>
             </body>
