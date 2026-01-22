@@ -95,7 +95,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+
     <script>
+        console.log("🚀 Script de Checkout Iniciado");
+
         const firebaseConfig = {
             apiKey: "AIzaSyCpcQqXdDWtEW2wPsj9Z2dLdt_IzLLKWV8",
             authDomain: "pro-sollar-performance.firebaseapp.com",
@@ -104,51 +110,105 @@
             messagingSenderId: "484051034820",
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
+
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         
         let currentEmail, currentSimId, leadData;
+        
+        // Configuração de Data Mínima
         const dateInput = document.getElementById('visit-date');
-        const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-        dateInput.min = tomorrow.toISOString().split('T')[0];
+        if(dateInput) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.min = tomorrow.toISOString().split('T')[0];
+        }
 
+        // --- FUNÇÕES DE INTERFACE ---
         window.toggleRecebedor = function() {
             const check = document.getElementById('check-mesmo-nome');
             const campo = document.getElementById('campo-recebedor');
             const input = document.getElementById('recebedor-nome');
-            if(check.checked) { campo.classList.add('hidden'); input.required = false; input.value = ""; } 
-            else { campo.classList.remove('hidden'); input.required = true; input.focus(); }
+            
+            if(check.checked) {
+                campo.classList.add('hidden');
+                input.required = false;
+                input.value = "";
+            } else {
+                campo.classList.remove('hidden');
+                input.required = true;
+                input.focus();
+            }
         }
 
         window.voltarParaPainel = function() {
-            if(currentEmail && currentSimId) window.location.href = `panel.html?email=${encodeURIComponent(currentEmail)}&simId=${currentSimId}`;
-            else window.history.back();
+            if(currentEmail && currentSimId) {
+                window.location.href = `panel.html?email=${encodeURIComponent(currentEmail)}&simId=${currentSimId}`;
+            } else {
+                window.history.back();
+            }
         }
 
+        // --- CARREGAMENTO DE DADOS ---
         auth.onAuthStateChanged(async (user) => {
+            console.log("Auth State Changed:", user ? "Logado" : "Não Logado");
             const params = new URLSearchParams(window.location.search);
             const urlEmail = params.get('email');
             const urlSimId = params.get('simId') || params.get('id');
-            if (urlEmail && urlSimId) { currentEmail = urlEmail; currentSimId = urlSimId; } 
-            else if (user) { currentEmail = user.email; window.location.href = "panel.html"; return; } 
-            else { alert("Link inválido."); window.location.href = "login.html"; return; }
-            if(currentEmail && currentSimId) await carregarDados(currentEmail, currentSimId);
+
+            if (urlEmail && urlSimId) {
+                currentEmail = urlEmail;
+                currentSimId = urlSimId;
+            } else if (user) {
+                currentEmail = user.email;
+                // Se estiver logado mas sem ID na URL, volta pro painel
+                if(!urlSimId) {
+                    window.location.href = "panel.html";
+                    return;
+                }
+            } else {
+                alert("Link inválido ou expirado.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            if(currentEmail && currentSimId) {
+                await carregarDados(currentEmail, currentSimId);
+            }
         });
 
         async function carregarDados(email, simId) {
             try {
+                console.log("Buscando dados...", email, simId);
                 const simRef = db.collection("leads").doc(email).collection("simulacoes").doc(simId);
                 const userRef = db.collection("leads").doc(email);
+
                 const simSnap = await simRef.get();
                 const userSnap = await userRef.get();
+
                 if (simSnap.exists) {
                     const simData = simSnap.data();
                     const userData = userSnap.exists ? userSnap.data() : {};
-                    leadData = { ...userData, ...simData, id: simId, email: email, perfil: { ...userData.perfil, ...(simData.perfil || {}) } };
+                    
+                    // Mescla os dados para uso global
+                    leadData = {
+                        ...userData,
+                        ...simData,
+                        id: simId,
+                        email: email,
+                        perfil: { ...userData.perfil, ...(simData.perfil || {}) }
+                    };
+                    
                     renderizar(leadData);
-                } else { alert("Simulação não encontrada."); window.location.href = "panel.html"; }
-            } catch (error) { console.error("Erro:", error); alert("Erro de conexão."); }
+                } else {
+                    alert("Simulação não encontrada.");
+                    window.location.href = "panel.html";
+                }
+            } catch (error) {
+                console.error("Erro ao carregar:", error);
+                alert("Erro de conexão ao buscar dados.");
+            }
         }
 
         function renderizar(data) {
@@ -165,148 +225,74 @@
             const isDiscount = data.status?.desconto_aplicado || false;
             let valorExibir = isDiscount ? valorPadrao * 0.95 : valorPadrao;
             
+            const priceLabel = document.getElementById('price-label');
             if (isDiscount) {
-                document.getElementById('price-label').innerText = "Valor Promocional (À Vista)";
-                document.getElementById('price-label').classList.add('text-green-500');
+                priceLabel.innerText = "Valor Promocional (À Vista)";
+                priceLabel.classList.add('text-green-500');
             } else {
-                document.getElementById('price-label').innerText = "Valor Padrão (Financiável)";
-                document.getElementById('price-label').classList.remove('text-green-500');
+                priceLabel.innerText = "Valor Padrão (Financiável)";
+                priceLabel.classList.remove('text-green-500');
             }
+
             document.getElementById('final-price').innerText = valorExibir.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
             document.getElementById('client-email').innerText = currentEmail || data.email;
             document.getElementById('client-phone').innerText = perfil.whatsapp_formatted || perfil.whatsapp || "Via WhatsApp";
+            
             if(perfil.nome) document.getElementById('titular-nome').value = perfil.nome;
 
             document.getElementById('loading-skeleton').classList.add('hidden');
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- DESIGN: EXECUTIVE DASHBOARD (LOGO DISCRETO & CIRCULAR) ---
+        // --- TEMPLATE DE EMAIL (IDÊNTICO AO BACKEND) ---
         function gerarHtmlEmail(dados) {
-            
-            // Link do Logo (O mesmo que já funcionou)
+            // URL do Logo
             const LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/pro-sollar-performance.firebasestorage.app/o/Pr%C3%B3-Sollar%20Engenharia%20Apresenta%C3%A7%C3%A3o.png?alt=media&token=640b3321-e58f-44f9-8d93-5e48aa86c830"; 
 
             const c = {
-                bg: '#020617',         // Fundo Preto Profundo
-                card: '#0f172a',       // O Cartão Principal
-                glass: '#1e293b',      // Blocos internos
-                border: '#334155',     // Bordas sutis
-                text: '#f8fafc',       // Branco
-                muted: '#94a3b8',      // Cinza
-                accent: '#22c55e',     // Verde Neon (Sucesso)
-                blue: '#3b82f6'        // Azul Tech
+                bg: '#020617',
+                card: '#0f172a',
+                glass: '#1e293b',
+                border: '#334155',
+                text: '#f8fafc',
+                muted: '#94a3b8',
+                accent: '#22c55e',
+                blue: '#3b82f6'
             };
 
             return `
             <!DOCTYPE html>
             <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    @media only screen and (max-width: 600px) {
-                        .col-split { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 20px !important; border-right: none !important; }
-                    }
-                </style>
-            </head>
-            <body style="margin: 0; padding: 0; background-color: ${c.bg}; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-                
+            <head><meta charset="UTF-8"></head>
+            <body style="margin: 0; padding: 0; background-color: ${c.bg}; font-family: sans-serif;">
                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${c.bg}; padding: 40px 0;">
                     <tr>
                         <td align="center">
-                            
-                            <table width="700" border="0" cellspacing="0" cellpadding="0" style="max-width: 700px; width: 100%; margin: 0 auto; border-spacing: 0;">
-                                
+                            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; margin: 0 auto;">
                                 <tr>
-                                    <td style="padding-bottom: 25px;">
-                                        <table width="100%" border="0">
-                                            <tr>
-                                                <td align="left" valign="middle">
-                                                    <img src="${LOGO_URL}" alt="Pro-Sollar" width="80" style="display: block; border: 0; max-width: 80px; height: auto; border-radius: 50%;">
-                                                </td>
-                                                <td align="right" valign="middle">
-                                                    <span style="background-color: rgba(34, 197, 94, 0.15); color: ${c.accent}; font-size: 10px; font-weight: bold; padding: 6px 12px; border-radius: 4px; border: 1px solid rgba(34, 197, 94, 0.3); letter-spacing: 1px; font-family: sans-serif;">
-                                                        CONFIRMADO
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        </table>
+                                    <td align="center" style="padding-bottom: 30px;">
+                                        <img src="${LOGO_URL}" alt="Pro-Sollar" width="80" style="display: block; border-radius: 50%;">
                                     </td>
                                 </tr>
-
                                 <tr>
-                                    <td style="background-color: ${c.card}; border: 1px solid ${c.border}; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
-                                        
+                                    <td style="background-color: ${c.card}; border: 1px solid ${c.border}; border-radius: 12px; overflow: hidden;">
                                         <div style="background-color: ${c.glass}; padding: 30px; border-bottom: 1px solid ${c.border};">
-                                            <h1 style="color: ${c.text}; font-size: 24px; margin: 0 0 10px 0; font-weight: 600;">Olá, ${dados.nome}.</h1>
-                                            <p style="color: ${c.muted}; font-size: 14px; margin: 0; line-height: 1.5;">
-                                                Este é o seu comprovante oficial de reserva. Nossa engenharia já está preparando a documentação para a visita técnica no seu imóvel.
-                                            </p>
+                                            <h1 style="color: ${c.text}; font-size: 24px; margin: 0 0 10px 0;">Olá, ${dados.nome}.</h1>
+                                            <p style="color: ${c.muted}; font-size: 14px; margin: 0;">Visita técnica pré-agendada com sucesso.</p>
                                         </div>
-
                                         <div style="padding: 30px;">
-                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                                                <tr>
-                                                    <td class="col-split" width="55%" valign="top" style="padding-right: 20px; border-right: 1px dashed ${c.border};">
-                                                        <p style="color: ${c.blue}; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
-                                                            <span style="margin-right: 5px;">📅</span> DETALHES DA VISITA
-                                                        </p>
-                                                        <table width="100%" border="0">
-                                                            <tr>
-                                                                <td style="padding-bottom: 15px;">
-                                                                    <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Data Agendada</p>
-                                                                    <p style="margin: 2px 0 0 0; font-size: 16px; color: ${c.text}; font-weight: 600;">${dados.data}</p>
-                                                                    <p style="margin: 0; font-size: 12px; color: ${c.accent}; font-weight: 500;">${dados.periodo}</p>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>
-                                                                    <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Localização</p>
-                                                                    <p style="margin: 2px 0 0 0; font-size: 14px; color: ${c.text}; line-height: 1.4;">${dados.endereco}</p>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-
-                                                    <td class="col-split" width="45%" valign="top" style="padding-left: 30px;">
-                                                        <p style="color: ${c.accent}; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
-                                                            <span style="margin-right: 5px;">🔒</span> CONDIÇÃO COMERCIAL
-                                                        </p>
-                                                        <div style="background-color: rgba(2, 6, 23, 0.5); padding: 20px; border-radius: 8px; border: 1px solid ${c.border};">
-                                                            <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Valor Reservado</p>
-                                                            <p style="margin: 5px 0; font-size: 26px; color: ${c.text}; font-weight: 700; letter-spacing: -1px;">${dados.valor}</p>
-                                                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                                                                <p style="margin: 0; font-size: 11px; color: ${c.muted};">
-                                                                    Modalidade: <strong style="color: ${c.text};">${dados.condicao}</strong>
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </table>
+                                            <p style="color: ${c.blue}; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">DATA E PERÍODO</p>
+                                            <p style="color: ${c.text}; font-size: 18px; margin: 0 0 20px 0;">${dados.data} - ${dados.periodo}</p>
+                                            
+                                            <p style="color: ${c.blue}; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">ENDEREÇO</p>
+                                            <p style="color: ${c.text}; font-size: 14px; margin: 0 0 20px 0;">${dados.endereco}</p>
+                                            
+                                            <div style="background-color: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid ${c.border};">
+                                                <p style="color: ${c.muted}; font-size: 10px; margin: 0;">VALOR RESERVADO</p>
+                                                <p style="color: ${c.accent}; font-size: 20px; font-weight: bold; margin: 5px 0 0 0;">${dados.valor}</p>
+                                                <p style="color: ${c.text}; font-size: 12px; margin: 5px 0 0 0;">${dados.condicao}</p>
+                                            </div>
                                         </div>
-
-                                        <div style="background-color: ${c.glass}; padding: 15px 30px; border-top: 1px solid ${c.border};">
-                                            <table width="100%" border="0">
-                                                <tr>
-                                                    <td width="20" valign="middle"><span style="font-size: 16px;">🛡️</span></td>
-                                                    <td valign="middle">
-                                                        <p style="margin: 0; font-size: 11px; color: ${c.muted};">
-                                                            <strong>Processo Seguro:</strong> A proposta definitiva está sujeita à validação técnica presencial.
-                                                        </p>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td align="center" style="padding-top: 30px; opacity: 0.6;">
-                                        <p style="font-size: 10px; color: ${c.muted}; margin: 0; line-height: 1.5;">
-                                            © 2026 Pro-Sollar Performance.<br>
-                                            Energia Inteligente. Futuro Sustentável.
-                                        </p>
                                     </td>
                                 </tr>
                             </table>
@@ -318,38 +304,70 @@
             `;
         }
 
-        // --- AÇÃO PRINCIPAL ---
-        window.confirmarPedido = async function(e) {
-            e.preventDefault();
+        // --- OUVINTE DE EVENTO (CORREÇÃO CRÍTICA) ---
+        // Aqui garantimos que o form seja controlado pelo JS
+        document.getElementById('booking-form').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Impede o reload da página
+            console.log("Botão Reservar Clicado!");
+
+            // Verifica se os dados carregaram
+            if (!leadData) {
+                alert("Aguarde o carregamento completo dos dados.");
+                return;
+            }
+
             const btn = document.getElementById('btn-submit');
             const originalHTML = btn.innerHTML;
+            
+            // Trava o botão
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div> Processando...';
 
-            const nomeTitular = document.getElementById('titular-nome').value;
-            const isMesmoNome = document.getElementById('check-mesmo-nome').checked;
-            const nomeRecebedor = isMesmoNome ? nomeTitular : document.getElementById('recebedor-nome').value;
-            const dataVisita = document.getElementById('visit-date').value;
-            const periodo = document.querySelector('input[name="periodo"]:checked').value;
-            const dataObj = new Date(dataVisita);
-            const dataFormatada = dataObj.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
-            const valorFinalTexto = document.getElementById('final-price').innerText;
-            const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
-            const sistemaTexto = document.getElementById('panel-model').innerText;
-            const enderecoTexto = document.getElementById('install-address').innerText;
-
             try {
-                const simRef = db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId);
-                const userRef = db.collection("leads").doc(currentEmail);
-                await userRef.update({ "perfil.nome": nomeTitular });
-                await simRef.update({
-                    "status.fase": "visita_agendada", 
-                    "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
-                    "agendamento": { responsavel_local: nomeRecebedor, data_visita: dataVisita, periodo: periodo, status: "pendente_confirmacao", termo_aceite: true },
-                    "fechamento": { valor_reservado: valorFinalTexto, condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado" }
+                // Coleta dados do formulário
+                const nomeTitular = document.getElementById('titular-nome').value;
+                const isMesmoNome = document.getElementById('check-mesmo-nome').checked;
+                const nomeRecebedor = isMesmoNome ? nomeTitular : document.getElementById('recebedor-nome').value;
+                const dataVisita = document.getElementById('visit-date').value;
+                
+                // Pega o radio button selecionado com segurança
+                const periodoEl = document.querySelector('input[name="periodo"]:checked');
+                const periodo = periodoEl ? periodoEl.value : "manha";
+
+                // Formatação
+                const dataObj = new Date(dataVisita);
+                // Ajuste de timezone simples para exibição
+                const dataFormatada = new Date(dataObj.valueOf() + dataObj.getTimezoneOffset() * 60000).toLocaleDateString('pt-BR');
+                
+                const valorFinalTexto = document.getElementById('final-price').innerText;
+                const condicaoTexto = leadData.status?.desconto_aplicado ? "À Vista" : "Financiado";
+                const enderecoTexto = document.getElementById('install-address').innerText;
+
+                console.log("Dados coletados, enviando para Firestore...");
+
+                // 1. Atualiza Perfil
+                await db.collection("leads").doc(currentEmail).update({ 
+                    "perfil.nome": nomeTitular 
                 });
 
-                // GERAR O HTML NOVO
+                // 2. Atualiza Simulação
+                await db.collection("leads").doc(currentEmail).collection("simulacoes").doc(currentSimId).update({
+                    "status.fase": "visita_agendada", 
+                    "status.data_fechamento_site": firebase.firestore.FieldValue.serverTimestamp(),
+                    "agendamento": { 
+                        responsavel_local: nomeRecebedor, 
+                        data_visita: dataVisita, 
+                        periodo: periodo, 
+                        status: "pendente_confirmacao", 
+                        termo_aceite: true 
+                    },
+                    "fechamento": { 
+                        valor_reservado: valorFinalTexto, 
+                        condicao: leadData.status?.desconto_aplicado ? "a_vista" : "financiado" 
+                    }
+                });
+
+                // 3. Cria E-mail na Fila (TRIGGER DO BACKEND)
                 const htmlContent = gerarHtmlEmail({
                     nome: nomeTitular,
                     data: dataFormatada,
@@ -359,24 +377,28 @@
                     condicao: condicaoTexto
                 });
 
-                // ENVIAR
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
                         subject: `Confirmação de Agendamento - Pro-Sollar`,
                         html: htmlContent 
-                    }
+                    },
+                    status: "PENDENTE", // Importante para debug
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
+                console.log("Sucesso! Mostrando modal.");
                 document.getElementById('success-modal').classList.remove('hidden');
 
             } catch (error) {
-                console.error("Erro:", error);
-                alert("Erro ao processar. Tente novamente.");
+                console.error("ERRO FATAL:", error);
+                alert("Erro ao processar agendamento: " + error.message);
+                
+                // Destrava o botão em caso de erro
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
             }
-        };
+        });
     </script>
 </body>
 </html>
