@@ -181,10 +181,10 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- DESIGN FINAL: EXECUTIVE DASHBOARD COM LOGO PRO-SOLLAR ---
+        // --- DESIGN: EXECUTIVE DASHBOARD (LOGO DISCRETO & CIRCULAR) ---
         function gerarHtmlEmail(dados) {
             
-            // Link Oficial da sua Logomarca no Firebase
+            // Link do Logo (O mesmo que já funcionou)
             const LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/pro-sollar-performance.firebasestorage.app/o/Pr%C3%B3-Sollar%20Engenharia%20Apresenta%C3%A7%C3%A3o.png?alt=media&token=640b3321-e58f-44f9-8d93-5e48aa86c830"; 
 
             const c = {
@@ -204,10 +204,8 @@
             <head>
                 <meta charset="UTF-8">
                 <style>
-                    /* Responsividade Mobile: Garante leitura perfeita no celular */
                     @media only screen and (max-width: 600px) {
                         .col-split { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 20px !important; border-right: none !important; }
-                        .mobile-center { text-align: center !important; }
                     }
                 </style>
             </head>
@@ -224,7 +222,7 @@
                                         <table width="100%" border="0">
                                             <tr>
                                                 <td align="left" valign="middle">
-                                                    <img src="${LOGO_URL}" alt="Pro-Sollar Engenharia" width="180" style="display: block; border: 0; max-width: 180px; height: auto;">
+                                                    <img src="${LOGO_URL}" alt="Pro-Sollar" width="80" style="display: block; border: 0; max-width: 80px; height: auto; border-radius: 50%;">
                                                 </td>
                                                 <td align="right" valign="middle">
                                                     <span style="background-color: rgba(34, 197, 94, 0.15); color: ${c.accent}; font-size: 10px; font-weight: bold; padding: 6px 12px; border-radius: 4px; border: 1px solid rgba(34, 197, 94, 0.3); letter-spacing: 1px; font-family: sans-serif;">
@@ -250,11 +248,9 @@
                                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                                 <tr>
                                                     <td class="col-split" width="55%" valign="top" style="padding-right: 20px; border-right: 1px dashed ${c.border};">
-                                                        
                                                         <p style="color: ${c.blue}; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
                                                             <span style="margin-right: 5px;">📅</span> DETALHES DA VISITA
                                                         </p>
-
                                                         <table width="100%" border="0">
                                                             <tr>
                                                                 <td style="padding-bottom: 15px;">
@@ -270,26 +266,21 @@
                                                                 </td>
                                                             </tr>
                                                         </table>
-
                                                     </td>
 
                                                     <td class="col-split" width="45%" valign="top" style="padding-left: 30px;">
-                                                        
                                                         <p style="color: ${c.accent}; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
                                                             <span style="margin-right: 5px;">🔒</span> CONDIÇÃO COMERCIAL
                                                         </p>
-
                                                         <div style="background-color: rgba(2, 6, 23, 0.5); padding: 20px; border-radius: 8px; border: 1px solid ${c.border};">
                                                             <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Valor Reservado</p>
                                                             <p style="margin: 5px 0; font-size: 26px; color: ${c.text}; font-weight: 700; letter-spacing: -1px;">${dados.valor}</p>
-                                                            
                                                             <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
                                                                 <p style="margin: 0; font-size: 11px; color: ${c.muted};">
                                                                     Modalidade: <strong style="color: ${c.text};">${dados.condicao}</strong>
                                                                 </p>
                                                             </div>
                                                         </div>
-
                                                     </td>
                                                 </tr>
                                             </table>
@@ -307,7 +298,6 @@
                                                 </tr>
                                             </table>
                                         </div>
-
                                     </td>
                                 </tr>
 
@@ -319,7 +309,6 @@
                                         </p>
                                     </td>
                                 </tr>
-
                             </table>
                         </td>
                     </tr>
