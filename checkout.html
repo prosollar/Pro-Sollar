@@ -244,58 +244,107 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- TEMPLATE DE EMAIL (IDÊNTICO AO BACKEND) ---
+        // --- DESIGN: LIGHT MODE (Fundo Branco Clean) ---
         function gerarHtmlEmail(dados) {
-            // URL do Logo
+            
             const LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/pro-sollar-performance.firebasestorage.app/o/Pr%C3%B3-Sollar%20Engenharia%20Apresenta%C3%A7%C3%A3o.png?alt=media&token=640b3321-e58f-44f9-8d93-5e48aa86c830"; 
 
             const c = {
-                bg: '#ffffff',
-                card: '#0f172a',
-                glass: '#1e293b',
-                border: '#334155',
-                text: '#f8fafc',
-                muted: '#94a3b8',
-                accent: '#22c55e',
-                blue: '#3b82f6'
+                bg: '#ffffff',         // Fundo Branco Puro
+                card: '#ffffff',       // Cartão Branco
+                glass: '#f8fafc',      // Cinza muito suave (para separar blocos)
+                border: '#e2e8f0',     // Borda cinza clara
+                text: '#0f172a',       // Texto Preto (Azul muito escuro para leitura)
+                muted: '#64748b',      // Cinza médio
+                accent: '#16a34a',     // Verde (um pouco mais escuro para ler no branco)
+                blue: '#2563eb'        // Azul forte
             };
 
             return `
             <!DOCTYPE html>
             <html>
-            <head><meta charset="UTF-8"></head>
-            <body style="margin: 0; padding: 0; background-color: ${c.bg}; font-family: sans-serif;">
-                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${c.bg}; padding: 40px 0;">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @media only screen and (max-width: 600px) {
+                        .col-split { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 20px !important; border-right: none !important; }
+                    }
+                </style>
+            </head>
+            <body style="margin: 0; padding: 0; background-color: ${c.bg}; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${c.glass}; padding: 40px 0;">
                     <tr>
                         <td align="center">
-                            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; margin: 0 auto;">
+                            
+                            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; margin: 0 auto; background-color: ${c.card}; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid ${c.border};">
+                                
                                 <tr>
-                                    <td align="center" style="padding-bottom: 30px;">
-                                        <img src="${LOGO_URL}" alt="Pro-Sollar" width="80" style="display: block; border-radius: 50%;">
+                                    <td style="padding: 40px 40px 0 40px; text-align: center;">
+                                        <img src="${LOGO_URL}" alt="Pro-Sollar" width="90" style="display: block; margin: 0 auto; border-radius: 50%;">
+                                        <div style="margin-top: 20px;">
+                                            <span style="background-color: #dcfce7; color: ${c.accent}; font-size: 10px; font-weight: bold; padding: 6px 12px; rounded-full; border-radius: 20px; letter-spacing: 1px; font-family: sans-serif;">
+                                                AGENDAMENTO CONFIRMADO
+                                            </span>
+                                        </div>
                                     </td>
                                 </tr>
+
                                 <tr>
-                                    <td style="background-color: ${c.card}; border: 1px solid ${c.border}; border-radius: 12px; overflow: hidden;">
-                                        <div style="background-color: ${c.glass}; padding: 30px; border-bottom: 1px solid ${c.border};">
-                                            <h1 style="color: ${c.text}; font-size: 24px; margin: 0 0 10px 0;">Olá, ${dados.nome}.</h1>
-                                            <p style="color: ${c.muted}; font-size: 14px; margin: 0;">Visita técnica pré-agendada com sucesso.</p>
-                                        </div>
-                                        <div style="padding: 30px;">
-                                            <p style="color: ${c.blue}; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">DATA E PERÍODO</p>
-                                            <p style="color: ${c.text}; font-size: 18px; margin: 0 0 20px 0;">${dados.data} - ${dados.periodo}</p>
+                                    <td style="padding: 30px 40px;">
+                                        <h1 style="color: ${c.text}; font-size: 24px; margin: 0 0 10px 0; font-weight: 700; text-align: center;">Olá, ${dados.nome}.</h1>
+                                        <p style="color: ${c.muted}; font-size: 16px; margin: 0; line-height: 1.6; text-align: center;">
+                                            Tudo pronto! Sua visita técnica foi pré-agendada. Nossa engenharia já está preparando a documentação.
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="padding: 0 40px 40px 40px;">
+                                        <div style="background-color: ${c.glass}; border: 1px solid ${c.border}; border-radius: 12px; padding: 30px;">
                                             
-                                            <p style="color: ${c.blue}; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">ENDEREÇO</p>
-                                            <p style="color: ${c.text}; font-size: 14px; margin: 0 0 20px 0;">${dados.endereco}</p>
-                                            
-                                            <div style="background-color: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid ${c.border};">
-                                                <p style="color: ${c.muted}; font-size: 10px; margin: 0;">VALOR RESERVADO</p>
-                                                <p style="color: ${c.accent}; font-size: 20px; font-weight: bold; margin: 5px 0 0 0;">${dados.valor}</p>
-                                                <p style="color: ${c.text}; font-size: 12px; margin: 5px 0 0 0;">${dados.condicao}</p>
-                                            </div>
+                                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 25px; border-bottom: 1px dashed ${c.border}; padding-bottom: 25px;">
+                                                <tr>
+                                                    <td width="50%" valign="top">
+                                                        <p style="color: ${c.muted}; font-size: 10px; text-transform: uppercase; font-weight: bold; margin: 0;">Data da Visita</p>
+                                                        <p style="color: ${c.text}; font-size: 16px; font-weight: 600; margin: 5px 0 0 0;">${dados.data}</p>
+                                                        <p style="color: ${c.blue}; font-size: 12px; font-weight: 500; margin: 2px 0 0 0;">Período: ${dados.periodo}</p>
+                                                    </td>
+                                                    <td width="50%" valign="top">
+                                                        <p style="color: ${c.muted}; font-size: 10px; text-transform: uppercase; font-weight: bold; margin: 0;">Local</p>
+                                                        <p style="color: ${c.text}; font-size: 14px; line-height: 1.4; margin: 5px 0 0 0;">${dados.endereco}</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+
+                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                <tr>
+                                                    <td align="center">
+                                                        <p style="color: ${c.muted}; font-size: 10px; text-transform: uppercase; font-weight: bold; margin: 0;">Investimento Reservado</p>
+                                                        <p style="color: ${c.accent}; font-size: 28px; font-weight: 800; margin: 5px 0; letter-spacing: -1px;">${dados.valor}</p>
+                                                        <p style="background-color: #fff; border: 1px solid ${c.border}; display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; color: ${c.text}; margin: 0;">
+                                                            Condição: <strong>${dados.condicao}</strong>
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+
                                         </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td align="center" style="padding-bottom: 40px; border-top: 1px solid ${c.border}; padding-top: 30px;">
+                                        <p style="font-size: 12px; color: ${c.muted}; margin: 0; line-height: 1.5;">
+                                            ⚠️ <strong>Importante:</strong> A proposta definitiva depende da<br>validação técnica presencial no imóvel.
+                                        </p>
+                                        <p style="font-size: 11px; color: #cbd5e1; margin-top: 20px;">
+                                            © 2026 Pro-Sollar Engenharia.
+                                        </p>
                                     </td>
                                 </tr>
                             </table>
+                            
                         </td>
                     </tr>
                 </table>
