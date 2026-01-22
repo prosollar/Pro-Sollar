@@ -244,20 +244,22 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- DESIGN: LIGHT MODE (Fundo Branco Clean) ---
+        // --- DESIGN: LIGHT MODE (Ajustado: Esquerda & Logo Original) ---
         function gerarHtmlEmail(dados) {
             
+            // ⚠️ ATENÇÃO: Coloque aqui a URL 'https://' do seu novo logo. 
+            // Links 'gs://' NÃO funcionam em e-mail.
             const LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/pro-sollar-performance.firebasestorage.app/o/Pr%C3%B3-Sollar%20Engenharia%20Apresenta%C3%A7%C3%A3o.png?alt=media&token=640b3321-e58f-44f9-8d93-5e48aa86c830"; 
 
             const c = {
-                bg: '#ffffff',         // Fundo Branco Puro
-                card: '#ffffff',       // Cartão Branco
-                glass: '#f8fafc',      // Cinza muito suave (para separar blocos)
-                border: '#e2e8f0',     // Borda cinza clara
-                text: '#0f172a',       // Texto Preto (Azul muito escuro para leitura)
-                muted: '#64748b',      // Cinza médio
-                accent: '#16a34a',     // Verde (um pouco mais escuro para ler no branco)
-                blue: '#2563eb'        // Azul forte
+                bg: '#ffffff',         
+                card: '#ffffff',       
+                glass: '#f8fafc',      
+                border: '#e2e8f0',     
+                text: '#0f172a',       
+                muted: '#64748b',      
+                accent: '#16a34a',     
+                blue: '#2563eb'        
             };
 
             return `
@@ -266,34 +268,42 @@
             <head>
                 <meta charset="UTF-8">
                 <style>
+                    /* Garante que em celular o card ocupe a largura toda */
                     @media only screen and (max-width: 600px) {
-                        .col-split { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 20px !important; border-right: none !important; }
+                        .wrapper-table { width: 100% !important; padding: 10px !important; }
+                        .main-card { width: 100% !important; }
                     }
                 </style>
             </head>
             <body style="margin: 0; padding: 0; background-color: ${c.bg}; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
                 
-                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${c.glass}; padding: 40px 0;">
+                <table class="wrapper-table" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${c.glass}; padding: 40px;">
                     <tr>
-                        <td align="center">
+                        <td align="left">
                             
-                            <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; margin: 0 auto; background-color: ${c.card}; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid ${c.border};">
+                            <table class="main-card" width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: ${c.card}; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid ${c.border};">
                                 
                                 <tr>
-                                    <td style="padding: 40px 40px 0 40px; text-align: center;">
-                                        <img src="${LOGO_URL}" alt="Pro-Sollar" width="90" style="display: block; margin: 0 auto; border-radius: 50%;">
-                                        <div style="margin-top: 20px;">
-                                            <span style="background-color: #dcfce7; color: ${c.accent}; font-size: 10px; font-weight: bold; padding: 6px 12px; rounded-full; border-radius: 20px; letter-spacing: 1px; font-family: sans-serif;">
-                                                AGENDAMENTO CONFIRMADO
-                                            </span>
-                                        </div>
+                                    <td style="padding: 40px 40px 20px 40px; text-align: left;">
+                                        <table width="100%" border="0">
+                                            <tr>
+                                                <td align="left" valign="middle">
+                                                    <img src="${LOGO_URL}" alt="Pro-Sollar" width="100" style="display: block; border: 0;">
+                                                </td>
+                                                <td align="right" valign="middle">
+                                                    <span style="background-color: #dcfce7; color: ${c.accent}; font-size: 10px; font-weight: bold; padding: 6px 12px; border-radius: 20px; letter-spacing: 0.5px; font-family: sans-serif; white-space: nowrap;">
+                                                        AGENDAMENTO CONFIRMADO
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </td>
                                 </tr>
 
                                 <tr>
-                                    <td style="padding: 30px 40px;">
-                                        <h1 style="color: ${c.text}; font-size: 24px; margin: 0 0 10px 0; font-weight: 700; text-align: center;">Olá, ${dados.nome}.</h1>
-                                        <p style="color: ${c.muted}; font-size: 16px; margin: 0; line-height: 1.6; text-align: center;">
+                                    <td style="padding: 0 40px 30px 40px;">
+                                        <h1 style="color: ${c.text}; font-size: 24px; margin: 0 0 10px 0; font-weight: 700; text-align: left;">Olá, ${dados.nome}.</h1>
+                                        <p style="color: ${c.muted}; font-size: 16px; margin: 0; line-height: 1.6; text-align: left;">
                                             Tudo pronto! Sua visita técnica foi pré-agendada. Nossa engenharia já está preparando a documentação.
                                         </p>
                                     </td>
@@ -319,7 +329,7 @@
 
                                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                                 <tr>
-                                                    <td align="center">
+                                                    <td align="left">
                                                         <p style="color: ${c.muted}; font-size: 10px; text-transform: uppercase; font-weight: bold; margin: 0;">Investimento Reservado</p>
                                                         <p style="color: ${c.accent}; font-size: 28px; font-weight: 800; margin: 5px 0; letter-spacing: -1px;">${dados.valor}</p>
                                                         <p style="background-color: #fff; border: 1px solid ${c.border}; display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; color: ${c.text}; margin: 0;">
@@ -334,7 +344,7 @@
                                 </tr>
 
                                 <tr>
-                                    <td align="center" style="padding-bottom: 40px; border-top: 1px solid ${c.border}; padding-top: 30px;">
+                                    <td align="left" style="padding-bottom: 40px; border-top: 1px solid ${c.border}; padding-top: 30px; padding-left: 40px; padding-right: 40px;">
                                         <p style="font-size: 12px; color: ${c.muted}; margin: 0; line-height: 1.5;">
                                             ⚠️ <strong>Importante:</strong> A proposta definitiva depende da<br>validação técnica presencial no imóvel.
                                         </p>
