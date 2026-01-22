@@ -249,6 +249,86 @@
                                         <div style="padding: 30px;">
                                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                                 <tr>
+                                                    <td class="col-split" width="55%" valign="top" style="padding-right: 20px; border-right: 1px dashed ${c.border};">
+                                                        
+                                                        <p style="color: ${c.blue}; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
+                                                            <span style="margin-right: 5px;">📅</span> DETALHES DA VISITA
+                                                        </p>
+
+                                                        <table width="100%" border="0">
+                                                            <tr>
+                                                                <td style="padding-bottom: 15px;">
+                                                                    <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Data Agendada</p>
+                                                                    <p style="margin: 2px 0 0 0; font-size: 16px; color: ${c.text}; font-weight: 600;">${dados.data}</p>
+                                                                    <p style="margin: 0; font-size: 12px; color: ${c.accent}; font-weight: 500;">${dados.periodo}</p>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Localização</p>
+                                                                    <p style="margin: 2px 0 0 0; font-size: 14px; color: ${c.text}; line-height: 1.4;">${dados.endereco}</p>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+
+                                                    </td>
+
+                                                    <td class="col-split" width="45%" valign="top" style="padding-left: 30px;">
+                                                        
+                                                        <p style="color: ${c.accent}; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
+                                                            <span style="margin-right: 5px;">🔒</span> CONDIÇÃO COMERCIAL
+                                                        </p>
+
+                                                        <div style="background-color: rgba(2, 6, 23, 0.5); padding: 20px; border-radius: 8px; border: 1px solid ${c.border};">
+                                                            <p style="margin: 0; font-size: 11px; color: ${c.muted}; text-transform: uppercase;">Valor Reservado</p>
+                                                            <p style="margin: 5px 0; font-size: 26px; color: ${c.text}; font-weight: 700; letter-spacing: -1px;">${dados.valor}</p>
+                                                            
+                                                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                                                <p style="margin: 0; font-size: 11px; color: ${c.muted};">
+                                                                    Modalidade: <strong style="color: ${c.text};">${dados.condicao}</strong>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+
+                                        <div style="background-color: ${c.glass}; padding: 15px 30px; border-top: 1px solid ${c.border};">
+                                            <table width="100%" border="0">
+                                                <tr>
+                                                    <td width="20" valign="middle"><span style="font-size: 16px;">🛡️</span></td>
+                                                    <td valign="middle">
+                                                        <p style="margin: 0; font-size: 11px; color: ${c.muted};">
+                                                            <strong>Processo Seguro:</strong> A proposta definitiva está sujeita à validação técnica presencial.
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td align="center" style="padding-top: 30px; opacity: 0.6;">
+                                        <p style="font-size: 10px; color: ${c.muted}; margin: 0; line-height: 1.5;">
+                                            © 2026 Pro-Sollar Performance.<br>
+                                            Energia Inteligente. Futuro Sustentável.
+                                        </p>
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+            `;
+        }
+
         // --- AÇÃO PRINCIPAL ---
         window.confirmarPedido = async function(e) {
             e.preventDefault();
@@ -290,12 +370,12 @@
                     condicao: condicaoTexto
                 });
 
-                // ENVIAR (Para a coleção 'fila_email' que tem permissão, mas com o HTML que o SendGrid vai injetar)
+                // ENVIAR
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
                         subject: `Confirmação de Agendamento - Pro-Sollar`,
-                        html: htmlContent // O SendGrid vai pegar isso e colocar no {{{html}}}
+                        html: htmlContent 
                     }
                 });
 
