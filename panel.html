@@ -133,7 +133,7 @@
                         <p class="text-[10px] text-green-400 font-bold uppercase tracking-widest mb-2">Com Pro-Sollar</p>
                         <p id="display-new-bill" class="text-4xl md:text-5xl font-black text-white">R$ --</p>
                         <span class="inline-block mt-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-[10px] font-bold text-green-300">
-                            <i class="fas fa-arrow-down mr-1"></i>Redução Estimada
+                            <i class="fas fa-arrow-down mr-1"></i>Redução Máxima Técnica
                         </span>
                     </div>
                 </div>
@@ -308,7 +308,7 @@
         window.formatarMoeda = (i) => { let v = i.value.replace(/\D/g,''); v = (v/100).toFixed(2) + ''; v = v.replace(".", ","); v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); i.value = "R$ " + v; }
         window.mascaraTelefone = (i) => { let v = i.value.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); i.value = v; }
 
-        // --- MOTOR DE CÁLCULO V5.0 ---
+        // --- MOTOR DE CÁLCULO V5.0 (IGUAL AO INDEX.HTML) ---
         function calcularEngenhariaPrecisao(contaMensalReais, lat = -23.5) {
             // --- CONSTANTES DE ENGENHARIA ---
             const TARIFA_ATUAL = 0.96; 
@@ -358,7 +358,7 @@
             const valorTributavel = investimentoTotal - custoKit;
             const custoImposto = valorTributavel * 0.07;
 
-            // --- CÁLCULO DE FLUXO DE CAIXA ---
+            // --- CÁLCULO DE FLUXO DE CAIXA (PAYBACK) USANDO O NOVO PREÇO ---
             let fluxoCaixa = [];
             let geracaoAcumulada = 0;
             let economiaAcumulada = 0;
@@ -381,6 +381,7 @@
                     ano: anoCorrente,
                     geracao_kwh: parseFloat(geracaoMes.toFixed(2)),
                     economia_reais: parseFloat(economiaMes.toFixed(2)),
+                    // Aqui usamos o investimentoTotal calculado pela nova regra
                     fluxo_acumulado: parseFloat((economiaAcumulada - investimentoTotal).toFixed(2))
                 });
 
@@ -416,6 +417,7 @@
                     economia_total_acumulada: parseFloat(economiaAcumulada.toFixed(2)),
                     payback_anos: parseFloat(paybackAnos.toFixed(1)),
                     fluxo_caixa_mensal: fluxoCaixa,
+                    // Salvamos a composição para análise interna
                     composicao_preco: {
                         coeficiente_utilizado: COEFICIENTE_INVESTIMENTO,
                         kit_solar: parseFloat(custoKit.toFixed(2)),
@@ -608,11 +610,22 @@
                 const geracaoAno1 = (engenharia.geracao_mensal_media_ano1 || 0) * 12;
                 const economiaAno1 = financeiro.fluxo_caixa_mensal.slice(0, 12).reduce((a,b)=>a+b.economia_reais, 0);
 
-                // --- POPULAR COMPARADOR DE FATURA (NOVO) ---
+                // --- POPULAR COMPARADOR DE FATURA (COM REGRA DE 80% TETO) ---
                 const faturaAtual = detalhes.consumo_simulado || 0;
-                const mediaEconomiaMensal = economiaAno1 / 12;
-                let novaFatura = faturaAtual - mediaEconomiaMensal;
-                if (novaFatura < 0) novaFatura = 0; // Evita negativo visualmente
+                const economiaPotencial = economiaAno1 / 12; // Média mensal gerada
+                const tetoEconomia = faturaAtual * 0.80; // Regra de negócio: Máximo 80% de abatimento
+
+                let novaFatura;
+                
+                // Se a economia potencial for maior ou igual a 80% da fatura, travamos a nova fatura em 20%
+                if (economiaPotencial >= tetoEconomia) {
+                    novaFatura = faturaAtual * 0.20; // Cliente paga 20% (Taxa Mínima + Ilum. Pública)
+                } else {
+                    novaFatura = faturaAtual - economiaPotencial;
+                }
+
+                // Evita valores negativos (segurança extra)
+                if (novaFatura < 0) novaFatura = 0;
 
                 document.getElementById('display-old-bill').innerText = faturaAtual.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
                 document.getElementById('display-new-bill').innerText = novaFatura.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
