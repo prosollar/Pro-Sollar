@@ -181,8 +181,9 @@
         function formatarMoeda(i) { let v = i.value.replace(/\D/g,''); v = (v/100).toFixed(2) + ''; v = v.replace(".", ","); v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); i.value = "R$ " + v; }
         function mascaraTelefone(i) { let v = i.value.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); i.value = v; }
         
-        // --- MOTOR DE ENGENHARIA V4.0 ---
+        // --- MOTOR DE ENGENHARIA V5.0 (ATUALIZADO COM NOVA LÓGICA FINANCEIRA) ---
         function calcularEngenhariaPrecisao(contaMensalReais, lat = -23.5) {
+            // --- CONSTANTES DE ENGENHARIA ---
             const TARIFA_ATUAL = 0.96; 
             const PERDA_SISTEMA = 0.25; 
             const PERFORMANCE_RATIO = 1 - PERDA_SISTEMA;
@@ -193,10 +194,12 @@
 
             const CURVA_SAZONAL = [1.20, 1.15, 1.05, 0.95, 0.85, 0.75, 0.80, 0.95, 1.00, 1.05, 1.10, 1.15];
 
+            // Irradiação Solar
             let HSP_MEDIA_DIARIA = 4.85; 
             if (Math.abs(lat) > 25) HSP_MEDIA_DIARIA = 4.35; 
             if (Math.abs(lat) < 15) HSP_MEDIA_DIARIA = 5.30; 
 
+            // 1. Dimensionamento do Sistema
             const consumoMensalKwh = contaMensalReais / TARIFA_ATUAL;
             let potenciaAlvoKwp = (consumoMensalKwh / (HSP_MEDIA_DIARIA * 30 * PERFORMANCE_RATIO)) * 1.10;
 
@@ -204,15 +207,36 @@
             const potenciaInstaladaKwp = (qtdModulos * POT_MODULO_W) / 1000;
             const areaTotalSistema = qtdModulos * AREA_MODULO_M2;
 
+            // --- NOVA LÓGICA DE PRECIFICAÇÃO (REGRA DE MERCADO) ---
+            
+            // Passo A: Calcular Geração Média Mensal Estimada (Ano 1)
+            // Fórmula física: Potência * HSP * 30 dias * Eficiência
+            const geracaoMediaMensalEstimada = potenciaInstaladaKwp * HSP_MEDIA_DIARIA * 30 * PERFORMANCE_RATIO;
+            const economiaMensalEstimada = geracaoMediaMensalEstimada * TARIFA_ATUAL;
+
+            // Passo B: Calcular Preço Final (Valor do Cliente)
+            const COEFICIENTE_INVESTIMENTO = 1.40; // 140% Variável Mutável
+            const FATOR_RETORNO_BASE = 25; // Constante Multiplicadora
+            
+            // Preço = (Economia Mensal * 25) * 140%
+            const investimentoTotal = (economiaMensalEstimada * FATOR_RETORNO_BASE) * COEFICIENTE_INVESTIMENTO;
+
+            // Passo C: Decomposição dos Custos (Breakdown)
+            const custoKit = investimentoTotal * 0.52;        // 52%
+            const custoInstalacao = investimentoTotal * 0.09; // 9%
+            const custoMateriais = investimentoTotal * 0.09;  // 9%
+            const custoSeguro = investimentoTotal * 0.01;     // 1%
+            const custoComissao = investimentoTotal * 0.03;   // 3%
+            
+            // Imposto (7% sobre o valor tributável)
+            // Valor Tributável = Valor Final - Valor do Kit
+            const valorTributavel = investimentoTotal - custoKit;
+            const custoImposto = valorTributavel * 0.07;
+
+            // --- CÁLCULO DE FLUXO DE CAIXA (PAYBACK) USANDO O NOVO PREÇO ---
             let fluxoCaixa = [];
             let geracaoAcumulada = 0;
             let economiaAcumulada = 0;
-            
-            let precoWp = 3.60;
-            if (potenciaInstaladaKwp > 6) precoWp = 3.10;
-            if (potenciaInstaladaKwp > 10) precoWp = 2.85;
-            const investimentoInicial = potenciaInstaladaKwp * 1000 * precoWp;
-
             let tarifaCorrente = TARIFA_ATUAL;
 
             for (let i = 0; i < 300; i++) {
@@ -232,7 +256,8 @@
                     ano: anoCorrente,
                     geracao_kwh: parseFloat(geracaoMes.toFixed(2)),
                     economia_reais: parseFloat(economiaMes.toFixed(2)),
-                    fluxo_acumulado: parseFloat((economiaAcumulada - investimentoInicial).toFixed(2))
+                    // Aqui usamos o investimentoTotal calculado pela nova regra
+                    fluxo_acumulado: parseFloat((economiaAcumulada - investimentoTotal).toFixed(2))
                 });
 
                 tarifaCorrente = tarifaCorrente * (1 + INFLACAO_ENERGETICA_MENSAL);
@@ -262,11 +287,22 @@
                     inversor: { tipo: "Inversor String Inteligente" }
                 },
                 financeiro: {
-                    investimento_bruto: parseFloat(investimentoInicial.toFixed(2)),
-                    valor_final: parseFloat(investimentoInicial.toFixed(2)),
+                    investimento_bruto: parseFloat(investimentoTotal.toFixed(2)),
+                    valor_final: parseFloat(investimentoTotal.toFixed(2)),
                     economia_total_acumulada: parseFloat(economiaAcumulada.toFixed(2)),
                     payback_anos: parseFloat(paybackAnos.toFixed(1)),
-                    fluxo_caixa_mensal: fluxoCaixa 
+                    fluxo_caixa_mensal: fluxoCaixa,
+                    // Salvamos a composição para análise interna
+                    composicao_preco: {
+                        coeficiente_utilizado: COEFICIENTE_INVESTIMENTO,
+                        kit_solar: parseFloat(custoKit.toFixed(2)),
+                        instalacao: parseFloat(custoInstalacao.toFixed(2)),
+                        materiais_eletricos: parseFloat(custoMateriais.toFixed(2)),
+                        seguro: parseFloat(custoSeguro.toFixed(2)),
+                        comissao: parseFloat(custoComissao.toFixed(2)),
+                        impostos: parseFloat(custoImposto.toFixed(2)),
+                        valor_tributavel: parseFloat(valorTributavel.toFixed(2))
+                    }
                 }
             };
         }
