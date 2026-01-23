@@ -181,7 +181,7 @@
         function formatarMoeda(i) { let v = i.value.replace(/\D/g,''); v = (v/100).toFixed(2) + ''; v = v.replace(".", ","); v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); i.value = "R$ " + v; }
         function mascaraTelefone(i) { let v = i.value.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); i.value = v; }
         
-        // --- MOTOR DE ENGENHARIA V5.0 (ATUALIZADO COM NOVA LÓGICA FINANCEIRA) ---
+        // --- MOTOR DE ENGENHARIA V6.0 (ATUALIZADO COM TRAVA 80%) ---
         function calcularEngenhariaPrecisao(contaMensalReais, lat = -23.5) {
             // --- CONSTANTES DE ENGENHARIA ---
             const TARIFA_ATUAL = 0.96; 
@@ -207,62 +207,75 @@
             const potenciaInstaladaKwp = (qtdModulos * POT_MODULO_W) / 1000;
             const areaTotalSistema = qtdModulos * AREA_MODULO_M2;
 
-            // --- NOVA LÓGICA DE PRECIFICAÇÃO (REGRA DE MERCADO) ---
-            
-            // Passo A: Calcular Geração Média Mensal Estimada (Ano 1)
-            // Fórmula física: Potência * HSP * 30 dias * Eficiência
-            const geracaoMediaMensalEstimada = potenciaInstaladaKwp * HSP_MEDIA_DIARIA * 30 * PERFORMANCE_RATIO;
-            const economiaMensalEstimada = geracaoMediaMensalEstimada * TARIFA_ATUAL;
-
-            // Passo B: Calcular Preço Final (Valor do Cliente)
-            const COEFICIENTE_INVESTIMENTO = 1.40; // 140% Variável Mutável
-            const FATOR_RETORNO_BASE = 25; // Constante Multiplicadora
-            
-            // Preço = (Economia Mensal * 25) * 140%
-            const investimentoTotal = (economiaMensalEstimada * FATOR_RETORNO_BASE) * COEFICIENTE_INVESTIMENTO;
-
-            // Passo C: Decomposição dos Custos (Breakdown)
-            const custoKit = investimentoTotal * 0.52;        // 52%
-            const custoInstalacao = investimentoTotal * 0.09; // 9%
-            const custoMateriais = investimentoTotal * 0.09;  // 9%
-            const custoSeguro = investimentoTotal * 0.01;     // 1%
-            const custoComissao = investimentoTotal * 0.03;   // 3%
-            
-            // Imposto (7% sobre o valor tributável)
-            // Valor Tributável = Valor Final - Valor do Kit
-            const valorTributavel = investimentoTotal - custoKit;
-            const custoImposto = valorTributavel * 0.07;
-
-            // --- CÁLCULO DE FLUXO DE CAIXA (PAYBACK) USANDO O NOVO PREÇO ---
+            // --- 2. CÁLCULO FINANCEIRO COM TRAVA DE 80% ---
             let fluxoCaixa = [];
             let geracaoAcumulada = 0;
-            let economiaAcumulada = 0;
+            let economiaRealAcumulada = 0;
             let tarifaCorrente = TARIFA_ATUAL;
+            let contaMensalProjetada = contaMensalReais;
 
             for (let i = 0; i < 300; i++) {
                 const mesDoAno = i % 12;
                 const anoCorrente = Math.floor(i / 12) + 1;
                 const hspMes = HSP_MEDIA_DIARIA * CURVA_SAZONAL[mesDoAno];
                 const fatorDegradacao = 1 - (i * DEGRADACAO_MENSAL);
+                
+                // Geração
                 const geracaoMes = potenciaInstaladaKwp * hspMes * 30 * PERFORMANCE_RATIO * fatorDegradacao;
-                const economiaMes = geracaoMes * tarifaCorrente;
+                const valorGeracaoBruta = geracaoMes * tarifaCorrente;
+
+                // Teto de Economia (80% da Fatura do Mês)
+                const tetoEconomia = contaMensalProjetada * 0.80;
+
+                // Economia Real (Menor entre Gerado e Teto)
+                const economiaRealMes = Math.min(valorGeracaoBruta, tetoEconomia);
 
                 geracaoAcumulada += geracaoMes;
-                economiaAcumulada += economiaMes;
+                economiaRealAcumulada += economiaRealMes;
 
                 fluxoCaixa.push({
                     mes_absoluto: i + 1,
                     mes_ano: mesDoAno + 1,
                     ano: anoCorrente,
                     geracao_kwh: parseFloat(geracaoMes.toFixed(2)),
-                    economia_reais: parseFloat(economiaMes.toFixed(2)),
-                    // Aqui usamos o investimentoTotal calculado pela nova regra
-                    fluxo_acumulado: parseFloat((economiaAcumulada - investimentoTotal).toFixed(2))
+                    economia_reais: parseFloat(economiaRealMes.toFixed(2)),
+                    economia_potencial: parseFloat(valorGeracaoBruta.toFixed(2)),
+                    fluxo_acumulado: 0 
                 });
 
+                // Atualiza Índices
                 tarifaCorrente = tarifaCorrente * (1 + INFLACAO_ENERGETICA_MENSAL);
+                contaMensalProjetada = contaMensalProjetada * (1 + INFLACAO_ENERGETICA_MENSAL);
             }
 
+            // --- 3. DEFINIÇÃO DO PREÇO (Baseado na Economia Real Média Ano 1) ---
+            const economiaRealAno1 = fluxoCaixa.slice(0, 12).reduce((acc, mes) => acc + mes.economia_reais, 0);
+            const mediaEconomiaRealMensal = economiaRealAno1 / 12;
+
+            // Preço = (Economia Média Real * 25) * 1.40
+            const COEFICIENTE_INVESTIMENTO = 1.40;
+            const FATOR_RETORNO_BASE = 25;
+            
+            const investimentoTotal = (mediaEconomiaRealMensal * FATOR_RETORNO_BASE) * COEFICIENTE_INVESTIMENTO;
+
+            // Recalcula fluxo acumulado
+            let accFluxo = -investimentoTotal;
+            fluxoCaixa.forEach(mes => {
+                accFluxo += mes.economia_reais;
+                mes.fluxo_acumulado = parseFloat(accFluxo.toFixed(2));
+            });
+
+            // Breakdown de Custos
+            const custoKit = investimentoTotal * 0.52;        
+            const custoInstalacao = investimentoTotal * 0.09; 
+            const custoMateriais = investimentoTotal * 0.09;  
+            const custoSeguro = investimentoTotal * 0.01;     
+            const custoComissao = investimentoTotal * 0.03;   
+            
+            const valorTributavel = investimentoTotal - custoKit;
+            const custoImposto = valorTributavel * 0.07;
+
+            // Métricas
             const geracaoMediaAno1 = fluxoCaixa.slice(0, 12).reduce((a, b) => a + b.geracao_kwh, 0) / 12;
             const mesPayback = fluxoCaixa.findIndex(m => m.fluxo_acumulado >= 0);
             const paybackAnos = mesPayback !== -1 ? (mesPayback + 1) / 12 : 0;
@@ -289,10 +302,9 @@
                 financeiro: {
                     investimento_bruto: parseFloat(investimentoTotal.toFixed(2)),
                     valor_final: parseFloat(investimentoTotal.toFixed(2)),
-                    economia_total_acumulada: parseFloat(economiaAcumulada.toFixed(2)),
+                    economia_total_acumulada: parseFloat(economiaRealAcumulada.toFixed(2)),
                     payback_anos: parseFloat(paybackAnos.toFixed(1)),
                     fluxo_caixa_mensal: fluxoCaixa,
-                    // Salvamos a composição para análise interna
                     composicao_preco: {
                         coeficiente_utilizado: COEFICIENTE_INVESTIMENTO,
                         kit_solar: parseFloat(custoKit.toFixed(2)),
@@ -379,8 +391,6 @@
                 document.getElementById('form-container').classList.add('hidden');
                 document.getElementById('msg-sucesso').classList.remove('hidden');
                 
-                // O cliente agora precisa ir ao e-mail clicar no link
-
             } catch (error) {
                 console.error("Erro:", error);
                 alert("Erro: " + error.message);
