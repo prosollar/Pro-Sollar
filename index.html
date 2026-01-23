@@ -3,166 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro-Sollar | Inteligência Energética</title>
+    <title>Pro-Sollar | Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
-        :root { --bg-deep: #0a1120; --accent-blue: #3b82f6; --accent-yellow: #facc15; }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-deep);
-            color: white;
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 10% 80%, rgba(250, 204, 21, 0.05) 0%, transparent 30%);
-            background-attachment: fixed;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        .card-glow { position: relative; }
-        .card-glow::before {
-            content: ""; position: absolute; inset: -1px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), transparent, rgba(250, 204, 21, 0.5));
-            border-radius: 2.5rem; z-index: -1; opacity: 0.4;
-        }
         
-        /* INPUTS COM ÍCONES */
-        .input-wrapper { position: relative; }
-        .input-icon {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            pointer-events: none;
-            transition: color 0.3s ease;
-        }
-        .input-dark {
-            background: rgba(0, 0, 0, 0.4) !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
-            color: #fff !important;
-            padding-left: 50px !important;
-            transition: all 0.3s ease;
-        }
-        .input-dark:focus {
-            border-color: var(--accent-blue) !important;
-            background: rgba(0, 0, 0, 0.6) !important;
-            outline: none;
-        }
-        .input-dark:focus + .input-icon, .input-wrapper:focus-within .input-icon {
-            color: var(--accent-blue);
-        }
+        :root { --bg-deep: #0a1120; --accent-blue: #3b82f6; --accent-green: #22c55e; --accent-yellow: #facc15; --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.08); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: white; min-height: 100vh; background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 50%), radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.05) 0%, transparent 30%); background-attachment: fixed; }
+        
+        /* CLASSES VISUAIS */
+        .glass-card { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 2rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-approve { background: var(--accent-green); color: #052e16; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2); transition: all 0.3s ease; cursor: pointer; }
+        .btn-approve:hover { transform: scale(1.02) translateY(-2px); box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4); background: #4ade80; }
+        .btn-negotiate-action { background: var(--accent-blue); color: white; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3); transition: all 0.3s ease; cursor: pointer; }
+        .btn-negotiate-action:hover { transform: scale(1.02) translateY(-2px); box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5); background: #60a5fa; }
+        .negotiation-btn { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.3s ease; }
+        .negotiation-btn:hover { border-color: var(--accent-yellow); background: rgba(250, 204, 21, 0.05); }
+        .negotiation-btn.active { border-color: var(--accent-green); background: rgba(34, 197, 94, 0.08); }
+        
+        .chart-container { position: relative; height: 320px; width: 100%; }
+        .chart-toggle { background: rgba(255, 255, 255, 0.05); border-radius: 1rem; padding: 4px; display: inline-flex; margin-bottom: 20px; }
+        .toggle-btn { padding: 8px 20px; border-radius: 0.8rem; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; color: #64748b; cursor: pointer; }
+        .toggle-btn.active { background: var(--accent-blue); color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+        .toggle-btn.active-green { background: var(--accent-green); color: #064e3b; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
+        
+        .time-selector { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
+        .time-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 6px 16px; border-radius: 20px; font-size: 10px; font-weight: 700; color: #64748b; cursor: pointer; transition: all 0.2s; }
+        .time-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .time-btn.active { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white; box-shadow: 0 0 10px rgba(255,255,255,0.05); }
+        .hidden-important { display: none !important; }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent-blue); cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: rgba(255,255,255,0.1); border-radius: 2px; }
+        
+        .control-group label { font-size: 10px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.1em; color: #93c5fd; }
+        .control-value { font-size: 14px; font-weight: 900; color: white; }
+        .upload-area { cursor: pointer; transition: all 0.3s; }
+        .upload-area:hover { background: rgba(250, 204, 21, 0.1); border-color: var(--accent-yellow); }
 
-        .btn-yellow {
-            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
-            color: #000; font-weight: 800;
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
-            transition: all 0.3s ease;
-        }
-        .btn-yellow:hover { transform: scale(1.02); box-shadow: 0 0 35px rgba(250, 204, 21, 0.6); }
-        .btn-yellow:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        /* ESTILO DO MODAL E INPUTS */
+        .modal-bg { background: rgba(10, 17, 32, 0.8); backdrop-filter: blur(10px); }
+        .input-dark { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 12px 12px 12px 45px; transition: all 0.3s; width: 100%; border-radius: 1rem; }
+        .input-dark:focus { border-color: var(--accent-blue); outline: none; background: rgba(0, 0, 0, 0.6); }
+        .input-wrapper { position: relative; }
+        .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
         
-        /* CORREÇÃO DO AUTOCOMPLETE DO GOOGLE */
-        .pac-container { 
-            background-color: #1e293b !important; 
-            border-radius: 1rem !important; 
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            font-family: inherit !important; 
-            z-index: 9999 !important;
-            margin-top: 5px !important;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
-        }
-        .pac-item { color: #94a3b8 !important; padding: 12px 16px !important; border-top: 1px solid rgba(255,255,255,0.05) !important; cursor: pointer !important; }
+        .pac-container { background-color: #1e293b !important; border-radius: 1rem !important; border: 1px solid rgba(255,255,255,0.1) !important; font-family: inherit !important; z-index: 99999 !important; }
+        .pac-item { color: #94a3b8 !important; padding: 12px !important; border-top: 1px solid rgba(255,255,255,0.05) !important; cursor: pointer !important; }
         .pac-item:hover { background-color: rgba(255,255,255,0.05) !important; color: white !important; }
-        .pac-item-query { color: white !important; font-weight: bold; }
-        .pac-logo::after { display: none; }
+        .pac-item-query { color: white !important; }
+
+        /* --- ESTILOS DO CHAT DEEP TECH --- */
+        #chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
+        #chat-btn { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; border: 2px solid rgba(255,255,255,0.1); }
+        #chat-btn:hover { transform: scale(1.1); box-shadow: 0 15px 35px rgba(59, 130, 246, 0.6); }
+        #chat-window { width: 350px; height: 500px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; margin-bottom: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); display: flex; flex-direction: column; transform-origin: bottom right; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; transform: scale(0.8) translateY(20px); pointer-events: none; }
+        #chat-window.open { opacity: 1; transform: scale(1) translateY(0); pointer-events: all; }
+        
+        .chat-header { padding: 20px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .chat-body::-webkit-scrollbar { width: 6px; }
+        .chat-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        .chat-footer { padding: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+        
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 13px; line-height: 1.5; position: relative; word-wrap: break-word; }
+        .msg-ai { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: #e2e8f0; align-self: flex-start; border-top-left-radius: 4px; }
+        .msg-user { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #0f172a; font-weight: 600; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(234, 179, 8, 0.2); }
+        .typing-indicator { font-size: 10px; color: #94a3b8; font-style: italic; margin-left: 10px; opacity: 0; transition: opacity 0.3s; }
+        
+        /* Markdown Styles dentro do Chat */
+        .msg-ai strong { color: #fff; font-weight: 800; }
+        .msg-ai ul { list-style: disc; margin-left: 15px; margin-top: 5px; }
+        .msg-ai p { margin-bottom: 8px; }
+        .msg-ai p:last-child { margin-bottom: 0; }
     </style>
 </head>
-<body class="overflow-x-hidden">
+<body class="p-4 md:p-10 lg:p-16">
 
-    <nav class="container mx-auto p-8 flex justify-between items-center relative z-10">
-        <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center">
-                <i class="fas fa-solar-panel text-white text-2xl"></i>
+    <div class="max-w-6xl mx-auto">
+        
+        <header class="flex flex-col lg:flex-row justify-between items-center mb-10 gap-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-xl flex items-center justify-center shadow-2xl">
+                    <i class="fas fa-solar-panel text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black uppercase tracking-tighter italic leading-none">Pro-<span class="text-blue-500">Sollar</span></h1>
+                </div>
             </div>
-            <span class="text-2xl font-black tracking-tighter uppercase">Pro-<span class="text-blue-500">Sollar</span></span>
+            
+            <div class="flex-1 w-full lg:w-auto flex justify-center lg:justify-end gap-3 items-center overflow-x-auto pb-2 lg:pb-0 px-2" id="project-bar">
+                <div class="animate-pulse h-8 w-24 bg-white/5 rounded-full"></div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="openNewSimModal()" class="glass-card px-4 py-2 flex items-center gap-2 text-[10px] font-bold text-slate-300 hover:text-white hover:bg-white/5 transition whitespace-nowrap">
+                    <i class="fas fa-plus text-yellow-500"></i> Novo
+                </button>
+                <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300 px-2"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </header>
+
+        <div id="loading-skeleton" class="animate-pulse glass-card p-12 mb-8 text-center">
+            <i class="fas fa-satellite-dish fa-spin text-4xl text-blue-500 mb-4"></i>
+            <h2 class="text-xl font-bold">Carregando seus projetos...</h2>
         </div>
-        <a href="login.html" class="bg-blue-600/20 border border-blue-500/30 px-6 py-2 rounded-full text-sm font-bold hover:bg-blue-600 transition text-white">
-            <i class="fas fa-user-circle mr-2"></i> Área do Cliente
-        </a>
-    </nav>
 
-    <main class="container mx-auto px-6 py-12 grid lg:grid-cols-2 gap-16 items-center">
-        <div class="space-y-8">
-            <h1 class="text-6xl lg:text-7xl font-extrabold leading-[1.1]">
-                Economia que vem do <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Céu.</span>
-            </h1>
-            <p class="text-slate-400 text-xl max-w-lg">Análise inteligente via satélite para entregar sua independência energética em segundos.</p>
+        <div id="empty-state" class="hidden text-center py-20">
+            <i class="fas fa-wind text-6xl text-slate-600 mb-4"></i>
+            <h2 class="text-2xl font-bold text-slate-400">Nenhuma simulação ativa</h2>
+            <p class="text-sm text-slate-500 mb-6">Você limpou todos os seus rascunhos.</p>
+            <button onclick="openNewSimModal()" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-xl font-bold text-white transition">
+                Criar Nova Simulação
+            </button>
         </div>
 
-        <div class="card-glow">
-            <div class="glass-card p-10 space-y-6 min-h-[500px] flex flex-col justify-center">
-                
-                <div id="form-container">
-                    <h2 class="text-2xl font-bold mb-6">Simule Seu Potencial</h2>
-                    <form id="simuladorForm" class="space-y-4">
-                        
-                        <div class="input-wrapper">
-                            <input type="text" id="endereco" placeholder="Endereço da Instalação" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
-                            <i class="fas fa-map-marker-alt input-icon"></i>
+        <div id="content-panel" class="hidden animate-in fade-in duration-700">
+            
+            <div class="glass-card p-8 md:p-10 border-blue-500/20 bg-blue-500/[0.02] mb-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                    <i class="fas fa-bolt text-9xl text-white"></i>
+                </div>
+                <div class="flex flex-wrap justify-between items-start gap-6 relative z-10">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" id="status-dot"></span>
+                            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-green-500" id="status-text">Projeto Viável</span>
                         </div>
+                        <h3 id="display-address" class="text-2xl md:text-3xl font-black italic text-white mb-2 leading-tight">...</h3>
+                        <p id="display-specs" class="text-xs text-slate-400 font-bold uppercase tracking-widest">...</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Investimento Estimado</p>
+                        <p id="display-price" class="text-3xl md:text-4xl font-black text-white italic">R$ --.--</p>
+                        <p id="savings-badge" class="hidden text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">Desconto aplicado</p>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="input-wrapper">
-                            <input type="tel" id="consumo" placeholder="Gasto Mensal (R$)" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" onkeyup="formatarMoeda(this)">
-                            <i class="fas fa-dollar-sign input-icon"></i>
-                        </div>
+            <div class="glass-card p-0 mb-8 overflow-hidden relative border-white/5">
+                <div class="grid md:grid-cols-2">
+                    <div class="p-8 bg-red-500/5 border-r border-white/5 flex flex-col items-center justify-center relative">
+                        <div class="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent opacity-50"></div>
+                        <p class="text-[10px] text-red-300 font-bold uppercase tracking-widest mb-2">Sua Fatura Hoje</p>
+                        <p id="display-old-bill" class="text-3xl font-bold text-slate-400 line-through decoration-red-500/50 decoration-2">R$ --</p>
+                        <p class="text-[9px] text-slate-500 mt-2">Inflação Energética 100% exposta</p>
+                    </div>
+                    <div class="p-8 bg-green-500/10 flex flex-col items-center justify-center relative">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-50"></div>
+                        <p class="text-[10px] text-green-400 font-bold uppercase tracking-widest mb-2">Com Pro-Sollar</p>
+                        <p id="display-new-bill" class="text-4xl md:text-5xl font-black text-white">R$ --</p>
+                        <span class="inline-block mt-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-[10px] font-bold text-green-300">
+                            <i class="fas fa-arrow-down mr-1"></i>Redução Máxima Técnica
+                        </span>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="input-wrapper">
-                            <input type="email" id="email" placeholder="Seu E-mail" class="input-dark w-full px-4 py-4 rounded-2xl text-sm">
-                            <i class="fas fa-envelope input-icon"></i>
-                        </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="glass-card p-6 text-center border-white/5">
+                    <i class="fas fa-bolt text-yellow-400 text-lg mb-2"></i>
+                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Geração Ano 1</p>
+                    <p id="kpi-generation" class="text-lg font-bold text-white">--</p>
+                </div>
+                <div class="glass-card p-6 text-center border-white/5">
+                    <i class="fas fa-wallet text-blue-400 text-lg mb-2"></i>
+                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Economia 1º Ano</p>
+                    <p id="kpi-economy" class="text-lg font-bold text-white">--</p>
+                </div>
+                <div class="glass-card p-6 text-center border-white/5">
+                    <i class="fas fa-hourglass-half text-purple-400 text-lg mb-2"></i>
+                    <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Payback</p>
+                    <p id="kpi-payback" class="text-lg font-bold text-white">--</p>
+                </div>
+                <div class="glass-card p-6 text-center border-green-500/20 bg-green-500/5">
+                    <i class="fas fa-piggy-bank text-green-400 text-lg mb-2"></i>
+                    <p class="text-[9px] text-green-300 font-black uppercase tracking-widest">Lucro 25 Anos</p>
+                    <p id="kpi-roi" class="text-lg font-black text-green-400">--</p>
+                </div>
+            </div>
 
-                        <div class="input-wrapper">
-                            <input type="tel" id="whatsapp" placeholder="WhatsApp" class="input-dark w-full px-4 py-4 rounded-2xl text-sm" oninput="mascaraTelefone(this)">
-                            <i class="fab fa-whatsapp input-icon"></i>
-                        </div>
-                        
-                        <input type="hidden" id="lat"> <input type="hidden" id="lng">
-
-                        <button type="button" id="btnGerar" class="btn-yellow w-full py-5 rounded-2xl uppercase text-[11px] font-black tracking-widest">
-                            Gerar Proposta Instantânea <i class="fas fa-chevron-right ml-2"></i>
-                        </button>
-                    </form>
+            <div class="glass-card p-8 mb-8 relative overflow-hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-white mb-4 md:mb-0"><i class="fas fa-chart-line text-blue-500 mr-2"></i> Análise Financeira</h3>
+                    <div class="chart-toggle">
+                        <div id="mode-cash" onclick="window.switchChartMode('cash')" class="toggle-btn active-green">à vista</div>
+                        <div id="mode-finan" onclick="window.switchChartMode('finan')" class="toggle-btn">Financiamento</div>
+                    </div>
                 </div>
 
-                <div id="msg-sucesso" class="hidden text-center animate-in fade-in zoom-in duration-500">
-                    <div class="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-400 border border-blue-500/30">
-                        <i class="fas fa-envelope-open-text text-4xl"></i>
+                <div id="finan-controls" class="hidden mb-6 bg-blue-500/10 border border-blue-500/20 p-5 rounded-xl space-y-4">
+                    <div class="control-group">
+                        <div class="flex justify-between items-center mb-2">
+                            <label><i class="fas fa-percentage mr-2"></i>Taxa de Juros (a.m.)</label>
+                            <span id="rate-display" class="control-value">1.50%</span>
+                        </div>
+                        <input type="range" id="rate-slider" min="0.50" max="3.50" step="0.01" value="1.50" oninput="window.updateInterestRate(this.value)">
                     </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Quase lá!</h2>
-                    <p class="text-slate-300 text-sm mb-6 leading-relaxed">
-                        Geramos sua proposta de alta precisão. Por segurança, enviamos um <strong>Link de Acesso</strong> para o seu e-mail.
-                    </p>
-                    <div class="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl text-xs text-yellow-200 mb-6">
-                        <i class="fas fa-exclamation-triangle mr-2"></i> Verifique também a caixa de Spam.
+                    <div class="control-group border-t border-blue-500/20 pt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label><i class="fas fa-calendar-alt mr-2"></i>Prazo de Pagamento</label>
+                            <span id="term-display" class="control-value">60x</span>
+                        </div>
+                        <input type="range" id="term-slider" min="12" max="84" step="12" value="60" oninput="window.updateLoanTerm(this.value)">
                     </div>
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Aguardando confirmação...</p>
                 </div>
 
+                <p id="chart-desc" class="text-center text-xs text-slate-400 mb-6 font-medium">Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)</p>
+                <div class="chart-container"><canvas id="wealthChart"></canvas></div>
+                <div class="time-selector">
+                    <div id="time-1" onclick="window.switchTimeRange(1)" class="time-btn hidden-important">1 ANO</div>
+                    <div id="time-5" onclick="window.switchTimeRange(5)" class="time-btn">5 ANOS</div>
+                    <div id="time-15" onclick="window.switchTimeRange(15)" class="time-btn">15 ANOS</div>
+                    <div id="time-25" onclick="window.switchTimeRange(25)" class="time-btn active">25 ANOS</div>
+                </div>
+            </div>
+
+            <div id="action-section" class="pt-8 border-t border-white/5">
+                <div class="flex flex-wrap gap-4 mb-8">
+                    <button id="btn-discount" onclick="window.toggleDiscount()" class="negotiation-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all w-full sm:w-auto">
+                        <i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista
+                    </button>
+                    <button id="btn-challenge" onclick="window.toggleUpload()" class="negotiation-btn px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest w-full sm:w-auto">
+                        <i class="fas fa-handshake mr-2 text-blue-500"></i> Cobrir Concorrente
+                    </button>
+                </div>
+
+                <div id="comp-upload" class="hidden animate-in fade-in duration-500 mb-8 p-8 rounded-3xl bg-yellow-500/5 border border-yellow-500/10 upload-area" onclick="document.getElementById('file-input').click()">
+                    <div class="text-center">
+                        <i id="upload-icon" class="fas fa-cloud-upload-alt text-4xl text-yellow-500 mb-4"></i>
+                        <p id="upload-text" class="text-sm font-bold text-white mb-2">Clique para anexar a proposta (PDF)</p>
+                        <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Nossa engenharia fará a equiparação técnica.</p>
+                        <input type="file" id="file-input" accept="application/pdf" class="hidden" onchange="window.handleFileSelect(this)">
+                    </div>
+                </div>
+
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-8 mt-10">
+                    <div class="flex items-center gap-6">
+                        <div class="w-14 h-14 glass-card rounded-2xl flex items-center justify-center border-blue-500/20">
+                            <i id="status-icon" class="fas fa-file-contract text-blue-500 text-xl"></i>
+                        </div>
+                        <div>
+                            <p id="status-title" class="text-sm font-bold text-white italic">Tudo pronto para economizar?</p>
+                            <p id="footer-text" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 italic">Condição padrão selecionada</p>
+                        </div>
+                    </div>
+                    <button id="btn-final-action" class="btn-approve w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4">
+                        Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="status-locked-card" class="hidden pt-8 border-t border-white/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div class="glass-card p-10 border border-green-500/30 bg-green-500/5 text-center">
+                    <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.3)]">
+                        <i class="fas fa-calendar-check text-4xl text-green-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Visita Agendada!</h2>
+                    <p class="text-slate-300 text-sm mb-6 max-w-lg mx-auto">Sua reserva de preço e agendamento técnico foram confirmados.</p>
+                    <div class="inline-flex items-center gap-2 bg-green-500/10 px-4 py-2 rounded-lg border border-green-500/20">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-bold text-green-400 uppercase tracking-widest">Processo em Andamento</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="text-center py-10 opacity-30 border-t border-white/5 mt-12">
+            <p class="text-[9px] font-black uppercase tracking-[0.8em]">Pro-Sollar High Performance Engineering • 2026</p>
+        </footer>
+    </div>
+
+    <div id="new-sim-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-bg px-4 animate-in fade-in zoom-in duration-300">
+        <div class="glass-card p-8 w-full max-w-md border border-yellow-500/20 relative">
+            <button onclick="closeNewSimModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3 text-yellow-400"><i class="fas fa-plus text-xl"></i></div>
+                <h3 class="text-xl font-bold text-white">Nova Simulação</h3>
+                <p class="text-xs text-slate-400 mt-1">Adicione outro imóvel ao seu perfil (Máx. 3)</p>
+            </div>
+            <div class="space-y-4">
+                <div class="input-wrapper"><input type="text" id="new-endereco" placeholder="Endereço da Instalação" class="input-dark"><i class="fas fa-map-marker-alt input-icon"></i></div>
+                <div class="input-wrapper"><input type="tel" id="new-consumo" placeholder="Gasto Mensal (R$)" class="input-dark" onkeyup="window.formatarMoeda(this)"><i class="fas fa-dollar-sign input-icon"></i></div>
+                <input type="hidden" id="new-lat"> <input type="hidden" id="new-lng">
+                <button onclick="criarNovaSimulacao()" id="btn-create-sim" class="w-full py-4 rounded-xl font-black uppercase text-xs tracking-widest bg-gradient-to-r from-yellow-400 to-yellow-600 text-black shadow-lg hover:scale-[1.02] transition-transform">Calcular Agora</button>
             </div>
         </div>
-    </main>
+    </div>
+
+    <div id="chat-widget">
+        <div id="chat-window" class="glass-card">
+            <div class="chat-header">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center"><i class="fas fa-robot text-white text-xs"></i></div>
+                    <div>
+                        <p class="text-sm font-bold text-white">Pro-Sollar AI</p>
+                        <p class="text-[10px] text-green-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Online</p>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="text-slate-400 hover:text-white"><i class="fas fa-minus"></i></button>
+            </div>
+            <div class="chat-body" id="chat-messages">
+                <div class="msg msg-ai">Olá! Sou a inteligência artificial da Pro-Sollar. ☀️<br>Posso te ajudar a entender sua economia, explicar como funciona a instalação ou tirar dúvidas sobre o contrato. Como posso ser útil hoje?</div>
+            </div>
+            <div class="typing-indicator" id="typing-indicator">Digitando...</div>
+            <div class="chat-footer relative">
+                <input type="text" id="chat-input" placeholder="Digite sua dúvida..." class="w-full bg-slate-900/50 border border-white/10 rounded-full px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 pr-10" onkeypress="handleEnter(event)">
+                <button onclick="sendMessage()" class="absolute right-5 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-400"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <div id="chat-btn" onclick="toggleChat()">
+            <i class="fas fa-comment-dots text-white text-2xl"></i>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-functions-compat.js"></script>
 
     <script>
         const firebaseConfig = {
@@ -173,15 +337,38 @@
             messagingSenderId: "484051034820",
             appId: "1:484051034820:web:3cf21ee3ce55b9c5625f91"
         };
+
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-
-        // --- UTILITÁRIOS ---
-        function formatarMoeda(i) { let v = i.value.replace(/\D/g,''); v = (v/100).toFixed(2) + ''; v = v.replace(".", ","); v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); i.value = "R$ " + v; }
-        function mascaraTelefone(i) { let v = i.value.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); i.value = v; }
+        const storage = firebase.storage(); 
+        const functions = firebase.functions();
         
-        // --- MOTOR DE ENGENHARIA V6.0 (ATUALIZADO COM TRAVA 80%) ---
+        let currentUserEmail = null;
+        let currentSimId = null;
+        let leadData = null;
+        let wealthChart = null;
+        let userProposals = []; 
+        
+        // Estado do Chat
+        let chatHistory = [];
+        const chatWindow = document.getElementById('chat-window');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        let currentChartMode = 'cash';
+        let currentTimeRange = 25;
+        let currentInterestRate = 1.50;
+        let currentLoanTerm = 60;
+        let isNegotiating = false; 
+        let selectedFile = null;
+
+        // --- UTILITÁRIOS GLOBAIS ---
+        window.formatarMoeda = (i) => { let v = i.value.replace(/\D/g,''); v = (v/100).toFixed(2) + ''; v = v.replace(".", ","); v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); i.value = "R$ " + v; }
+        window.mascaraTelefone = (i) => { let v = i.value.replace(/\D/g, ""); v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); v = v.replace(/(\d)(\d{4})$/, "$1-$2"); i.value = v; }
+
+        // --- MOTOR DE CÁLCULO V6.0 (FINANCEIRO CORRIGIDO COM TETO 80%) ---
         function calcularEngenhariaPrecisao(contaMensalReais, lat = -23.5) {
             // --- CONSTANTES DE ENGENHARIA ---
             const TARIFA_ATUAL = 0.96; 
@@ -199,7 +386,7 @@
             if (Math.abs(lat) > 25) HSP_MEDIA_DIARIA = 4.35; 
             if (Math.abs(lat) < 15) HSP_MEDIA_DIARIA = 5.30; 
 
-            // 1. Dimensionamento do Sistema
+            // 1. Dimensionamento do Sistema (Engenharia Pura)
             const consumoMensalKwh = contaMensalReais / TARIFA_ATUAL;
             let potenciaAlvoKwp = (consumoMensalKwh / (HSP_MEDIA_DIARIA * 30 * PERFORMANCE_RATIO)) * 1.10;
 
@@ -212,22 +399,23 @@
             let geracaoAcumulada = 0;
             let economiaRealAcumulada = 0;
             let tarifaCorrente = TARIFA_ATUAL;
-            let contaMensalProjetada = contaMensalReais;
+            let contaMensalProjetada = contaMensalReais; // A conta sobe com a inflação energética
 
+            // Simulação mês a mês para precisão absoluta
             for (let i = 0; i < 300; i++) {
                 const mesDoAno = i % 12;
                 const anoCorrente = Math.floor(i / 12) + 1;
                 const hspMes = HSP_MEDIA_DIARIA * CURVA_SAZONAL[mesDoAno];
                 const fatorDegradacao = 1 - (i * DEGRADACAO_MENSAL);
                 
-                // Geração
+                // Geração Bruta
                 const geracaoMes = potenciaInstaladaKwp * hspMes * 30 * PERFORMANCE_RATIO * fatorDegradacao;
                 const valorGeracaoBruta = geracaoMes * tarifaCorrente;
 
-                // Teto de Economia (80% da Fatura do Mês)
+                // Teto de Economia (80% da Fatura Atualizada)
                 const tetoEconomia = contaMensalProjetada * 0.80;
 
-                // Economia Real (Menor entre Gerado e Teto)
+                // Economia Real (O que entra no bolso) - É o menor valor entre o Gerado e o Teto
                 const economiaRealMes = Math.min(valorGeracaoBruta, tetoEconomia);
 
                 geracaoAcumulada += geracaoMes;
@@ -238,34 +426,36 @@
                     mes_ano: mesDoAno + 1,
                     ano: anoCorrente,
                     geracao_kwh: parseFloat(geracaoMes.toFixed(2)),
-                    economia_reais: parseFloat(economiaRealMes.toFixed(2)),
-                    economia_potencial: parseFloat(valorGeracaoBruta.toFixed(2)),
-                    fluxo_acumulado: 0 
+                    economia_reais: parseFloat(economiaRealMes.toFixed(2)), // Salvamos a REAL, não a potencial
+                    economia_potencial: parseFloat(valorGeracaoBruta.toFixed(2)), // Para fins de comparação se precisar
+                    fluxo_acumulado: 0 // Calcularemos após definir o preço
                 });
 
-                // Atualiza Índices
+                // Atualiza Índices para o próximo mês
                 tarifaCorrente = tarifaCorrente * (1 + INFLACAO_ENERGETICA_MENSAL);
                 contaMensalProjetada = contaMensalProjetada * (1 + INFLACAO_ENERGETICA_MENSAL);
             }
 
-            // --- 3. DEFINIÇÃO DO PREÇO (Baseado na Economia Real Média Ano 1) ---
+            // --- 3. DEFINIÇÃO DO PREÇO (Baseado na Economia Real do Ano 1) ---
+            
+            // Soma da economia real dos primeiros 12 meses
             const economiaRealAno1 = fluxoCaixa.slice(0, 12).reduce((acc, mes) => acc + mes.economia_reais, 0);
             const mediaEconomiaRealMensal = economiaRealAno1 / 12;
 
-            // Preço = (Economia Média Real * 25) * 1.40
+            // Fórmula de Preço: (Economia Real Média * 25) * 1.40
             const COEFICIENTE_INVESTIMENTO = 1.40;
             const FATOR_RETORNO_BASE = 25;
             
             const investimentoTotal = (mediaEconomiaRealMensal * FATOR_RETORNO_BASE) * COEFICIENTE_INVESTIMENTO;
 
-            // Recalcula fluxo acumulado
+            // Recalcula o fluxo acumulado agora que temos o preço
             let accFluxo = -investimentoTotal;
             fluxoCaixa.forEach(mes => {
                 accFluxo += mes.economia_reais;
                 mes.fluxo_acumulado = parseFloat(accFluxo.toFixed(2));
             });
 
-            // Breakdown de Custos
+            // Decomposição dos Custos (Breakdown)
             const custoKit = investimentoTotal * 0.52;        
             const custoInstalacao = investimentoTotal * 0.09; 
             const custoMateriais = investimentoTotal * 0.09;  
@@ -275,7 +465,7 @@
             const valorTributavel = investimentoTotal - custoKit;
             const custoImposto = valorTributavel * 0.07;
 
-            // Métricas
+            // --- MÉTRICAS FINAIS ---
             const geracaoMediaAno1 = fluxoCaixa.slice(0, 12).reduce((a, b) => a + b.geracao_kwh, 0) / 12;
             const mesPayback = fluxoCaixa.findIndex(m => m.fluxo_acumulado >= 0);
             const paybackAnos = mesPayback !== -1 ? (mesPayback + 1) / 12 : 0;
@@ -319,101 +509,468 @@
             };
         }
 
-        // --- 4. AÇÃO PRINCIPAL: GERAR PROPOSTA E CRIAR NOVO ID ---
-        document.getElementById('btnGerar').addEventListener('click', async function() {
-            const email = document.getElementById('email').value;
-            const zap = document.getElementById('whatsapp').value;
-            const endereco = document.getElementById('endereco').value;
-            const consumoRaw = document.getElementById('consumo').value;
-            const lat = document.getElementById('lat').value || "-23.55"; 
-
-            if (!email || !zap || !consumoRaw || !endereco) { alert("Preencha todos os campos."); return; }
-
-            const btn = this;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verificando...';
-            btn.disabled = true;
-
-            try {
-                // REF AO USUÁRIO PAI
-                const userRef = db.collection("leads").doc(email);
-
-                // 1. VERIFICAR LIMITE DE 3 PROJETOS
-                const snapshot = await userRef.collection("simulacoes").get();
-                if (snapshot.size >= 3) {
-                    alert("Você já atingiu o limite de 3 simulações gratuitas.\n\nAcesse seu painel para ver os projetos existentes.");
-                    
-                    const actionCodeSettings = { url: window.location.origin + `/login.html?email=${encodeURIComponent(email)}`, handleCodeInApp: true };
-                    await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-                    window.localStorage.setItem('emailForSignIn', email);
-                    
-                    document.getElementById('form-container').classList.add('hidden');
-                    document.getElementById('msg-sucesso').classList.remove('hidden');
-                    return;
-                }
-
-                btn.innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> Calculando...';
-
-                // 2. CÁLCULO
-                const consumoLimpo = parseFloat(consumoRaw.replace(/[^0-9,]/g, '').replace(',', '.'));
-                const dadosCompletos = calcularEngenhariaPrecisao(consumoLimpo, parseFloat(lat));
-                const nomeProjeto = endereco.split(',')[0].substring(0, 25);
-
-                // 3. GRAVA DADOS DO PERFIL NA RAIZ (PAI)
-                await userRef.set({
-                    perfil: {
-                        email: email,
-                        whatsapp_formatted: zap,
-                        ultimo_acesso: firebase.firestore.FieldValue.serverTimestamp()
-                    }
-                }, { merge: true });
-
-                // 4. GRAVA A SIMULAÇÃO NA SUB-COLEÇÃO (FILHO)
-                const simDoc = await userRef.collection("simulacoes").add({
-                    engenharia: dadosCompletos.engenharia,
-                    configuracao_sistema: dadosCompletos.configuracao_sistema,
-                    financeiro: dadosCompletos.financeiro,
-                    detalhes: {
-                        endereco_completo: endereco,
-                        nome_projeto: nomeProjeto,
-                        consumo_simulado: consumoLimpo
-                    },
-                    data_criacao: firebase.firestore.FieldValue.serverTimestamp(),
-                    status: { fase: 'nova_simulacao', desconto_aplicado: false }
-                });
-
-                // 5. ENVIAR LINK DE ACESSO
-                const actionCodeSettings = { url: window.location.origin + `/login.html?email=${encodeURIComponent(email)}`, handleCodeInApp: true };
-                await auth.sendSignInLinkToEmail(email, actionCodeSettings);
-                window.localStorage.setItem('emailForSignIn', email);
-
-                // 6. SUCESSO (SEM REDIRECIONAR AUTOMATICAMENTE)
-                document.getElementById('form-container').classList.add('hidden');
-                document.getElementById('msg-sucesso').classList.remove('hidden');
-                
-            } catch (error) {
-                console.error("Erro:", error);
-                alert("Erro: " + error.message);
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+        // --- AUTH & LOAD ---
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUserEmail = user.email;
+            } else { 
+                const params = new URLSearchParams(window.location.search);
+                const urlEmail = params.get('email');
+                if(urlEmail) currentUserEmail = urlEmail;
+                else return window.location.href = "login.html"; 
             }
+            await carregarProjetosDoUsuario(currentUserEmail);
         });
 
-        // --- GOOGLE PLACES ---
-        window.initAutocomplete = function() {
-            const autocomplete = new google.maps.places.Autocomplete(document.getElementById('endereco'), {
-                componentRestrictions: { country: "br" },
-                fields: ["geometry", "formatted_address"],
-                types: ["address"]
+        async function carregarProjetosDoUsuario(email) {
+            try {
+                const snapshot = await db.collection("leads").doc(email).collection("simulacoes").orderBy("data_criacao", "desc").get();
+                if (snapshot.empty) { 
+                    // Estado Vazio (Sem projetos)
+                    document.getElementById('loading-skeleton').classList.add('hidden');
+                    document.getElementById('empty-state').classList.remove('hidden');
+                    document.getElementById('content-panel').classList.add('hidden');
+                    return; 
+                }
+
+                userProposals = [];
+                snapshot.forEach(doc => userProposals.push({ id: doc.id, ...doc.data() }));
+
+                document.getElementById('empty-state').classList.add('hidden');
+                renderizarBarraDeProjetos();
+
+                const params = new URLSearchParams(window.location.search);
+                const urlSimId = params.get('simId');
+                const activeProject = urlSimId ? userProposals.find(p => p.id === urlSimId) : userProposals[0];
+                
+                if(activeProject) carregarProjetoNaTela(activeProject);
+
+            } catch (e) { console.error("Erro:", e); }
+        }
+
+        function renderizarBarraDeProjetos() {
+            const container = document.getElementById('project-bar');
+            container.innerHTML = ''; 
+            userProposals.forEach((proj, index) => {
+                const isActive = proj.id === currentSimId;
+                const isAgendada = proj.status?.fase === 'visita_agendada';
+                const nome = proj.detalhes?.nome_projeto || `Projeto ${index + 1}`;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = "relative group flex items-center";
+
+                const btn = document.createElement('button');
+                btn.className = `whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${isActive ? 'bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/30' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'}`;
+                
+                const statusIcon = isAgendada ? '<i class="fas fa-check-circle text-green-300 ml-1"></i>' : '';
+                
+                let html = `<span>${nome} ${statusIcon}</span>`;
+                
+                if (!isAgendada) {
+                    html += `<span onclick="event.stopPropagation(); deletarSimulacao('${proj.id}')" class="ml-1 w-5 h-5 flex items-center justify-center rounded-full hover:bg-red-500/20 text-slate-500 hover:text-red-500 transition cursor-pointer"><i class="fas fa-times text-[10px]"></i></span>`;
+                }
+
+                btn.innerHTML = html;
+                btn.onclick = () => carregarProjetoNaTela(proj);
+                
+                btn.style.display = "flex";
+                btn.style.alignItems = "center";
+                btn.style.gap = "8px";
+
+                wrapper.appendChild(btn);
+                container.appendChild(wrapper);
             });
+        }
+
+        async function deletarSimulacao(id) {
+            if(!confirm("Tem certeza que deseja remover esta simulação?")) return;
+            try {
+                await db.collection("leads").doc(currentUserEmail).collection("simulacoes").doc(id).delete();
+                userProposals = userProposals.filter(p => p.id !== id);
+                renderizarBarraDeProjetos();
+                
+                if (id === currentSimId) {
+                    if (userProposals.length > 0) carregarProjetoNaTela(userProposals[0]);
+                    else {
+                        document.getElementById('content-panel').classList.add('hidden');
+                        document.getElementById('empty-state').classList.remove('hidden');
+                    }
+                }
+            } catch(e) { alert("Erro ao deletar."); console.error(e); }
+        }
+
+        function carregarProjetoNaTela(projeto) {
+            currentSimId = projeto.id;
+            leadData = projeto;
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?email=${encodeURIComponent(currentUserEmail)}&simId=${currentSimId}`;
+            window.history.pushState({path:newUrl},'',newUrl);
+            renderizarBarraDeProjetos(); 
+            renderizarDados(projeto);
+        }
+
+        // --- LÓGICA DO MODAL DE NOVA SIMULAÇÃO ---
+        window.openNewSimModal = function() { document.getElementById('new-sim-modal').classList.remove('hidden'); }
+        window.closeNewSimModal = function() { document.getElementById('new-sim-modal').classList.add('hidden'); }
+
+        window.criarNovaSimulacao = async function() {
+            const btn = document.getElementById('btn-create-sim');
+            const originalText = btn.innerText;
+            const endereco = document.getElementById('new-endereco').value;
+            const consumoRaw = document.getElementById('new-consumo').value;
+            const lat = document.getElementById('new-lat').value || "-23.55";
+
+            if(!endereco || !consumoRaw) { alert("Preencha todos os campos."); return; }
+            if(userProposals.length >= 3) { alert("Limite de 3 simulações atingido."); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Calculando...';
+
+            try {
+                const consumoLimpo = parseFloat(consumoRaw.replace(/[^0-9,]/g, '').replace(',', '.'));
+                const dados = calcularEngenhariaPrecisao(consumoLimpo, parseFloat(lat));
+                const nomeProjeto = endereco.split(',')[0].substring(0, 20);
+                
+                const zapAtual = leadData?.perfil?.whatsapp_formatted || "";
+
+                const novoProjeto = {
+                    engenharia: dados.engenharia,
+                    configuracao_sistema: dados.configuracao_sistema,
+                    financeiro: dados.financeiro,
+                    perfil: { whatsapp_formatted: zapAtual }, 
+                    detalhes: { endereco_completo: endereco, nome_projeto: nomeProjeto, consumo_simulado: consumoLimpo },
+                    data_criacao: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: { fase: 'nova_simulacao', desconto_aplicado: false }
+                };
+
+                const docRef = await db.collection("leads").doc(currentUserEmail).collection("simulacoes").add(novoProjeto);
+                const projetoSalvo = { id: docRef.id, ...novoProjeto };
+                
+                userProposals.unshift(projetoSalvo); 
+                closeNewSimModal();
+                document.getElementById('empty-state').classList.add('hidden'); 
+                carregarProjetoNaTela(projetoSalvo);
+                
+            } catch (e) { console.error(e); alert("Erro ao criar simulação."); } 
+            finally { btn.disabled = false; btn.innerText = originalText; }
+        }
+
+        // --- CHAT LOGIC ---
+        function toggleChat() {
+            chatWindow.classList.toggle('open');
+            if (chatWindow.classList.contains('open')) {
+                chatInput.focus();
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            // Adiciona msg do usuário
+            appendMessage('user', text);
+            chatInput.value = '';
+            
+            // Mostra digitando...
+            typingIndicator.style.opacity = 1;
+            
+            // Adiciona ao histórico para a IA
+            chatHistory.push({ role: "user", parts: [{ text: text }] });
+
+            try {
+                const chatFn = functions.httpsCallable('chatProSollar');
+                const result = await chatFn({ message: text, history: chatHistory });
+                
+                const aiResponse = result.data.text;
+                appendMessage('ai', aiResponse);
+                
+                // Adiciona resposta ao histórico
+                chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+
+            } catch (error) {
+                console.error("Erro Chat:", error);
+                appendMessage('ai', "Desculpe, estou processando muitas solicitações. Tente novamente em instantes.");
+            } finally {
+                typingIndicator.style.opacity = 0;
+            }
+        }
+
+        function appendMessage(role, text) {
+            const div = document.createElement('div');
+            div.className = `msg msg-${role}`;
+            // Se for IA, usa markdown parseado, se for user, texto puro
+            div.innerHTML = role === 'ai' ? marked.parse(text) : text;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // --- GOOGLE AUTOCOMPLETE (MODAL) ---
+        window.initAutocomplete = function() {
+            const input = document.getElementById('new-endereco');
+            if(!input) return;
+            const autocomplete = new google.maps.places.Autocomplete(input, { componentRestrictions: { country: "br" }, fields: ["geometry", "formatted_address"], types: ["address"] });
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
                 if (place.geometry) {
-                    document.getElementById('lat').value = place.geometry.location.lat();
-                    document.getElementById('lng').value = place.geometry.location.lng();
+                    document.getElementById('new-lat').value = place.geometry.location.lat();
+                    document.getElementById('new-lng').value = place.geometry.location.lng();
                 }
             });
         };
+
+        // --- RENDER COMPLETO ---
+        function renderizarDados(data) {
+            try {
+                if (!data.financeiro || !data.financeiro.fluxo_caixa_mensal) { alert("Erro de dados."); return; }
+                const engenharia = data.engenharia?.projetado || {};
+                const financeiro = data.financeiro || {};
+                const config = data.configuracao_sistema || {};
+                const detalhes = data.detalhes || {};
+
+                document.getElementById('display-address').innerText = (detalhes.endereco_completo || "Local").split('-')[0];
+                document.getElementById('display-specs').innerText = `${engenharia.potencia_instalada_kwp} kWp • ${engenharia.qtd_modulos}x ${config.modulo?.modelo}`;
+
+                const bruto = financeiro.investimento_bruto || 0;
+                const isDiscount = data.status?.desconto_aplicado || false;
+                if(isDiscount) applyDiscountUI(bruto * 0.95); else removeDiscountUI(bruto);
+
+                const geracaoAno1 = (engenharia.geracao_mensal_media_ano1 || 0) * 12;
+                
+                // Agora usamos a 'economia_reais' que já vem com a trava de 80% do back-end
+                const economiaAno1 = financeiro.fluxo_caixa_mensal.slice(0, 12).reduce((a,b)=>a+b.economia_reais, 0);
+
+                // --- POPULAR COMPARADOR DE FATURA (COM REGRA DE 80% TETO) ---
+                const faturaAtual = detalhes.consumo_simulado || 0;
+                
+                // A 'economiaAno1' já foi calculada respeitando o teto de 80% lá na função calcularEngenharia
+                // Então podemos confiar nela.
+                const mediaEconomiaReal = economiaAno1 / 12;
+                let novaFatura = faturaAtual - mediaEconomiaReal;
+                
+                if (novaFatura < 0) novaFatura = 0; // Segurança visual
+
+                document.getElementById('display-old-bill').innerText = faturaAtual.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('display-new-bill').innerText = novaFatura.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+                document.getElementById('kpi-generation').innerText = Math.round(geracaoAno1) + " kWh";
+                document.getElementById('kpi-economy').innerText = economiaAno1.toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+                document.getElementById('kpi-payback').innerText = (financeiro.payback_anos || 0) + " Anos";
+                document.getElementById('kpi-roi').innerText = (financeiro.economia_total_acumulada || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL', maximumFractionDigits:0});
+
+                if (data.status?.fase === "visita_agendada") {
+                    document.getElementById('action-section').classList.add('hidden');
+                    document.getElementById('status-locked-card').classList.remove('hidden');
+                    document.getElementById('status-text').innerText = "Visita Agendada";
+                    document.getElementById('status-text').className = "text-[10px] font-black uppercase tracking-[0.3em] text-blue-400";
+                    document.getElementById('status-dot').className = "inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse";
+                } else {
+                    document.getElementById('action-section').classList.remove('hidden');
+                    document.getElementById('status-locked-card').classList.add('hidden');
+                    document.getElementById('status-text').innerText = "Projeto Viável";
+                    document.getElementById('status-text').className = "text-[10px] font-black uppercase tracking-[0.3em] text-green-500";
+                    document.getElementById('status-dot').className = "inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse";
+                    if (data.status?.fase === "em_analise_concorrencia") showAnaliseEnviadaUI(); else resetUploadUI();
+                }
+
+                document.getElementById('loading-skeleton').classList.add('hidden');
+                document.getElementById('content-panel').classList.remove('hidden');
+                updateChart();
+            } catch (e) { console.error(e); }
+        }
+
+        // --- SISTEMA DE GRÁFICOS (AJUSTADO PARA LIMPEZA VISUAL) ---
+        window.updateInterestRate = function(val) { currentInterestRate = parseFloat(val); document.getElementById('rate-display').innerText = currentInterestRate.toFixed(2) + "%"; updateChart(); }
+        window.updateLoanTerm = function(val) { currentLoanTerm = parseInt(val); document.getElementById('term-display').innerText = currentLoanTerm + "x"; updateChart(); }
+        
+        window.switchChartMode = function(mode) {
+            currentChartMode = mode;
+            document.getElementById('mode-cash').className = mode === 'cash' ? 'toggle-btn active-green' : 'toggle-btn';
+            document.getElementById('mode-finan').className = mode === 'finan' ? 'toggle-btn active' : 'toggle-btn';
+            const btn1Year = document.getElementById('time-1');
+            const finanControls = document.getElementById('finan-controls');
+            if(mode === 'cash') {
+                document.getElementById('chart-desc').innerText = "Comparativo de Acúmulo de Patrimônio vs CDI (Renda Fixa)";
+                btn1Year.classList.add('hidden-important'); finanControls.classList.add('hidden'); 
+                if(currentTimeRange === 1) window.switchTimeRange(25);
+            } else {
+                document.getElementById('chart-desc').innerText = "Simulador de Financiamento: Economia Mensal (Oscilação Sazonal)";
+                btn1Year.classList.remove('hidden-important'); finanControls.classList.remove('hidden'); 
+            }
+            updateChart();
+        }
+        
+        window.switchTimeRange = function(range) {
+            currentTimeRange = range;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`time-${range}`).classList.add('active');
+            updateChart();
+        }
+
+        function updateChart() {
+            if(!leadData || !leadData.financeiro.fluxo_caixa_mensal) return;
+            const fluxo = leadData.financeiro.fluxo_caixa_mensal; 
+            const precoString = document.getElementById('display-price').innerText;
+            const investimento = parseFloat(precoString.replace(/[R$\s.]/g, '').replace(',', '.'));
+            
+            const ctx = document.getElementById('wealthChart').getContext('2d');
+            const dados = fluxo.slice(0, currentTimeRange * 12);
+            const labels = dados.map(d => d.mes_absoluto); 
+
+            // GRADIENTE
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(34, 197, 94, 0.5)'); 
+            gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+
+            if (currentChartMode === 'cash') {
+                const labelsAnuais = []; const dataSolar = []; const dataCDI = [];
+                labelsAnuais.push("Início"); dataSolar.push(-investimento); dataCDI.push(0);
+                dados.forEach(d => {
+                    if (d.mes_absoluto % 12 === 0) {
+                        labelsAnuais.push("Ano " + d.ano);
+                        
+                        // Cálculo acumulado usando 'economia_reais' (já travada em 80%)
+                        const eco = fluxo.slice(0, d.mes_absoluto).reduce((acc, curr) => acc + curr.economia_reais, 0);
+                        
+                        dataSolar.push(eco - investimento);
+                        dataCDI.push((investimento * Math.pow(1.095, d.ano)) - investimento);
+                    }
+                });
+                if (wealthChart) wealthChart.destroy();
+                wealthChart = new Chart(ctx, { 
+                    type: 'line', 
+                    data: { 
+                        labels: labelsAnuais, 
+                        datasets: [ 
+                            { 
+                                label: 'Patrimônio Solar', 
+                                data: dataSolar, 
+                                borderColor: '#22c55e', 
+                                backgroundColor: gradient, 
+                                borderWidth: 3, 
+                                pointRadius: 0, 
+                                pointHoverRadius: 6, 
+                                fill: true,
+                                tension: 0.4 
+                            }, 
+                            { 
+                                label: 'CDI', 
+                                data: dataCDI, 
+                                borderColor: '#64748b', 
+                                borderDash: [5,5],
+                                pointRadius: 0, 
+                                borderWidth: 2,
+                                tension: 0.4 
+                            } 
+                        ] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false }, 
+                        plugins: { legend: { display: true, labels: {color:'#94a3b8'} } },
+                        scales: { 
+                            y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b' } }, 
+                            x: { grid: {display:false}, ticks: { color:'#64748b' } } 
+                        } 
+                    } 
+                });
+            } else {
+                const prazo = currentLoanTerm; const tx = currentInterestRate/100;
+                const parc = (investimento * tx * Math.pow(1+tx, prazo)) / (Math.pow(1+tx, prazo) - 1);
+                
+                // Usa economia_reais para o gráfico de financiamento também
+                const dataEco = dados.map(d => d.economia_reais);
+                const dataParc = dados.map((d, i) => (i >= 2 && i < prazo+2) ? parc : 0);
+                
+                if (wealthChart) wealthChart.destroy();
+                wealthChart = new Chart(ctx, { 
+                    type: 'line', 
+                    data: { 
+                        labels: labels, 
+                        datasets: [ 
+                            { 
+                                label: 'Economia', 
+                                data: dataEco, 
+                                borderColor: '#22c55e',
+                                backgroundColor: gradient, // APLICADO AQUI TAMBÉM
+                                borderWidth: 2,
+                                pointRadius: 0, 
+                                fill: true, // HABILITADO
+                                tension: 0.4
+                            }, 
+                            { 
+                                label: 'Parcela', 
+                                data: dataParc, 
+                                borderColor: '#3b82f6', 
+                                borderWidth: 2,
+                                pointRadius: 0, 
+                                fill: true,
+                                tension: 0.1
+                            } 
+                        ] 
+                    }, 
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        interaction: { mode: 'index', intersect: false },
+                        scales: { x: { display: false }, y: { grid: {color:'rgba(255,255,255,0.05)'}, ticks: { color:'#64748b' } } } 
+                    } 
+                });
+            }
+        }
+
+        window.toggleDiscount = async function() {
+            if (!currentSimId || !currentUserEmail) return;
+            const btn = document.getElementById('btn-discount');
+            const isActive = btn.classList.contains('active');
+            const bruto = parseFloat(leadData.financeiro.investimento_bruto);
+            if (isNegotiating) window.toggleUpload();
+            
+            // ATENÇÃO: Atualiza na sub-coleção correta
+            const docRef = db.collection("leads").doc(currentUserEmail).collection("simulacoes").doc(currentSimId);
+
+            if (!isActive) {
+                applyDiscountUI(bruto * 0.95);
+                await docRef.update({ "status.desconto_aplicado": true });
+            } else {
+                removeDiscountUI(bruto);
+                await docRef.update({ "status.desconto_aplicado": false });
+            }
+        }
+
+        function applyDiscountUI(val) { document.getElementById('display-price').innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); document.getElementById('display-price').classList.add('text-green-500'); document.getElementById('savings-badge').classList.remove('hidden'); document.getElementById('btn-discount').classList.add('active'); document.getElementById('btn-discount').innerHTML = '<i class="fas fa-check mr-2 text-green-500"></i> Desconto Ativado'; updateChart(); }
+        function removeDiscountUI(val) { document.getElementById('display-price').innerText = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); document.getElementById('display-price').classList.remove('text-green-500'); document.getElementById('savings-badge').classList.add('hidden'); document.getElementById('btn-discount').classList.remove('active'); document.getElementById('btn-discount').innerHTML = '<i class="fas fa-tag mr-2 text-yellow-500"></i> Desconto à Vista'; updateChart(); }
+
+        window.toggleUpload = function() {
+            const uploadBox = document.getElementById('comp-upload');
+            const btnFinal = document.getElementById('btn-final-action');
+            const btnChallenge = document.getElementById('btn-challenge');
+            if (document.getElementById('btn-discount').classList.contains('active')) window.toggleDiscount();
+            uploadBox.classList.toggle('hidden');
+            if (!uploadBox.classList.contains('hidden')) {
+                isNegotiating = true;
+                btnChallenge.classList.add('active'); 
+                btnFinal.className = "btn-negotiate-action w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
+                btnFinal.innerHTML = 'Solicitar Avaliação <i class="fas fa-file-signature text-sm"></i>';
+                btnFinal.onclick = enviarAnaliseComparativa;
+            } else {
+                isNegotiating = false;
+                btnChallenge.classList.remove('active');
+                btnFinal.className = "btn-approve w-full sm:w-auto px-12 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4";
+                btnFinal.innerHTML = 'Aprovar e Agendar Visita <i class="fas fa-calendar-check text-sm"></i>';
+                btnFinal.onclick = () => { if (currentSimId) window.location.href = `checkout.html?email=${encodeURIComponent(currentUserEmail)}&simId=${currentSimId}`; };
+            }
+        }
+
+        function resetUploadUI() { document.getElementById('comp-upload').classList.add('hidden'); document.getElementById('btn-final-action').style.display = 'flex'; document.getElementById('btn-challenge').classList.remove('active'); }
+        window.handleFileSelect = function(input) { if (input.files[0]) { selectedFile = input.files[0]; document.getElementById('upload-text').innerText = "Arquivo: " + selectedFile.name; } }
+        async function enviarAnaliseComparativa() { if (!selectedFile) { alert("Selecione o PDF."); return; } const btn = document.getElementById('btn-final-action'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...'; try { const fileRef = storage.ref().child(`competitors/${currentSimId}/${selectedFile.name}`); await fileRef.put(selectedFile); const docRef = db.collection("leads").doc(currentUserEmail).collection("simulacoes").doc(currentSimId); await docRef.update({ "status.fase": "em_analise_concorrencia", "concorrencia": { nome_arquivo: selectedFile.name } }); showAnaliseEnviadaUI(); } catch (error) { alert("Erro ao enviar."); btn.disabled = false; } }
+        function showAnaliseEnviadaUI() { document.getElementById('comp-upload').innerHTML = `<div class="text-center py-4"><h3 class="text-xl font-bold text-white">Solicitação Enviada!</h3></div>`; document.getElementById('comp-upload').classList.remove('hidden'); document.getElementById('btn-final-action').style.display = 'none'; }
+        window.logout = () => auth.signOut().then(() => window.location.href = "index.html");
+        document.getElementById('btn-final-action').onclick = () => { if (currentSimId) window.location.href = `checkout.html?email=${encodeURIComponent(currentUserEmail)}&simId=${currentSimId}`; };
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJ6SKOgB0TpR9d6XF1WmsRcHVQZG4tjrU&libraries=places&callback=initAutocomplete" async defer></script>
 </body>
