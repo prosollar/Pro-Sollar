@@ -95,10 +95,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
-
     <script>
         console.log("🚀 Script de Checkout Iniciado");
 
@@ -244,7 +240,7 @@
             document.getElementById('checkout-content').classList.remove('hidden');
         }
 
-        // --- DESIGN: DEEP TECH FINAL (Botão Solar CTA) ---
+        // --- DESIGN: DEEP TECH FINAL (Valor Branco Clean + Botão Solar) ---
         function gerarHtmlEmail(dados) {
             
             // URL DO LOGO TRANSPARENTE
@@ -257,7 +253,7 @@
                 bg_email: '#f3f4f6',   
                 card_bg: '#0f172a',    
                 card_border: '#1e293b',
-                text_white: '#f8fafc', 
+                text_white: '#f8fafc', // Clean White
                 text_muted: '#94a3b8', 
                 widget_bg: '#1e293b',  
                 accent_green: '#4ade80', 
@@ -347,7 +343,7 @@
                                                                 <table border="0" cellspacing="0" cellpadding="0" width="100%">
                                                                     <tr>
                                                                         <td class="col-stack" valign="middle" width="45%">
-                                                                            <span style="color: ${c.accent_green}; font-size: 32px; font-weight: 700; letter-spacing: -1px; text-shadow: 0 0 20px rgba(74, 222, 128, 0.2); display: block; margin-bottom: 5px;">${dados.valor}</span>
+                                                                            <span style="color: ${c.text_white}; font-size: 32px; font-weight: 700; letter-spacing: -1px; display: block; margin-bottom: 5px;">${dados.valor}</span>
                                                                         </td>
                                                                         <td class="col-stack" valign="middle" align="right" width="55%">
                                                                             
@@ -470,10 +466,10 @@
                 await db.collection("fila_email").add({
                     to: currentEmail,
                     message: {
-                        subject: `Confirmação de Agendamento - Pro-Sollar`,
+                        subject: "Pro-Sollar - Confirmação de agendamento", // <--- ASSUNTO CORRIGIDO
                         html: htmlContent 
                     },
-                    status: "PENDENTE", // Importante para debug
+                    status: "PENDENTE", 
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
